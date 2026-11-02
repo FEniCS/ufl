@@ -57,14 +57,10 @@ class Interpolate(BaseFormOperator):
                 raise ValueError("Expecting a primal function space.")
             n = 1 if expr_arg_numbers == {0} else 0
             v = Argument(v.dual(), n)
-            dual_arg_numbers = {n}
-        elif isinstance(v, Coargument | Cofunction):
-            dual_arg_numbers = {arg.number() for arg in v.arguments()[1:]}
-        elif isinstance(v, BaseForm):
-            # BaseFormOperator renumbers the free arguments of a form around expr.
-            dual_arg_numbers = set()
-        else:
+        elif not isinstance(v, BaseForm):
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
+        contracted, free = _split_dual_slot_arguments(v, expr_args)
+        dual_arg_numbers = {arg.number() for arg in free}
 
         # Check valid argument numbering
         if expr_arg_numbers & dual_arg_numbers:
@@ -73,7 +69,6 @@ class Interpolate(BaseFormOperator):
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        contracted, _ = _split_dual_slot_arguments(v)
         function_space = contracted.ufl_function_space()
         self._function_space = function_space
 

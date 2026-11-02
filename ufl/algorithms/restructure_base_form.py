@@ -14,10 +14,11 @@ from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
 from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.compute_form_data import preprocess_form
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
-from ufl.argument import Coargument
+from ufl.argument import Argument, Coargument
 from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
@@ -161,18 +162,18 @@ class BaseFormRestructurer(BaseFormTraversal):
             # A base form operator is linear in its dual slot:
             # N(u; A) -> Action(A, N(u; v*)). Like the dual slot, the Action
             # contracts the highest-numbered argument of A, with the lowest of N(u; v*).
-            contracted, free = _split_dual_slot_arguments(dual)
-            primal_numbers = {a.number() for a in o.arguments() if a not in free}
+            slot_args = [
+                a for slot in slots for a in extract_type(slot, Argument, base_form_op_as_expr=True)
+            ]
+            contracted, _ = _split_dual_slot_arguments(dual, slot_args)
+            slot_numbers = {a.number() for a in slot_args}
             space = contracted.ufl_function_space().dual()
-            if 0 in primal_numbers:
-                # v* cannot be the lowest argument of N(u; v*), but the free
-                # arguments of A avoid the primal numbers, so the contracted
-                # argument can be the lowest of A instead:
-                # N(u; A) -> Action(N(u; v*), A'), where v* is numbered last.
-                vstar = contracted.reconstruct(function_space=space, number=1 + max(primal_numbers))
+            if 0 in slot_numbers:
+                # v* is numbered last and the contracted argument is the lowest of A:
+                # N(u; A) -> Action(N(u; v*), A).
+                vstar = contracted.reconstruct(function_space=space, number=1 + max(slot_numbers))
                 left = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
-                lowest = replace(dual, {contracted: contracted.reconstruct(number=0)})
-                return self(Action(left, lowest))
+                return self(Action(left, dual))
             vstar = contracted.reconstruct(function_space=space, number=0)
             right = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
             return self(Action(dual, right))

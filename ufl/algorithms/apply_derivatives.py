@@ -1881,11 +1881,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
 
         vstar, *slots = N.argument_slots()
         # The Action contracts the last argument of N, so number vhat after the others.
-        number = 1 + max(
-            (a.number() for slot in slots for a in extract_type(slot, Argument, True)),
-            default=-1,
-        )
-        contracted, _ = _split_dual_slot_arguments(vstar)
+        slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
+        number = 1 + max((a.number() for a in slot_args), default=-1)
+        contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
         vhat = contracted.reconstruct(
             function_space=contracted.ufl_function_space().dual(), number=number
         )

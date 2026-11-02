@@ -243,7 +243,6 @@ def test_form_dual_slot_contracts_highest_numbered_argument(V1, V2, V3):
 
     interpolation = Interpolate(u, dual_slot)
 
-    assert interpolation.ufl_element() == V2.ufl_element()
     assert interpolation.arguments() == (Argument(V3, 0),)
 
 
@@ -255,14 +254,12 @@ def test_form_dual_slot_contraction_ignores_numbering_gaps(V1, V2, free, contrac
 
     interpolation = Interpolate(u, dual_slot)
 
-    v, w = Argument(V2, 0), Argument(V2, 1)
-    assert interpolation.argument_slots()[0] == w.dx(0) * v * dx
-    assert interpolation.arguments() == (v,)
+    assert interpolation.argument_slots()[0] == dual_slot
+    assert interpolation.arguments() == (Argument(V2, free),)
 
 
-def test_form_dual_slot_renumbering_keeps_contracted_arguments(V1, V2):
-    # The inner Actions contract Argument(V2, 0), so the slot cannot renumber
-    # its own argument Argument(V2, 1) to 0.
+def test_form_dual_slot_with_inner_action(V1, V2):
+    # The inner Actions contract Argument(V2, 0), which is not an argument of the slot.
     w = Coefficient(V1)
     inner_action = Action(w, Interpolate(Argument(V1, 0), Coargument(V2.dual(), 1)))
     dual_slot = Action(inner_action, Argument(V2, 1) * Argument(V2, 0) * dx)
@@ -295,36 +292,49 @@ def test_form_dual_slot_arguments_are_replaceable(V1, V2, V3, V4):
     assert replaced == Interpolate(u, inner(TrialFunction(V2), w) * dx)
 
 
-def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
-    u = Argument(V1, 0)
-    dual_slot = inner(TrialFunction(V2), TestFunction(V3)) * dx
+def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3):
+    v = TestFunction(V1)
+    A = inner(TrialFunction(V3), TestFunction(V2)) * dx
 
-    interpolation = Interpolate(u, dual_slot)
+    interpolation = Interpolate(v, A)
+    composition = Action(Interpolate(v, Argument(V2.dual(), 1)), A)
 
-    assert interpolation.arguments() == (u, Argument(V3, 1))
+    assert interpolation.arguments() == composition.arguments() == (v, Argument(V3, 1))
 
-    # v* cannot be numbered below u, so the contracted argument is numbered first instead.
+    # v* is numbered after v, so N is the left operand of the Action.
     restructured = restructure_base_form(interpolation)
-    assert restructured == Action(
-        Interpolate(u, Argument(V2.dual(), 1)),
-        inner(Argument(V2, 0), Argument(V3, 1)) * dx,
-    )
+    assert restructured == composition
     assert restructured.arguments() == interpolation.arguments()
 
 
-def test_form_dual_slot_contracted_argument_stays_distinct(V1, V2, V4):
-    u = Argument(V1, 0)
+def test_form_dual_slot_free_argument_with_expression_number_raises(V1, V2):
+    u = Argument(V1, 1)
+    dual_slot = Argument(V2, 0) * Argument(V2, 1) * Argument(V2, 2) * dx
+
+    with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
+        Interpolate(u, dual_slot)
+
+
+def test_form_dual_slot_contracted_argument_can_share_expression_number(V1, V2):
+    u = Argument(V1, 1)
     dual_slot = inner(Argument(V2, 1), Argument(V2, 0)) * dx
+
     interpolation = Interpolate(u, dual_slot)
-    w = Argument(V4, 1)
 
-    # The free argument moves to 1, so the contracted one moves to 2.
-    assert interpolation.arguments() == (u, Argument(V2, 1))
-    assert interpolation.argument_slots()[0] == inner(Argument(V2, 2), Argument(V2, 1)) * dx
+    assert interpolation.arguments() == (Argument(V2, 0), u)
 
-    replaced = replace(interpolation, {Argument(V2, 1): w})
 
-    assert replaced.argument_slots()[0] == inner(Argument(V2, 2), w) * dx
+def test_form_dual_slot_with_deep_shared_integrand(V1, V2):
+    # Each level reuses the previous one twice. A traversal that restarts at every
+    # node takes time exponential in the depth.
+    u = Coefficient(V1)
+    w = Coefficient(V2)
+    e = w
+    for _ in range(30):
+        e = exp(e) + e * w
+    dual_slot = e * TestFunction(V2) * dx
+
+    assert Interpolate(u, dual_slot).arguments() == ()
 
 
 def test_derivative_direction_with_same_argument_number_raises(V1, V2, V3):
