@@ -1093,3 +1093,24 @@ def test_second_derivative_dual_slot_with_directions_numbered_from_zero(V1, V2):
 
     ddN = expand_derivatives(derivative(derivative(N, u, v0), u, v1))
     assert ddN.arguments() == (v0, v1)
+
+
+def test_derivative_default_direction_skips_contracted_argument(V1, V2):
+    u = Coefficient(V1)
+    N = Interpolate(u**2, inner(u, TestFunction(V2)) * dx)
+
+    dN = expand_derivatives(derivative(N, u))
+    assert [a.number() for a in dN.arguments()] == [0]
+    assert all([a.number() for a in component.arguments()] == [0] for component in dN.components())
+
+    ddN = expand_derivatives(derivative(derivative(N, u), u))
+    assert [a.number() for a in ddN.arguments()] == [0, 1]
+
+
+def test_derivative_default_direction_after_free_argument(V1, V2):
+    u = Coefficient(V1)
+    Iu = Interpolate(u, V2)
+    assert [a.number() for a in Iu.arguments()] == [0]
+
+    dIu = expand_derivatives(derivative(Iu, u))
+    assert [a.number() for a in dIu.arguments()] == [0, 1]
