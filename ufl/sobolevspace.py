@@ -154,6 +154,8 @@ class DirectionalSobolevSpace(SobolevSpace):
 
         if other in [HDiv, HCurl]:
             return all(self._orders[i] >= 1 for i in self._spatial_indices)
+        elif other == HGradCurl:
+            return all(self._orders[i] >= 2 for i in self._spatial_indices)
         elif other.name in ["HDivDiv", "HEin", "HCurlDiv"]:
             # Don't know how these spaces compare
             return NotImplementedError(f"Don't know how to compare with {other.name}")
@@ -169,8 +171,9 @@ L2 = SobolevSpace("L2")
 HDiv = SobolevSpace("HDiv", [L2])
 HCurl = SobolevSpace("HCurl", [L2])
 H1 = SobolevSpace("H1", [HCurl, HDiv, L2])
+HGradCurl = SobolevSpace("HGradCurl", [HCurl])
 H1Div = SobolevSpace("H1Div", [H1])
-H1Curl = SobolevSpace("H1Curl", [H1])
+H1Curl = SobolevSpace("H1Curl", [H1, HGradCurl])
 H2 = SobolevSpace("H2", [H1Curl, H1Div, H1])
 H3 = SobolevSpace("H3", [H2])
 HInf = SobolevSpace("HInf", [H3])
