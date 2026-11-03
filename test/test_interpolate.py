@@ -1114,3 +1114,25 @@ def test_derivative_default_direction_after_free_argument(V1, V2):
 
     dIu = expand_derivatives(derivative(Iu, u))
     assert [a.number() for a in dIu.arguments()] == [0, 1]
+
+
+def test_derivative_of_form_sum_drops_vanishing_component(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    F = action(Action(inner(TrialFunction(V2), v) * dx, Interpolate(TrialFunction(V1), V2)), u)
+    L = v * dx
+
+    J = expand_derivatives(derivative(F - L, u))
+    assert not isinstance(J, FormSum)
+    assert J.arguments() == (v, Argument(V1, 1))
+    assert J == expand_derivatives(derivative(F, u))
+
+
+def test_derivative_of_form_sum_keeps_arguments_when_all_components_vanish(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    w = Cofunction(V1.dual())
+
+    J = expand_derivatives(derivative(v * dx + w, u))
+    assert isinstance(J, ZeroBaseForm)
+    assert J.arguments() == (v, Argument(V1, 1))
