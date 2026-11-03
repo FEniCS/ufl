@@ -2093,6 +2093,17 @@ class DerivativeRuleDispatcher(DAGTraverser):
         return op
 
 
+def _apply_derivative_rules(
+    rules: DerivativeRuleDispatcher, expression: Expr | BaseForm
+) -> Expr | BaseForm:
+    """Apply derivative rules, and keep the arguments of a form that vanishes."""
+    dexpression = map_integrands(rules, expression)
+    if isinstance(expression, BaseForm) and not expression.empty():
+        if isinstance(dexpression, Form) and dexpression.empty():
+            return ZeroBaseForm(expression.arguments())
+    return dexpression
+
+
 def apply_derivatives(expression):
     """Apply derivatives to an expression.
 
@@ -2102,7 +2113,7 @@ def apply_derivatives(expression):
     Returns:
         A differentiated expression
     """
-    return map_integrands(DerivativeRuleDispatcher(), expression)
+    return _apply_derivative_rules(DerivativeRuleDispatcher(), expression)
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
@@ -2348,4 +2359,6 @@ def apply_coefficient_derivatives(expression: Expr | BaseForm) -> Expr | BaseFor
         and issubclass(cls, Derivative)
         and (not issubclass(cls, CoefficientDerivative) or issubclass(cls, CoordinateDerivative))
     )
-    return map_integrands(DerivativeRuleDispatcher(preserve_types=preserve_types), expression)
+    return _apply_derivative_rules(
+        DerivativeRuleDispatcher(preserve_types=preserve_types), expression
+    )

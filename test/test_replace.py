@@ -5,6 +5,8 @@ from ufl import (
     Coefficient,
     FunctionSpace,
     Mesh,
+    TestFunction,
+    TrialFunction,
     as_vector,
     derivative,
     div,
@@ -65,3 +67,12 @@ def test_replace_derivative_preserves_divergence():
     result = replace(derivative(F, u, h), {u: unew})
 
     assert result == 2 * div(h) * div(unew) * dx
+
+
+def test_replace_keeps_arguments_of_a_vanishing_derivative():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u, w = Coefficient(V), Coefficient(V)
+    v, du = TestFunction(V), TrialFunction(V)
+    J = derivative(u * v * dx, w, du)
+    assert replace(J, {u: 2 * w}).arguments() == (v, du)
