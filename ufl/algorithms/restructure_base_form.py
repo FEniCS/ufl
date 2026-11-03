@@ -14,12 +14,12 @@ from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
 from ufl.algorithms.ad import expand_derivatives
-from ufl.algorithms.analysis import extract_type
+from ufl.algorithms.apply_derivatives import dual_slot_action
 from ufl.algorithms.compute_form_data import preprocess_form
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
-from ufl.argument import Argument, Coargument
-from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
+from ufl.argument import Coargument
+from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, Form, FormSum
@@ -159,24 +159,8 @@ class BaseFormRestructurer(BaseFormTraversal):
 
         dual = self(v)
         if len(dual.arguments()) > 1:
-            # A base form operator is linear in its dual slot:
-            # N(u; A) -> Action(A, N(u; v*)). Like the dual slot, the Action
-            # contracts the highest-numbered argument of A, with the lowest of N(u; v*).
-            slot_args = [
-                a for slot in slots for a in extract_type(slot, Argument, base_form_op_as_expr=True)
-            ]
-            contracted, _ = _split_dual_slot_arguments(dual, slot_args)
-            slot_numbers = {a.number() for a in slot_args}
-            space = contracted.ufl_function_space().dual()
-            if 0 in slot_numbers:
-                # v* is numbered last and the contracted argument is the lowest of A:
-                # N(u; A) -> Action(N(u; v*), A).
-                vstar = contracted.reconstruct(function_space=space, number=1 + max(slot_numbers))
-                left = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
-                return self(Action(left, dual))
-            vstar = contracted.reconstruct(function_space=space, number=0)
-            right = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vstar, *slots))
-            return self(Action(dual, right))
+            # A base form operator is linear in its dual slot, so it splits into an Action.
+            return self(dual_slot_action(o, dual))
         if isinstance(dual, Form) and dual.arguments()[0].number() != 0:
             # The contracted argument of a one-form is bound in the dual slot, so its
             # number is free. Forms are assembled with arguments numbered from zero.

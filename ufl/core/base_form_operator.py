@@ -33,16 +33,17 @@ __all__ = ["BaseFormOperator"]
 def _split_dual_slot_arguments(dual_arg, slot_args):
     """Return the contracted argument and the free arguments of a dual slot.
 
-    An operator whose primal slots use number 0 numbers its output last, so it is
-    the left operand of an Action and contracts the lowest-numbered primal argument
-    of the slot. Otherwise the slot is the left operand and contracts its highest.
-    The other arguments stay free.
+    If both the primal slots and the slot use number 0, the output replaces Argument 0
+    of the slot, so the operator is the left operand of an Action. Otherwise the slot
+    is the left operand and contracts its highest-numbered primal argument. The other
+    arguments stay free.
     """
     arguments = dual_arg.arguments()
     form_arguments = [a for a in arguments if not isinstance(a, Coargument)]
     if not form_arguments:
         return None, arguments
-    contracted = form_arguments[0 if any(a.number() == 0 for a in slot_args) else -1]
+    zero_in_both = form_arguments[0].number() == 0 and any(a.number() == 0 for a in slot_args)
+    contracted = form_arguments[0 if zero_in_both else -1]
     return contracted, tuple(a for a in arguments if a != contracted)
 
 
@@ -55,8 +56,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     which hold the directions of differentiation.
 
     With a Form ``A`` in the dual slot, ``N(u; A)`` is ``A`` composed with ``N``, which
-    is an Action: ``Action(N, A)`` if the primal slots of ``N`` contain the Argument
-    numbered 0, otherwise ``Action(A, N)``.
+    is an Action: ``Action(N, A)`` if the primal slots of ``N`` and ``A`` both contain
+    an Argument numbered 0, otherwise ``Action(A, N)``.
 
     For a 2-form ``A(v_0, v_1)``, with Arguments numbered 0 and 1:
 
@@ -105,8 +106,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                   contracts the output to the number ``<c, N(u)>``.
                 - A Form with an Argument on ``function_space``. The output
                   takes the place of that Argument, as in an Action. If the
-                  primal slots use number 0, that is the lowest-numbered
-                  Argument, as in ``Action(N(u), F)``. Otherwise it is the
+                  primal slots and the form both use number 0, that is Argument
+                  0, as in ``Action(N(u), F)``. Otherwise it is the
                   highest-numbered one, as in ``Action(F, N(u))``. The other
                   Arguments of the form stay free.
 

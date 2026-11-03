@@ -315,6 +315,57 @@ def test_form_dual_slot_free_argument_with_expression_number_raises(V1, V2):
         Interpolate(u, dual_slot)
 
 
+def test_derivative_in_argument_0_keeps_the_contracted_argument(V1, V2, V3, V4):
+    u = Coefficient(V4)
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    derivative_form = expand_derivatives(derivative(Interpolate(u, dual_slot), u, w))
+
+    # D_u[w] I(u, F) = I(w, F): the output stays in V3, so V3 stays contracted.
+    assert derivative_form == Interpolate(w, dual_slot)
+    assert derivative_form.argument_slots()[0] == dual_slot
+    assert derivative_form.arguments() == (w, free)
+
+
+def test_argument_0_contracts_the_highest_argument_of_a_form_without_argument_0(V1, V2, V3):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    assert Interpolate(w, dual_slot).arguments() == (w, free)
+
+
+def test_restructure_keeps_the_arguments_of_a_form_without_argument_0(V1, V2, V3):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    restructured = restructure_base_form(Interpolate(w, dual_slot))
+
+    assert restructured.arguments() == (w, free)
+
+
+@pytest.mark.parametrize(
+    "primal_number, free_number, contracted_number, direction_number",
+    [(0, 1, 2, 3), (None, 0, 1, 2), (1, 0, 1, 2)],
+)
+def test_derivative_through_a_form_dual_slot_keeps_the_contracted_argument(
+    V1, V2, V3, V4, primal_number, free_number, contracted_number, direction_number
+):
+    g = Coefficient(V4)
+    direction = Argument(V4, direction_number)
+    free = Argument(V2, free_number)
+    primal = Coefficient(V1) if primal_number is None else Argument(V1, primal_number)
+    dual_slot = g * inner(Argument(V3, contracted_number), free) * dx
+
+    derivative_form = expand_derivatives(derivative(Interpolate(primal, dual_slot), g, direction))
+
+    expected = {free, direction} | ({primal} if primal_number is not None else set())
+    assert set(derivative_form.arguments()) == expected
+
+
 def test_form_dual_slot_contracted_argument_can_share_expression_number(V1, V2):
     u = Argument(V1, 1)
     dual_slot = inner(Argument(V2, 1), Argument(V2, 0)) * dx
