@@ -290,7 +290,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
         # Get existing arguments from form and position the new one
         # with the next argument number
-        if isinstance(form, Form):
+        if isinstance(form, BaseForm):
             form_arguments = form.arguments()
         else:
             # To handle derivative(expression), which is at least used

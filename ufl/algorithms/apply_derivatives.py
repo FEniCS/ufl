@@ -1897,8 +1897,19 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         if dN_dN != 0:
             # Differentiation with respect to N itself.
             return dN_dN
-        vstar, *_ = N.argument_slots()
-        return self._expression_rules(N) + dual_slot_action(N, self(vstar))
+        vstar, *slots = N.argument_slots()
+        slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
+        contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
+        direction_numbers = [a.number() for a in self._direction_arguments]
+        N_after_v = N
+        if contracted is not None and contracted.number() in direction_numbers:
+            # Number the contracted argument of vstar after the direction, so that
+            # Dv* can hold both of them.
+            numbers = [a.number() for a in vstar.arguments()] + direction_numbers
+            contracted_after_v = contracted.reconstruct(number=1 + max(numbers))
+            vstar = replace(vstar, {contracted: contracted_after_v})
+            N_after_v = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *slots))
+        return self._expression_rules(N) + dual_slot_action(N_after_v, self(vstar))
 
 
 def dual_slot_action(N: BaseFormOperator, A: BaseForm) -> Action:

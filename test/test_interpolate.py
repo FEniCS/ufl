@@ -1063,3 +1063,76 @@ def test_interpolate_formsum(V1, V2):
     V2_cofunc = Interpolate(Argument(V2, 0), V1_sum)  # Cofunction in V2^*
     assert V2_cofunc.arguments() == (Argument(V2, 0),)
     assert V2_cofunc.ufl_function_space() == V2.dual()
+
+
+def test_equal_derivatives_of_equal_forms_with_interpolate(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    F1 = inner(Interpolate(u, V2), v) * dx
+    F2 = inner(Interpolate(u, V2), v) * dx
+    assert F1 is not F2
+
+    assert bool(derivative(F1, u) == derivative(F2, u))
+    assert not bool(derivative(F1, u) == derivative(2 * F2, u))
+
+
+@pytest.mark.parametrize("number", [0, 5])
+def test_derivative_dual_slot_with_direction_numbered_zero(V1, V2, number):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N = Interpolate(u**2, inner(u, Argument(V2, number)) * dx)
+
+    dN = expand_derivatives(derivative(N, u, v))
+    assert dN.arguments() == (v,)
+
+
+def test_second_derivative_dual_slot_with_directions_numbered_from_zero(V1, V2):
+    u = Coefficient(V1)
+    N = Interpolate(u**2, inner(u, TestFunction(V2)) * dx)
+    v0, v1 = Argument(V1, 0), Argument(V1, 1)
+
+    ddN = expand_derivatives(derivative(derivative(N, u, v0), u, v1))
+    assert ddN.arguments() == (v0, v1)
+
+
+def test_derivative_default_direction_skips_contracted_argument(V1, V2):
+    u = Coefficient(V1)
+    N = Interpolate(u**2, inner(u, TestFunction(V2)) * dx)
+
+    dN = expand_derivatives(derivative(N, u))
+    assert [a.number() for a in dN.arguments()] == [0]
+    assert all([a.number() for a in component.arguments()] == [0] for component in dN.components())
+
+    ddN = expand_derivatives(derivative(derivative(N, u), u))
+    assert [a.number() for a in ddN.arguments()] == [0, 1]
+
+
+def test_derivative_default_direction_after_free_argument(V1, V2):
+    u = Coefficient(V1)
+    Iu = Interpolate(u, V2)
+    assert [a.number() for a in Iu.arguments()] == [0]
+
+    dIu = expand_derivatives(derivative(Iu, u))
+    assert [a.number() for a in dIu.arguments()] == [0, 1]
+
+
+def test_derivative_of_form_sum_drops_vanishing_component(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    F = action(Action(inner(TrialFunction(V2), v) * dx, Interpolate(TrialFunction(V1), V2)), u)
+    L = v * dx
+
+    J = expand_derivatives(derivative(F - L, u))
+    assert not isinstance(J, FormSum)
+    assert J.arguments() == (v, Argument(V1, 1))
+    assert J == expand_derivatives(derivative(F, u))
+
+
+def test_derivative_of_form_sum_keeps_arguments_when_all_components_vanish(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    w = Cofunction(V1.dual())
+
+    J = expand_derivatives(derivative(v * dx + w, u))
+    assert isinstance(J, ZeroBaseForm)
+    assert J.arguments() == (v, Argument(V1, 1))
