@@ -1074,3 +1074,22 @@ def test_equal_derivatives_of_equal_forms_with_interpolate(V1, V2):
 
     assert bool(derivative(F1, u) == derivative(F2, u))
     assert not bool(derivative(F1, u) == derivative(2 * F2, u))
+
+
+@pytest.mark.parametrize("number", [0, 5])
+def test_derivative_dual_slot_with_direction_numbered_zero(V1, V2, number):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    N = Interpolate(u**2, inner(u, Argument(V2, number)) * dx)
+
+    dN = expand_derivatives(derivative(N, u, v))
+    assert dN.arguments() == (v,)
+
+
+def test_second_derivative_dual_slot_with_directions_numbered_from_zero(V1, V2):
+    u = Coefficient(V1)
+    N = Interpolate(u**2, inner(u, TestFunction(V2)) * dx)
+    v0, v1 = Argument(V1, 0), Argument(V1, 1)
+
+    ddN = expand_derivatives(derivative(derivative(N, u, v0), u, v1))
+    assert ddN.arguments() == (v0, v1)
