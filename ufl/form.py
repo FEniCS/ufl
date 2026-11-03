@@ -281,7 +281,9 @@ class Form(BaseForm):
     )
 
     # The integrals of a Form are mapped by map_integrands, not as operands.
+    # Thus a Form is a leaf of the DAG of a BaseForm that contains it.
     ufl_operands = ()
+    _ufl_is_terminal_ = True
 
     def __init__(self, integrals: list[Integral]):
         """Initialise."""

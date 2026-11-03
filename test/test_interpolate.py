@@ -1063,3 +1063,14 @@ def test_interpolate_formsum(V1, V2):
     V2_cofunc = Interpolate(Argument(V2, 0), V1_sum)  # Cofunction in V2^*
     assert V2_cofunc.arguments() == (Argument(V2, 0),)
     assert V2_cofunc.ufl_function_space() == V2.dual()
+
+
+def test_equal_derivatives_of_equal_forms_with_interpolate(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    F1 = inner(Interpolate(u, V2), v) * dx
+    F2 = inner(Interpolate(u, V2), v) * dx
+    assert F1 is not F2
+
+    assert bool(derivative(F1, u) == derivative(F2, u))
+    assert not bool(derivative(F1, u) == derivative(2 * F2, u))
