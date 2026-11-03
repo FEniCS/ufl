@@ -21,6 +21,7 @@ from ufl import (
     adjoint,
     cos,
     derivative,
+    div,
     ds,
     dx,
     grad,
@@ -30,6 +31,7 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
+from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.renumbering import renumber_indices
@@ -39,8 +41,8 @@ from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative, Derivative
-from ufl.form import BaseForm, ZeroBaseForm
+from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative, Derivative, Div
+from ufl.form import BaseForm, Form, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -609,22 +611,22 @@ def test_replace_base_form_operator(V1):
     assert r == M * v + Iw * v
 
 
-def test_replace_base_form_derivative(V1):
+@pytest.mark.parametrize("image", ["coefficient", "expression", "operator"])
+def test_replace_base_form_derivative(V1, image):
     u = Coefficient(V1)
     w = Coefficient(V1)
     v = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
-    dJ = derivative(Action(N * u * v * dx, u), u)
+    dJ = derivative(N * u * v * dx, u)
     assert isinstance(dJ, BaseFormDerivative)
 
-    # The derivative is not applied, and the replacement is applied to the
-    # differentiation variable as well as to the base form.
-    Nw = ExternalOperator(w, function_space=V1)
-    expected = derivative(Action(Nw * w * v * dx, w), w)
-    result = replace(dJ, {u: w})
-    assert isinstance(result, BaseFormDerivative)
-    assert result.ufl_operands == expected.ufl_operands
-    assert expand_derivatives(result) == expand_derivatives(expected)
+    images = {
+        "coefficient": w,
+        "expression": 2 * w,
+        "operator": ExternalOperator(w, function_space=V1),
+    }
+    mapping = {u: images[image]}
+    assert replace(dJ, mapping) == replace(expand_derivatives(dJ), mapping)
 
 
 def test_replace_base_form_derivative_aliasing(V1):
@@ -634,10 +636,21 @@ def test_replace_base_form_derivative_aliasing(V1):
     N = ExternalOperator(u, function_space=V1)
     dJ = derivative(Action(N * w * v * dx, u), u)
 
-    # Mapping the differentiation variable to another coefficient of the
-    # form does not commute with the derivative.
-    with pytest.raises(ValueError, match="Derivatives should be applied"):
-        replace(dJ, {u: w})
+    # The differentiation variable maps to another coefficient of the form,
+    # and only the first of the two is differentiated.
+    assert replace(dJ, {u: w}) == replace(expand_derivatives(dJ), {u: w})
+
+
+def test_replace_base_form_derivative_preserves_spatial_derivatives(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dJ = derivative(N * div(grad(u)) * v * dx, u)
+
+    forms = [c for c in replace(dJ, {u: w}).components() if isinstance(c, Form)]
+    assert forms
+    assert all(has_exact_type(form, Div) for form in forms)
 
 
 def test_adjoint_derivative(V1, V2):
