@@ -34,7 +34,7 @@ from ufl.conditional import (
 )
 from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl
 from ufl.differentiation import Curl, Div, Grad, NablaDiv, NablaGrad, VariableDerivative
-from ufl.domain import extract_domains
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.form import Form
 from ufl.geometry import FacetNormal, SpatialCoordinate
 from ufl.indexed import Indexed
@@ -772,7 +772,7 @@ def exterior_derivative(f):
         except Exception:
             raise ValueError(f"Unable to determine element from {f}")
 
-    domain = f.ufl_domain()
+    domain = extract_unique_domain(f)
 
     gdim = domain.geometric_dimension
     space = element.sobolev_space
@@ -783,7 +783,7 @@ def exterior_derivative(f):
         if gdim == 1:
             return grad(f)[0]  # Special-case 1D vectors as scalars
         return grad(f)
-    elif space == sobolevspace.HCurl:
+    elif space in (sobolevspace.HCurl, sobolevspace.HGradCurl):
         return curl(f)
     elif space == sobolevspace.HDiv:
         return div(f)

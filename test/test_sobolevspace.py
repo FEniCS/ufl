@@ -5,7 +5,23 @@ from math import inf
 
 from utils import FiniteElement, LagrangeElement
 
-from ufl import H1, H2, L2, H1Curl, HCurl, HDiv, HGradCurl, HInf, tetrahedron, triangle
+from ufl import (
+    H1,
+    H2,
+    L2,
+    Coefficient,
+    FunctionSpace,
+    H1Curl,
+    HCurl,
+    HDiv,
+    HGradCurl,
+    HInf,
+    Mesh,
+    curl,
+    exterior_derivative,
+    tetrahedron,
+    triangle,
+)
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import (
     DirectionalSobolevSpace,
@@ -183,3 +199,11 @@ def test_contains_hgradcurl():
     assert element not in HDiv
     assert element not in H1Curl
     assert element not in H1dx1dy
+
+
+def test_exterior_derivative_hgradcurl():
+    # H1 -> H(grad curl) -> H1 -> L2: the exterior derivative on H(grad curl) is the curl.
+    mesh = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    element = FiniteElement("HZZ", tetrahedron, 1, (3,), covariant_piola, HGradCurl)
+    u = Coefficient(FunctionSpace(mesh, element))
+    assert exterior_derivative(u) == curl(u)
