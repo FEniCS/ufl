@@ -5,7 +5,27 @@ from math import inf
 
 from utils import FiniteElement, LagrangeElement
 
-from ufl import H1, H2, L2, HCurl, HDiv, HInf, triangle
+from ufl import (
+    H1,
+    H2,
+    L2,
+    Coefficient,
+    FunctionSpace,
+    H1Curl,
+    H1Div,
+    HCurl,
+    HDiv,
+    HGradCurl,
+    HInf,
+    Mesh,
+    curl,
+    div,
+    exterior_derivative,
+    grad,
+    tetrahedron,
+    triangle,
+    zero,
+)
 from ufl.pullback import contravariant_piola, covariant_piola, identity_pullback
 from ufl.sobolevspace import (
     DirectionalSobolevSpace,
@@ -35,6 +55,16 @@ def test_inclusion():
     assert H2 < L2  # Transitivity
     assert H1 > H2
     assert L2 > H1
+
+
+def test_hgradcurl_inclusion():
+    assert H1Curl < HGradCurl < HCurl < L2
+    assert H2 < HGradCurl
+    assert not H1 <= HGradCurl
+    assert not HGradCurl <= H1
+    assert not HDiv <= HGradCurl
+    assert H2dx2dy <= HGradCurl
+    assert not H1dx1dy <= HGradCurl
 
 
 def test_directional_space_relations():
@@ -162,3 +192,47 @@ def test_contains_hcurl():
         assert hcurl_element not in HDiv
         assert hcurl_element not in H2
         assert hcurl_element not in H2dx2dy
+
+
+def test_contains_hgradcurl():
+    element = FiniteElement("HZZ", tetrahedron, 1, (3,), covariant_piola, HGradCurl)
+    assert element in HGradCurl
+    assert element in HCurl
+    assert element in L2
+    assert element not in H1
+    assert element not in HDiv
+    assert element not in H1Curl
+    assert element not in H1dx1dy
+
+
+def test_exterior_derivative_hgradcurl():
+    # H1 -> H(grad curl) -> H1 -> L2: the exterior derivative on H(grad curl) is the curl.
+    mesh = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    element = FiniteElement("HZZ", tetrahedron, 1, (3,), covariant_piola, HGradCurl)
+    u = Coefficient(FunctionSpace(mesh, element))
+    assert exterior_derivative(u) == curl(u)
+
+
+def test_exterior_derivative_smooth_spaces():
+    # H2 -> H1(curl) -> H1 -> L2 and the H1(div) spaces use the operator of their complex.
+    mesh = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+
+    def coefficient(shape, pullback, space):
+        element = FiniteElement("X", tetrahedron, 1, shape, pullback, space)
+        return Coefficient(FunctionSpace(mesh, element))
+
+    u = coefficient((), identity_pullback, H2)
+    assert exterior_derivative(u) == grad(u)
+    u = coefficient((3,), covariant_piola, H1Curl)
+    assert exterior_derivative(u) == curl(u)
+    u = coefficient((3,), contravariant_piola, H1Div)
+    assert exterior_derivative(u) == div(u)
+
+
+def test_exterior_derivative_l2():
+    # L2 ends the complex, so the exterior derivative vanishes and keeps the shape of the argument.
+    mesh = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    for shape in [(), (3,)]:
+        element = FiniteElement("DG", tetrahedron, 0, shape, identity_pullback, L2)
+        u = Coefficient(FunctionSpace(mesh, element))
+        assert exterior_derivative(u) == zero(shape)

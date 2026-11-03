@@ -158,7 +158,6 @@ def test_form_dual_slot_argument_is_contracted(V1, V2):
     operator = ExternalOperator(u, function_space=V2, argument_slots=(dual_slot,))
 
     assert operator.arguments() == ()
-    assert operator.ufl_element() == V2.ufl_element()
 
     with pytest.raises(ValueError, match="contracted argument"):
         ExternalOperator(u, function_space=V1, argument_slots=(dual_slot,))
@@ -166,6 +165,53 @@ def test_form_dual_slot_argument_is_contracted(V1, V2):
     cofunction = Cofunction(V2.dual())
     with pytest.raises(ValueError, match="contracted argument"):
         ExternalOperator(u, function_space=V1, argument_slots=(cofunction,))
+
+
+def test_derivative_in_argument_0_keeps_the_contracted_argument(V1, V2, V3, V4):
+    u = Coefficient(V4)
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+    N = ExternalOperator(u, function_space=V3, argument_slots=(dual_slot,))
+
+    derivative_form = expand_derivatives(derivative(N, u, w))
+
+    # The output of N stays in V3, so V3 stays contracted.
+    assert derivative_form.argument_slots()[0] == dual_slot
+    assert derivative_form.arguments() == (w, free)
+
+
+def test_restructure_keeps_the_arguments_of_a_form_without_argument_0(V1, V2, V3, V4):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+    N = ExternalOperator(Coefficient(V4), function_space=V3, argument_slots=(dual_slot, w))
+
+    assert restructure_base_form(N).arguments() == (w, free)
+
+
+@pytest.mark.parametrize(
+    "primal_number, free_number, contracted_number, direction_number",
+    [(0, 1, 2, 3), (None, 0, 1, 2), (1, 0, 1, 2)],
+)
+def test_derivative_through_a_form_dual_slot_keeps_the_contracted_argument(
+    V1, V2, V3, V4, primal_number, free_number, contracted_number, direction_number
+):
+    g = Coefficient(V4)
+    direction = Argument(V4, direction_number)
+    free = Argument(V2, free_number)
+    dual_slot = g * inner(Argument(V3, contracted_number), free) * dx
+    slots = (dual_slot,)
+    expected = {free, direction}
+    if primal_number is not None:
+        primal = Argument(V1, primal_number)
+        slots = (dual_slot, primal)
+        expected.add(primal)
+    N = ExternalOperator(Coefficient(V1), function_space=V3, argument_slots=slots)
+
+    derivative_form = expand_derivatives(derivative(N, g, direction))
+
+    assert set(derivative_form.arguments()) == expected
 
 
 def test_derivative_of_contracted_dual_slot(V1, V2):
@@ -646,7 +692,7 @@ def test_dual_slot_derivative(V1, V2):
     # N is linear in its dual slot, so the product rule acts with N(u; vhat) on dv*.
     vhat = Coargument(V2.dual(), 0)
     N_vhat = ExternalOperator(u, function_space=V2, argument_slots=(vhat,))
-    expected = dNdu + Action(N_vhat, inner(u_hat, v) * dx)
+    expected = dNdu + Action(inner(u_hat, Argument(V2, 2)) * dx, N_vhat)
 
     dN = derivative(N, u, u_hat)
     assert isinstance(dN, BaseFormOperatorDerivative)
@@ -664,11 +710,11 @@ def test_dual_slot_second_derivative(V1, V2):
         return ExternalOperator(u, function_space=V2, derivatives=(n,), argument_slots=slots)
 
     # D^2 N(u; v*(u))[u1, u2] = d2N(u; v*)[u1, u2] + dN(u; Dv*[u2])[u1] + dN(u; Dv*[u1])[u2]
-    vhat2, vhat3 = Coargument(V2.dual(), 2), Coargument(V2.dual(), 3)
+    vhat = Coargument(V2.dual(), 0)
     expected = {
         dN((vstar, u1, u2), 2),
-        Action(dN((vhat2, u1), 1), inner(u2, v) * dx),
-        Action(dN((vhat3, u2), 1), inner(u1, v) * dx),
+        Action(inner(u2, Argument(V2, 3)) * dx, dN((vhat, u1), 1)),
+        Action(inner(u1, Argument(V2, 2)) * dx, dN((vhat, u2), 1)),
     }
     d2N = expand_derivatives(derivative(derivative(N, u, u1), u, u2))
     assert set(d2N.components()) == expected

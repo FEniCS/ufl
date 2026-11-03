@@ -37,10 +37,13 @@ from ufl import (
     Matrix,
     Mesh,
     conj,
+    derivative,
     dx,
+    grad,
     inner,
     triangle,
 )
+from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.external_operator import ExternalOperator
@@ -112,6 +115,51 @@ def _optimal_assembly_cost(root):
 def V():
     mesh = Mesh(LagrangeElement(triangle, 1, (2,)))
     return FunctionSpace(mesh, LagrangeElement(triangle, 1))
+
+
+@pytest.mark.parametrize("arity", [0, 1, 2])
+def test_restructure_expands_interpolation_derivatives(V, arity):
+    u, direction = Coefficient(V), Coefficient(V)
+    target = Cofunction(V.dual()) if arity == 0 else V
+    if arity == 2:
+        direction = Argument(V, 1)
+    expression = derivative(Interpolate(u, target), u, direction)
+
+    actual = restructure_base_form(expression)
+
+    assert actual == Interpolate(direction, target)
+    assert len(actual.arguments()) == arity
+
+
+@pytest.mark.parametrize("order", [1, 2])
+def test_restructure_expands_derivatives_through_interpolation(V, order):
+    u = Coefficient(V)
+    expression = inner(Interpolate(u, V), Interpolate(u, V)) * dx
+    for _ in range(order):
+        expression = derivative(expression, u)
+    expected = restructure_base_form(expand_derivatives(expression))
+
+    actual = restructure_base_form(expression)
+
+    assert actual == expected
+    assert _optimal_assembly_cost(actual) == _optimal_assembly_cost(expected)
+
+
+def test_restructure_leaves_ordinary_forms_for_the_compiler(V):
+    u, direction = Coefficient(V), Argument(V, 0)
+    form = derivative(inner(grad(u**2), grad(direction)) * dx, u)
+
+    assert restructure_base_form(form) is form
+
+
+@pytest.mark.parametrize("complex_mode", [False, True])
+def test_restructure_preprocesses_forms_with_operators(V, complex_mode):
+    u, v = Coefficient(V), Argument(V, 0)
+    operator = Interpolate(u, V)
+    form = inner(operator, v) * dx
+    expected = (conj(v) if complex_mode else v) * operator * dx
+
+    assert restructure_base_form(form, complex_mode=complex_mode) == expected
 
 
 def test_assembly_cost_counts_shared_operations_once(V):
@@ -258,6 +306,40 @@ def test_restructure_contracts_a_newly_exposed_composition_from_its_parent(V):
     assert restructure_base_form(actual) == actual
 
 
+@pytest.mark.parametrize("adjoint", [False, True], ids=["jacobian", "adjoint"])
+def test_restructure_action_of_composition(V, adjoint):
+    # Jacobian of F = inner(N(I(u)), v) * dx: dF/dN, dN/dI, dI/du.
+    w = Coefficient(V)
+    vstar, v = Argument(V.dual(), 0), Argument(V, 0)
+    operand = Interpolate(Coefficient(V), V)
+    dFdN = inner(Argument(V, 1), v) * dx
+    dNdI = ExternalOperator(
+        operand, function_space=V, derivatives=(1,), argument_slots=(vstar, Argument(V, 1))
+    )
+    dIdu = Interpolate(Argument(V, 1), V)
+    jacobian = Action(dFdN, Action(dNdI, dIdu))
+    if adjoint:
+        expression = Action(Adjoint(jacobian), w)
+        # dI/du*[dN/dI*(dF/dN*[w], v)]
+        slots = (conj(inner(v, w)) * dx, v)
+        expected = Interpolate(
+            v, dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        )
+    else:
+        expression = Action(jacobian, w)
+        # dF/dN[dN/dI[dI/du[w]]]
+        slots = (vstar, Interpolate(w, V))
+        applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        expected = inner(applied, v) * dx
+
+    actual = restructure_base_form(expression, complex_mode=True)
+    assert actual == expected
+    assert actual.arguments() == expression.arguments()
+    # One Form and three operators, each assembled with rank one.
+    assert _optimal_assembly_cost(actual) == (0, 4)
+    assert restructure_base_form(actual, complex_mode=True) == actual
+
+
 @pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
 def test_restructure_keeps_matrix_sums_factored(V, sum_on_left):
     A, B, C = (Matrix(V.dual(), V) for _ in range(3))
@@ -319,11 +401,11 @@ def test_restructure_contracts_bilinear_forms_with_complex_directions(V, dual):
     expression = Action(direction, form) if dual else Action(form, direction)
     witness = conj(inner(w, direction)) * dx if dual else inner(direction, v) * dx
 
-    actual = restructure_base_form(expression)
+    actual = restructure_base_form(expression, complex_mode=True)
     assert actual == witness
     assert actual.arguments() == expression.arguments()
     assert _optimal_assembly_cost(actual) == (0, 2)
-    assert restructure_base_form(actual) == actual
+    assert restructure_base_form(actual, complex_mode=True) == actual
 
 
 def test_restructure_conjugates_weights_when_contracting_a_matrix_sum_from_the_left(V):

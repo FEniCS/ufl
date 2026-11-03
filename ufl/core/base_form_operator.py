@@ -14,11 +14,10 @@ ExternalOperator or Interpolate.
 # Modified by Nacime Bouziani, 2021-2022
 
 from collections import OrderedDict
-from itertools import chain, count
+from itertools import chain
 from numbers import Number
 
-from ufl.argument import Argument, BaseArgument, Coargument
-from ufl.coefficient import Cofunction
+from ufl.argument import Argument, Coargument
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
@@ -31,79 +30,51 @@ from ufl.utils.counted import Counted
 __all__ = ["BaseFormOperator"]
 
 
-def _is_nonterminal_base_form_dual_slot(dual_arg):
-    """Return whether a dual slot is a non-terminal BaseForm."""
-    return isinstance(dual_arg, BaseForm) and not isinstance(dual_arg, (Coargument, Cofunction))
-
-
-def _split_dual_slot_arguments(dual_arg):
+def _split_dual_slot_arguments(dual_arg, slot_args):
     """Return the contracted argument and the free arguments of a dual slot.
 
-    A Coargument or a Cofunction contracts its primal argument, which comes
-    first. Any other BaseForm contracts its highest-numbered primal argument,
-    as the left operand of an Action does. Its Coarguments are outputs, so
-    they stay free.
+    If both the primal slots and the slot use number 0, the output replaces Argument 0
+    of the slot, so the operator is the left operand of an Action. Otherwise the slot
+    is the left operand and contracts its highest-numbered primal argument. The other
+    arguments stay free.
     """
     arguments = dual_arg.arguments()
-    if not _is_nonterminal_base_form_dual_slot(dual_arg):
-        return (arguments[0], arguments[1:]) if arguments else (None, ())
-    primal_arguments = [a for a in arguments if not isinstance(a, Coargument)]
-    if not primal_arguments:
+    form_arguments = [a for a in arguments if not isinstance(a, Coargument)]
+    if not form_arguments:
         return None, arguments
-    contracted = primal_arguments[-1]
+    zero_in_both = form_arguments[0].number() == 0 and any(a.number() == 0 for a in slot_args)
+    contracted = form_arguments[0 if zero_in_both else -1]
     return contracted, tuple(a for a in arguments if a != contracted)
-
-
-def _contained_arguments(o):
-    """Return every argument in o, including those that its Actions contract."""
-    from ufl.corealg.traversal import unique_pre_traversal
-    from ufl.form import Form
-
-    if isinstance(o, BaseArgument):
-        return {o}
-    if isinstance(o, Form):
-        return set().union(*(_contained_arguments(itg.integrand()) for itg in o.integrals()))
-    if isinstance(o, BaseFormOperator):
-        return set().union(*map(_contained_arguments, (*o.ufl_operands, *o.argument_slots())))
-    if isinstance(o, Expr):
-        return set().union(
-            *(_contained_arguments(e) for e in unique_pre_traversal(o) if e is not o)
-        )
-    if o.ufl_operands:
-        return set().union(*map(_contained_arguments, o.ufl_operands))
-    return set(o.arguments())
-
-
-def _renumber_dual_slot_arguments(dual_arg, primal_args):
-    """Return the renumbering of the arguments in a non-terminal BaseForm dual slot.
-
-    The free arguments take, in order, the lowest numbers that the primal
-    arguments do not use. The contracted argument takes the lowest number
-    above them that does not make it equal to an argument of the operator, so
-    it stays the highest-numbered primal argument of the slot. No argument
-    takes the place of an argument that an Action in the slot contracts.
-    """
-    contracted, free = _split_dual_slot_arguments(dual_arg)
-    bound = _contained_arguments(dual_arg) - set(dual_arg.arguments())
-    used = {argument.number() for argument in primal_args}
-    renumbered = []
-    for argument in free:
-        number = next(
-            n for n in count() if n not in used and argument.reconstruct(number=n) not in bound
-        )
-        used.add(number)
-        renumbered.append(argument.reconstruct(number=number))
-    exposed = {*renumbered, *primal_args, *bound}
-    lowest = max((a.number() + 1 for a in renumbered if not isinstance(a, Coargument)), default=0)
-    number = next(n for n in count(lowest) if contracted.reconstruct(number=n) not in exposed)
-    renumbering = dict(zip(free, renumbered))
-    renumbering[contracted] = contracted.reconstruct(number=number)
-    return {old: new for old, new in renumbering.items() if old != new}
 
 
 @ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm, Counted):
-    """Base form operator."""
+    """Base form operator ``N(u; v*, uhat)``.
+
+    ``N`` is nonlinear in its operands ``u`` and linear in its argument slots: the
+    dual slot ``v*``, paired with the output of ``N``, and the primal slots ``uhat``,
+    which hold the directions of differentiation.
+
+    With a Form ``A`` in the dual slot, ``N(u; A)`` is ``A`` composed with ``N``, which
+    is an Action: ``Action(N, A)`` if the primal slots of ``N`` and ``A`` both contain
+    an Argument numbered 0, otherwise ``Action(A, N)``.
+
+    For a 2-form ``A(v_0, v_1)``, with Arguments numbered 0 and 1:
+
+    =========================  =======================  ================  ================
+    Argument in a primal slot  ``N(u; A, uhat)``        Equal Action      Arguments
+    =========================  =======================  ================  ================
+    none                       ``A(v_0, N(u))``         ``Action(A, N)``  ``(v_0,)``
+    ``w_1``                    ``A(v_0, N(u; w_1))``    ``Action(A, N)``  ``(v_0, w_1)``
+    ``w_0``                    ``A(N(u; w_0), v_1)``    ``Action(N, A)``  ``(w_0, v_1)``
+    =========================  =======================  ================  ================
+
+    Here ``N`` in the Action is ``N(u; v*, uhat)``, and the output of ``N`` must be in
+    the function space of the Argument it replaces. With ``w_1``, the result is a linear
+    map from ``w_1`` to the dual of ``v_0``. With ``w_0``, it is a linear map from ``v_1``
+    to the dual of ``w_0``. Interpolate has ``u == uhat``, so ``Interpolate(e, A)`` is
+    ``N(e; A, e)``.
+    """
 
     ufl_operands: tuple[Expr, ...]
 
@@ -133,22 +104,19 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                   ``function_space``.
                 - A Cofunction on the dual of ``function_space``, which
                   contracts the output to the number ``<c, N(u)>``.
-                - A Form whose highest-numbered Argument is on
-                  ``function_space``. The output takes the place of that
-                  Argument, which gives ``F(N(u))``, as in
-                  ``Action(F, N(u))``. The other Arguments of the form stay
-                  free. They are renumbered to the lowest numbers that the
-                  primal slots do not use, so replacing an Argument in a
-                  primal slot can change their numbers.
+                - A Form with an Argument on ``function_space``. The output
+                  takes the place of that Argument, as in an Action. If the
+                  primal slots and the form both use number 0, that is Argument
+                  0, as in ``Action(N(u), F)``. Otherwise it is the
+                  highest-numbered one, as in ``Action(F, N(u))``. The other
+                  Arguments of the form stay free.
 
-                Each primal slot holds a direction of differentiation: an
-                expression of an Argument, or of a Coefficient after an action.
+                Each primal slot is an expression of an Argument, or of a
+                Coefficient after an action.
                 If ``argument_slots`` is empty, the dual slot is a new Coargument
                 with number 0 on the dual of ``function_space``.
         """
-        # Avoid cyclic import
-        from ufl.algorithms.analysis import extract_type
-        from ufl.algorithms.replace import replace
+        from ufl.algorithms.analysis import extract_type  # Avoid cyclic import
 
         BaseForm.__init__(self)
         ufl_operands = tuple(map(as_ufl, operands))
@@ -177,20 +145,14 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         if not isinstance(dual_slot, BaseForm):
             raise ValueError("The dual slot must be a BaseForm.")
 
-        if _is_nonterminal_base_form_dual_slot(dual_slot) and dual_slot.arguments():
-            primal_args = {
-                a
-                for slot in argument_slots[1:]
-                for a in extract_type(slot, Argument, base_form_op_as_expr=True)
-            }
-            renumbering = _renumber_dual_slot_arguments(dual_slot, primal_args)
-            if renumbering:
-                # Keep the arguments exposed by this operator in its stored slot.
-                dual_slot = replace(dual_slot, renumbering)
-                argument_slots = (dual_slot, *argument_slots[1:])
         self._argument_slots = argument_slots
 
-        contracted, _ = _split_dual_slot_arguments(dual_slot)
+        slot_args = [
+            a
+            for slot in argument_slots[1:]
+            for a in extract_type(slot, Argument, base_form_op_as_expr=True)
+        ]
+        contracted, _ = _split_dual_slot_arguments(dual_slot, slot_args)
         if contracted is not None and contracted.ufl_function_space() != function_space:
             raise ValueError("The contracted argument in the dual slot must be on function_space.")
 
@@ -244,12 +206,11 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         from ufl.algorithms.analysis import extract_coefficients, extract_type
 
         dual_arg, *arguments = self.argument_slots()
-        primal_args = tuple(
+        slot_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
-        # The stored dual slot is already renumbered.
-        _, dual_args = _split_dual_slot_arguments(dual_arg)
-        arguments = dual_args + primal_args
+        _, dual_args = _split_dual_slot_arguments(dual_arg, slot_args)
+        arguments = dual_args + slot_args
         coefficients = tuple(c for op in self.ufl_operands for c in extract_coefficients(op))
         # Define canonical numbering of arguments and coefficients
         # 1) Need concept of order since we may have arguments with the same number
