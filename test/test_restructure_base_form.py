@@ -306,6 +306,40 @@ def test_restructure_contracts_a_newly_exposed_composition_from_its_parent(V):
     assert restructure_base_form(actual) == actual
 
 
+@pytest.mark.parametrize("adjoint", [False, True], ids=["jacobian", "adjoint"])
+def test_restructure_action_of_composition(V, adjoint):
+    # Jacobian of F = inner(N(I(u)), v) * dx: dF/dN, dN/dI, dI/du.
+    w = Coefficient(V)
+    vstar, v = Argument(V.dual(), 0), Argument(V, 0)
+    operand = Interpolate(Coefficient(V), V)
+    dFdN = inner(Argument(V, 1), v) * dx
+    dNdI = ExternalOperator(
+        operand, function_space=V, derivatives=(1,), argument_slots=(vstar, Argument(V, 1))
+    )
+    dIdu = Interpolate(Argument(V, 1), V)
+    jacobian = Action(dFdN, Action(dNdI, dIdu))
+    if adjoint:
+        expression = Action(Adjoint(jacobian), w)
+        # dI/du*[dN/dI*(dF/dN*[w], v)]
+        slots = (conj(inner(v, w)) * dx, v)
+        expected = Interpolate(
+            v, dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        )
+    else:
+        expression = Action(jacobian, w)
+        # dF/dN[dN/dI[dI/du[w]]]
+        slots = (vstar, Interpolate(w, V))
+        applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        expected = inner(applied, v) * dx
+
+    actual = restructure_base_form(expression, complex_mode=True)
+    assert actual == expected
+    assert actual.arguments() == expression.arguments()
+    # One Form and three operators, each assembled with rank one.
+    assert _optimal_assembly_cost(actual) == (0, 4)
+    assert restructure_base_form(actual, complex_mode=True) == actual
+
+
 @pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
 def test_restructure_keeps_matrix_sums_factored(V, sum_on_left):
     A, B, C = (Matrix(V.dual(), V) for _ in range(3))
