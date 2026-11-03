@@ -243,7 +243,6 @@ def test_form_dual_slot_contracts_highest_numbered_argument(V1, V2, V3):
 
     interpolation = Interpolate(u, dual_slot)
 
-    assert interpolation.ufl_element() == V2.ufl_element()
     assert interpolation.arguments() == (Argument(V3, 0),)
 
 
@@ -255,14 +254,12 @@ def test_form_dual_slot_contraction_ignores_numbering_gaps(V1, V2, free, contrac
 
     interpolation = Interpolate(u, dual_slot)
 
-    v, w = Argument(V2, 0), Argument(V2, 1)
-    assert interpolation.argument_slots()[0] == w.dx(0) * v * dx
-    assert interpolation.arguments() == (v,)
+    assert interpolation.argument_slots()[0] == dual_slot
+    assert interpolation.arguments() == (Argument(V2, free),)
 
 
-def test_form_dual_slot_renumbering_keeps_contracted_arguments(V1, V2):
-    # The inner Actions contract Argument(V2, 0), so the slot cannot renumber
-    # its own argument Argument(V2, 1) to 0.
+def test_form_dual_slot_with_inner_action(V1, V2):
+    # The inner Actions contract Argument(V2, 0), which is not an argument of the slot.
     w = Coefficient(V1)
     inner_action = Action(w, Interpolate(Argument(V1, 0), Coargument(V2.dual(), 1)))
     dual_slot = Action(inner_action, Argument(V2, 1) * Argument(V2, 0) * dx)
@@ -295,36 +292,111 @@ def test_form_dual_slot_arguments_are_replaceable(V1, V2, V3, V4):
     assert replaced == Interpolate(u, inner(TrialFunction(V2), w) * dx)
 
 
-def test_form_dual_slot_arguments_avoid_expression_numbers(V1, V2, V3):
-    u = Argument(V1, 0)
-    dual_slot = inner(TrialFunction(V2), TestFunction(V3)) * dx
+def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3):
+    v = TestFunction(V1)
+    A = inner(TrialFunction(V3), TestFunction(V2)) * dx
 
-    interpolation = Interpolate(u, dual_slot)
+    interpolation = Interpolate(v, A)
+    composition = Action(Interpolate(v, Argument(V2.dual(), 1)), A)
 
-    assert interpolation.arguments() == (u, Argument(V3, 1))
+    assert interpolation.arguments() == composition.arguments() == (v, Argument(V3, 1))
 
-    # v* cannot be numbered below u, so the contracted argument is numbered first instead.
+    # v* is numbered after v, so N is the left operand of the Action.
     restructured = restructure_base_form(interpolation)
-    assert restructured == Action(
-        Interpolate(u, Argument(V2.dual(), 1)),
-        inner(Argument(V2, 0), Argument(V3, 1)) * dx,
-    )
+    assert restructured == composition
     assert restructured.arguments() == interpolation.arguments()
 
 
-def test_form_dual_slot_contracted_argument_stays_distinct(V1, V2, V4):
-    u = Argument(V1, 0)
+def test_form_dual_slot_free_argument_with_expression_number_raises(V1, V2):
+    u = Argument(V1, 1)
+    dual_slot = Argument(V2, 0) * Argument(V2, 1) * Argument(V2, 2) * dx
+
+    with pytest.raises(ValueError, match=r"Same argument numbers in first and second operands"):
+        Interpolate(u, dual_slot)
+
+
+def test_derivative_in_argument_0_keeps_the_contracted_argument(V1, V2, V3, V4):
+    u = Coefficient(V4)
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    derivative_form = expand_derivatives(derivative(Interpolate(u, dual_slot), u, w))
+
+    # D_u[w] I(u, F) = I(w, F): the output stays in V3, so V3 stays contracted.
+    assert derivative_form == Interpolate(w, dual_slot)
+    assert derivative_form.argument_slots()[0] == dual_slot
+    assert derivative_form.arguments() == (w, free)
+
+
+def test_argument_0_contracts_the_highest_argument_of_a_form_without_argument_0(V1, V2, V3):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    assert Interpolate(w, dual_slot).arguments() == (w, free)
+
+
+def test_restructure_keeps_the_arguments_of_a_form_without_argument_0(V1, V2, V3):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    restructured = restructure_base_form(Interpolate(w, dual_slot))
+
+    assert restructured.arguments() == (w, free)
+
+
+@pytest.mark.parametrize(
+    "primal_number, free_number, contracted_number, direction_number",
+    [(0, 1, 2, 3), (None, 0, 1, 2), (1, 0, 1, 2)],
+)
+def test_derivative_through_a_form_dual_slot_keeps_the_contracted_argument(
+    V1, V2, V3, V4, primal_number, free_number, contracted_number, direction_number
+):
+    g = Coefficient(V4)
+    direction = Argument(V4, direction_number)
+    free = Argument(V2, free_number)
+    primal = Coefficient(V1) if primal_number is None else Argument(V1, primal_number)
+    dual_slot = g * inner(Argument(V3, contracted_number), free) * dx
+
+    derivative_form = expand_derivatives(derivative(Interpolate(primal, dual_slot), g, direction))
+
+    expected = {free, direction} | ({primal} if primal_number is not None else set())
+    assert set(derivative_form.arguments()) == expected
+
+
+def test_form_dual_slot_contracted_argument_can_share_expression_number(V1, V2):
+    u = Argument(V1, 1)
     dual_slot = inner(Argument(V2, 1), Argument(V2, 0)) * dx
+
     interpolation = Interpolate(u, dual_slot)
-    w = Argument(V4, 1)
 
-    # The free argument moves to 1, so the contracted one moves to 2.
-    assert interpolation.arguments() == (u, Argument(V2, 1))
-    assert interpolation.argument_slots()[0] == inner(Argument(V2, 2), Argument(V2, 1)) * dx
+    assert interpolation.arguments() == (Argument(V2, 0), u)
 
-    replaced = replace(interpolation, {Argument(V2, 1): w})
 
-    assert replaced.argument_slots()[0] == inner(Argument(V2, 2), w) * dx
+def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2):
+    w = Coefficient(V2)
+    A = Argument(V2, 1).dx(0) * Argument(V2, 0) * dx
+    N = Interpolate(Argument(V1, 1), A)
+
+    restructured = restructure_base_form(Action(Adjoint(N), w))
+
+    assert restructured.arguments() == (Argument(V1, 0),)
+    assert [a.number() for a in restructured.argument_slots()[0].arguments()] == [0]
+
+
+def test_form_dual_slot_with_deep_shared_integrand(V1, V2):
+    # Each level reuses the previous one twice. A traversal that restarts at every
+    # node takes time exponential in the depth.
+    u = Coefficient(V1)
+    w = Coefficient(V2)
+    e = w
+    for _ in range(30):
+        e = exp(e) + e * w
+    dual_slot = e * TestFunction(V2) * dx
+
+    assert Interpolate(u, dual_slot).arguments() == ()
 
 
 def test_derivative_direction_with_same_argument_number_raises(V1, V2, V3):
@@ -492,7 +564,7 @@ def test_restructure_contracts_covector_first(V1, V2):
     expected = N._ufl_expr_reconstruct_(
         u,
         derivatives=(1,),
-        argument_slots=(conj(inner(TrialFunction(V2), x)) * dx, Argument(V1, 0)),
+        argument_slots=(conj(inner(Argument(V2, 0), x)) * dx, Argument(V1, 0)),
     )
     assert restructure_base_form(Action(x, Action(A, dN))) == expected
     assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected

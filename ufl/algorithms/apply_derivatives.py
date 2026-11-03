@@ -1897,20 +1897,33 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         if dN_dN != 0:
             # Differentiation with respect to N itself.
             return dN_dN
-        dN = self._expression_rules(N)
+        vstar, *_ = N.argument_slots()
+        return self._expression_rules(N) + dual_slot_action(N, self(vstar))
 
-        vstar, *slots = N.argument_slots()
-        # The Action contracts the last argument of N, so number vhat after the others.
-        number = 1 + max(
-            (a.number() for slot in slots for a in extract_type(slot, Argument, True)),
-            default=-1,
-        )
-        contracted, _ = _split_dual_slot_arguments(vstar)
+
+def dual_slot_action(N: BaseFormOperator, A: BaseForm) -> Action:
+    """Return ``N(u; A)`` as an Action, where ``A`` replaces the dual slot of ``N``.
+
+    ``A`` has the contracted argument of the dual slot of ``N``. That argument is bound,
+    so its number is free: it is numbered to be the one that the Action contracts.
+    """
+    vstar, *slots = N.argument_slots()
+    slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
+    contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
+    space = contracted.ufl_function_space().dual()
+    slot_numbers = [a.number() for a in slot_args]
+    numbers = [a.number() for a in A.arguments() if a != contracted]
+    if 0 in slot_numbers or all(contracted.number() < number for number in numbers):
+        # N(u; A) = Action(N(u; v*), A), with v* the last argument of N(u; v*).
         vhat = contracted.reconstruct(
-            function_space=contracted.ufl_function_space().dual(), number=number
+            function_space=space, number=1 + max(slot_numbers, default=-1)
         )
         Nhat = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
-        return dN + Action(Nhat, self(vstar))
+        return Action(Nhat, replace(A, {contracted: contracted.reconstruct(number=0)}))
+    # N(u; A) = Action(A, N(u; v*)), with v* the first argument of N(u; v*).
+    vhat = contracted.reconstruct(function_space=space, number=0)
+    Nhat = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+    return Action(replace(A, {contracted: contracted.reconstruct(number=1 + max(numbers))}), Nhat)
 
 
 class DerivativeRuleDispatcher(DAGTraverser):
