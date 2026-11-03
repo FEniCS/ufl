@@ -1897,23 +1897,16 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         if dN_dN != 0:
             # Differentiation with respect to N itself.
             return dN_dN
-        vstar, *slots = N.argument_slots()
-        slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
-        contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
-        direction_numbers = [a.number() for a in self._direction_arguments]
-        N_after_v = N
-        if contracted is not None and contracted.number() in direction_numbers:
-            # Number the contracted argument of vstar after the direction, so that
-            # Dv* can hold both of them.
-            numbers = [a.number() for a in vstar.arguments()] + direction_numbers
-            contracted_after_v = contracted.reconstruct(number=1 + max(numbers))
-            vstar = replace(vstar, {contracted: contracted_after_v})
-            N_after_v = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *slots))
-        return self._expression_rules(N) + dual_slot_action(N_after_v, self(vstar))
+        vstar, *_ = N.argument_slots()
+        return self._expression_rules(N) + dual_slot_action(N, vstar, derivative=self)
 
 
-def dual_slot_action(N: BaseFormOperator, A: BaseForm) -> Action:
+def dual_slot_action(
+    N: BaseFormOperator, A: BaseForm, derivative: BaseFormDerivativeRuleset | None = None
+) -> Action:
     """Return ``N(u; A)`` as an Action, where ``A`` replaces the dual slot of ``N``.
+
+    With ``derivative``, return ``N(u; DA)``, where ``derivative`` differentiates ``A``.
 
     ``A`` has the contracted argument of the dual slot of ``N``. That argument is bound,
     so its number is free: it is numbered to be the one that the Action contracts.
@@ -1924,17 +1917,23 @@ def dual_slot_action(N: BaseFormOperator, A: BaseForm) -> Action:
     space = contracted.ufl_function_space().dual()
     slot_numbers = [a.number() for a in slot_args]
     numbers = [a.number() for a in A.arguments() if a != contracted]
-    if 0 in slot_numbers or all(contracted.number() < number for number in numbers):
+    if derivative is not None:
+        numbers += [a.number() for a in derivative._direction_arguments]
+    operator_first = 0 in slot_numbers
+    if operator_first:
         # N(u; A) = Action(N(u; v*), A), with v* the last argument of N(u; v*).
-        vhat = contracted.reconstruct(
-            function_space=space, number=1 + max(slot_numbers, default=-1)
-        )
-        Nhat = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
-        return Action(Nhat, replace(A, {contracted: contracted.reconstruct(number=0)}))
-    # N(u; A) = Action(A, N(u; v*)), with v* the first argument of N(u; v*).
-    vhat = contracted.reconstruct(function_space=space, number=0)
+        number = 0
+        vhat_number = 1 + max(slot_numbers)
+    else:
+        # N(u; A) = Action(A, N(u; v*)), with v* the first argument of N(u; v*).
+        number = 1 + max(numbers, default=-1)
+        vhat_number = 0
+    A = replace(A, {contracted: contracted.reconstruct(number=number)})
+    if derivative is not None:
+        A = derivative(A)
+    vhat = contracted.reconstruct(function_space=space, number=vhat_number)
     Nhat = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
-    return Action(replace(A, {contracted: contracted.reconstruct(number=1 + max(numbers))}), Nhat)
+    return Action(Nhat, A) if operator_first else Action(A, Nhat)
 
 
 class DerivativeRuleDispatcher(DAGTraverser):
