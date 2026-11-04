@@ -13,10 +13,9 @@ from functools import singledispatchmethod
 import ufl.classes
 from ufl.algorithms.analysis import extract_coefficients, has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
+from ufl.argument import Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
-from ufl.core.external_operator import ExternalOperator
-from ufl.core.interpolate import Interpolate
 from ufl.corealg.dag_traverser import DAGTraverser
 
 
@@ -59,28 +58,26 @@ class Replacer(DAGTraverser):
                 return o
             return o._ufl_expr_reconstruct_(*args)
 
-    @process.register(ufl.classes.ExternalOperator)
+    @process.register(ufl.classes.BaseFormOperator)
     def _(self, o):
-        """Replace an external_operator."""
-        o = self.mapping.get(o, o)
-        if isinstance(o, ExternalOperator):
-            new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
-            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
-            if new_ops == o.ufl_operands and new_args == o.argument_slots():
-                return o
-            return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
-        return o
+        """Replace a base form operator.
 
-    @process.register(ufl.classes.Interpolate)
-    def _(self, o):
-        """Replace an interpolate."""
-        o = self.mapping.get(o, o)
-        if isinstance(o, Interpolate):
-            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
-            if new_args == o.argument_slots():
-                return o
-            return o._ufl_expr_reconstruct_(*reversed(new_args))
-        return o
+        The Coargument of an operator in an operand or a primal slot of ``o`` pairs
+        with the output of that operator, so it is bound there. Only the dual slot of
+        ``o`` can hold a free Coargument.
+        """
+        if o in self.mapping:
+            return self.mapping[o]
+        primal_mapping = {k: v for k, v in self.mapping.items() if not isinstance(k, Coargument)}
+        vstar, *slots = o.argument_slots()
+        new_ops = tuple(replace(op, primal_mapping) for op in o.ufl_operands)
+        new_slots = (
+            replace(vstar, self.mapping),
+            *(replace(slot, primal_mapping) for slot in slots),
+        )
+        if new_ops == o.ufl_operands and new_slots == o.argument_slots():
+            return o
+        return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
 
     @process.register(ufl.classes.CoefficientDerivative)
     def _(self, o):

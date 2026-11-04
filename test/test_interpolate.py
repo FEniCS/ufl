@@ -1136,3 +1136,46 @@ def test_derivative_of_form_sum_keeps_arguments_when_all_components_vanish(V1):
     J = expand_derivatives(derivative(v * dx + w, u))
     assert isinstance(J, ZeroBaseForm)
     assert J.arguments() == (v, Argument(V1, 1))
+
+
+def test_restructure_composition_in_interpolate_slot(V1):
+    # Interpolating A o A is the same three-map composition however it is associated.
+    A = Interpolate(TrialFunction(V1), V1)
+    ustar = Cofunction(V1.dual())
+
+    restructured = restructure_base_form(Action(ustar, Interpolate(Action(A, A), V1)))
+
+    assert restructured == restructure_base_form(Action(ustar, Action(A, Action(A, A))))
+    assert restructured.arguments() == (TestFunction(V1),)
+    assert restructure_base_form(restructured) == restructured
+
+
+def test_restructure_weighted_sum_in_interpolate_slot(V1):
+    # Interpolating 2 A + 3 B is 2 A o A + 3 A o B, with A the interpolation of a trial function.
+    A = Interpolate(TrialFunction(V1), V1)
+    B = Interpolate(2 * TrialFunction(V1), V1)
+    ustar = Cofunction(V1.dual())
+
+    restructured = restructure_base_form(Action(ustar, Interpolate(FormSum((A, 2), (B, 3)), V1)))
+
+    assert restructured == FormSum(
+        (restructure_base_form(Action(ustar, Action(A, A))), 2),
+        (restructure_base_form(Action(ustar, Action(A, B))), 3),
+    )
+    assert restructured.arguments() == (TestFunction(V1),)
+    assert restructure_base_form(restructured) == restructured
+
+
+@pytest.mark.parametrize("scale", [1, 2])
+def test_action_leaves_coargument_of_interpolate_operand_bound(V1, scale):
+    # <ustar, I(scale * I(w))> pairs ustar with the output of the outer Interpolate only.
+    w = Coefficient(V1)
+    ustar = Cofunction(V1.dual())
+    operand = Interpolate(w, V1)
+    if scale != 1:
+        operand = scale * operand
+
+    restructured = restructure_base_form(Action(ustar, Interpolate(operand, V1)))
+
+    assert restructured == Interpolate(operand, ustar)
+    assert restructured.arguments() == ()

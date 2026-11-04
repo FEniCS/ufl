@@ -29,9 +29,11 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms import expand_derivatives
+from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.restructure_base_form import restructure_base_form
+from ufl.argument import BaseArgument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
@@ -904,3 +906,48 @@ def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     assert e4.ufl_function_space() == V5.dual()
 
     assert set(args) == {arg2, arg3, arg4, arg5, Argument(V1, 0)}
+
+
+def test_extract_arguments_of_operator_with_interpolate_direction(V1):
+    # The Interpolate is an operand of the outer Interpolate through dN,
+    # and it must not be reported as one of the arguments.
+    direction = Interpolate(TrialFunction(V1), V1)
+    vstar = Argument(V1.dual(), 0)
+    dN = ExternalOperator(
+        Coefficient(V1), function_space=V1, derivatives=(1,), argument_slots=(vstar, direction)
+    )
+
+    assert extract_type(Interpolate(dN, V1), BaseArgument) == {vstar, TrialFunction(V1)}
+
+
+def test_derivative_through_nested_operators_and_interpolations(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    Iu = Interpolate(u, V1)
+    N1 = ExternalOperator(Iu, function_space=V1)
+    M = Interpolate(N1, V1)
+    N2 = ExternalOperator(M, function_space=V1)
+
+    J = expand_derivatives(derivative(inner(N2, v) * dx, u, uhat))
+
+    assert J.arguments() == (v, uhat)
+
+    # J[v, uhat] = F[dN2/dM[I[dN1/dI[I[uhat]]]]], with F[Nhat] = inner(Nhat, v) * dx
+    vstar = Argument(V1.dual(), 0)
+    Iuhat = Interpolate(uhat, V1)
+    dN1 = N1._ufl_expr_reconstruct_(Iu, derivatives=(1,), argument_slots=(vstar, uhat))
+    dN2 = N2._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=(vstar, uhat))
+    F = inner(uhat, v) * dx
+    assert restructure_base_form(J) == Action(F, Action(dN2, Action(Iuhat, Action(dN1, Iuhat))))
+
+
+def test_replace_leaves_coargument_of_operand_bound(V1):
+    # The Coargument of N is bound in the operand of the Interpolate: it pairs with
+    # the output of N. Only the Coargument in the dual slot of the Interpolate is free.
+    N = ExternalOperator(Coefficient(V1), function_space=V1)
+    ustar = Cofunction(V1.dual())
+    interpolation = Interpolate(N, V1)
+    (vstar,) = interpolation.arguments()
+
+    assert replace(interpolation, {vstar: ustar}) == Interpolate(N, ustar)

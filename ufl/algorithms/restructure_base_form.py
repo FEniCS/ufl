@@ -25,24 +25,6 @@ from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, Form, FormSum
 
 
-def _replace_argument_slots(o: BaseFormOperator, mapping: dict) -> BaseFormOperator:
-    """Replace the arguments in the argument slots of a base form operator.
-
-    An argument inside an operand of ``o``, such as the Coargument of an
-    operand Interpolate, is bound inside that operand. This function does not
-    replace it, even if it is equal to a key of ``mapping``.
-
-    Args:
-        o: The base form operator.
-        mapping: The replacements for the arguments in the argument slots of ``o``.
-
-    Returns:
-        The base form operator with the replaced argument slots.
-    """
-    slots = tuple(replace(slot, mapping) for slot in o.argument_slots())
-    return o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=slots)
-
-
 def _rank(o: Expr | BaseForm) -> int:
     """Return the form rank, treating coefficient expressions as rank one."""
     return len(o.arguments()) if isinstance(o, BaseForm) else 1
@@ -128,22 +110,22 @@ class BaseFormRestructurer(BaseFormTraversal):
         """Split compositions in argument slots into Actions."""
         o = self._map_operator(o)
         v, *slots = o.argument_slots()
-        operator_slots = [
+        map_slots = [
             i
             for i, slot in enumerate(slots)
-            if isinstance(slot, BaseFormOperator) and len(slot.arguments()) == 2
+            if isinstance(slot, BaseForm) and len(slot.arguments()) == 2
         ]
-        if len(operator_slots) == 1:
-            # A base form operator is linear in its other argument slots:
-            # N(u; v*, B) -> Action(N(u; v*, uhat), B), where uhat is numbered
-            # after the other arguments of N so that the Action contracts it
-            # with the Coargument of B. An Action contracts one argument, so
-            # an operator with more than one such slot is not split.
-            (i,) = operator_slots
+        if len(map_slots) == 1:
+            # A base form operator is linear in its other argument slots, so for
+            # any linear map B: N(u; v*, B) -> Action(N(u; v*, uhat), B), where uhat
+            # is numbered after the other arguments of N so that the Action contracts
+            # it with the Coargument of B. An Action contracts one argument, so an
+            # operator with more than one such slot is not split.
+            (i,) = map_slots
             B = slots[i]
             # The Coargument of B is bound inside B, so only the other
             # argument of B moves out of N.
-            Bstar, *_ = B.argument_slots()
+            (Bstar,) = (a for a in B.arguments() if isinstance(a, Coargument))
             (moved,) = (a for a in B.arguments() if a != Bstar)
             others = (a for a in o.arguments() if a != moved)
             number = max((a.number() for a in others), default=-1) + 1
@@ -177,7 +159,7 @@ class BaseFormRestructurer(BaseFormTraversal):
         if isinstance(form, BaseFormOperator):
             # The adjoint of a base form operator swaps the numbers of its arguments.
             u, v = form.arguments()
-            adjoint = _replace_argument_slots(
+            adjoint = replace(
                 form, {u: u.reconstruct(number=v.number()), v: v.reconstruct(number=u.number())}
             )
             return self(adjoint)
@@ -295,7 +277,7 @@ class ActionContractor(BaseFormTraversal):
             if right.argument_slots()[0] == vstar:
                 # The other arguments are renumbered after the contracted v*.
                 mapping = {a: a.reconstruct(number=a.number() - 1) for a in others}
-                contracted = _replace_argument_slots(right, {vstar: left, **mapping})
+                contracted = replace(right, {vstar: left, **mapping})
                 return self._restructure(contracted)
 
         if isinstance(left, BaseFormOperator):
@@ -313,7 +295,7 @@ class ActionContractor(BaseFormTraversal):
                 # Action(N(u; v*, uhat), w) -> N(u; v*, w)
                 uhat = left.arguments()[-1]
                 if v != uhat:
-                    contracted = _replace_argument_slots(left, {uhat: right})
+                    contracted = replace(left, {uhat: right})
                     return self._restructure(contracted)
 
         if isinstance(left, Form) and isinstance(right, Expr) and _rank(right) == 1:
