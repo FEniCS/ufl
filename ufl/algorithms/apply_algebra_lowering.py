@@ -26,13 +26,17 @@ class LowerCompoundAlgebra(DAGTraverser):
     """Expands high level compound operators to equivalent representations using basic operators."""
 
     @singledispatchmethod
-    def process(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+    def process(
+        self, o: ufl.classes.Expr | ufl.classes.BaseForm
+    ) -> ufl.classes.Expr | ufl.classes.BaseForm:
         """Process ``o``."""
         return super().process(o)
 
     @process.register(ufl.classes.Expr)
     @process.register(ufl.classes.BaseForm)
-    def _(self, o: ufl.classes.Expr) -> ufl.classes.Expr:
+    def _(
+        self, o: ufl.classes.Expr | ufl.classes.BaseForm
+    ) -> ufl.classes.Expr | ufl.classes.BaseForm:
         return self.reuse_if_untouched(o)
 
     @process.register(Form)
@@ -50,7 +54,7 @@ class LowerCompoundAlgebra(DAGTraverser):
         return o._ufl_expr_reconstruct_(*operands, argument_slots=slots)
 
     @process.register(BaseFormOperatorDerivative)
-    def _(self, o: BaseFormOperatorDerivative) -> BaseFormOperatorDerivative:
+    def _(self, o: BaseFormOperatorDerivative) -> ufl.classes.Expr:
         """Traverse the operands that define an operator derivative."""
         return self.reuse_if_untouched(o)
 
