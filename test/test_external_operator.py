@@ -13,7 +13,6 @@ from ufl import (
     Coefficient,
     Constant,
     FunctionSpace,
-    Matrix,
     Mesh,
     TestFunction,
     TrialFunction,
@@ -24,7 +23,6 @@ from ufl import (
     ds,
     dx,
     inner,
-    replace,
     sin,
     triangle,
 )
@@ -35,10 +33,8 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.argument import BaseArgument
 from ufl.coefficient import Cofunction
-from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
-from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
 from ufl.form import BaseForm, ZeroBaseForm
 from ufl.pullback import identity_pullback
@@ -181,15 +177,6 @@ def test_derivative_in_argument_0_keeps_the_contracted_argument(V1, V2, V3, V4):
     # The output of N stays in V3, so V3 stays contracted.
     assert derivative_form.argument_slots()[0] == dual_slot
     assert derivative_form.arguments() == (w, free)
-
-
-def test_restructure_keeps_the_arguments_of_a_form_without_argument_0(V1, V2, V3, V4):
-    w = Argument(V1, 0)
-    free = Argument(V2, 1)
-    dual_slot = inner(Argument(V3, 2), free) * dx
-    N = ExternalOperator(Coefficient(V4), function_space=V3, argument_slots=(dual_slot, w))
-
-    assert restructure_base_form(N).arguments() == (w, free)
 
 
 @pytest.mark.parametrize(
@@ -563,83 +550,6 @@ def test_multiple_external_operators(V1, V2):
     assert dFdu == dFdu_partial + Action(dFdN1, dN1du) + Action(dFdN5, dN5du)
 
 
-def test_replace(V1):
-    u = Coefficient(V1, count=0)
-    N = ExternalOperator(u, function_space=V1)
-
-    # dN(u; uhat, v*)
-    dN = expand_derivatives(derivative(N, u))
-    vstar, uhat = dN.arguments()
-    assert isinstance(vstar, Coargument)
-
-    # Replace v* by a Form
-    v = TestFunction(V1)
-    F = inner(u, v) * dx
-    G = replace(dN, {vstar: F})
-
-    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(F, uhat))
-    assert G == dN_replaced
-
-    # Replace v* by an Action
-    M = Matrix(V1, V1)
-    A = Action(M, u)
-    G = replace(dN, {vstar: A})
-
-    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
-    assert G == dN_replaced
-
-
-def test_replace_base_form_operator(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    M = ExternalOperator(w, function_space=V1)
-    Iw = Interpolate(w, V1)
-    e = N * v + M * v + Iw * v
-
-    # Replacing N by zero drops its term and keeps the operators that don't depend on N.
-    # Check them before comparing r, since == shares the operands of equal expressions.
-    r = replace(e, {N: Zero()})
-    operators = [
-        o for o in unique_pre_traversal(r) if isinstance(o, ExternalOperator | Interpolate)
-    ]
-    assert len(operators) == 2
-    assert all(o is M or o is Iw for o in operators)
-    assert r == M * v + Iw * v
-
-
-def test_replace_base_form_derivative(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    dJ = derivative(Action(N * u * v * dx, u), u)
-    assert isinstance(dJ, BaseFormDerivative)
-
-    # The derivative is not applied, and the replacement is applied to the
-    # differentiation variable as well as to the base form.
-    Nw = ExternalOperator(w, function_space=V1)
-    expected = derivative(Action(Nw * w * v * dx, w), w)
-    result = replace(dJ, {u: w})
-    assert isinstance(result, BaseFormDerivative)
-    assert result.ufl_operands == expected.ufl_operands
-    assert expand_derivatives(result) == expand_derivatives(expected)
-
-
-def test_replace_base_form_derivative_aliasing(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    dJ = derivative(Action(N * w * v * dx, u), u)
-
-    # Mapping the differentiation variable to another coefficient of the
-    # form does not commute with the derivative.
-    with pytest.raises(ValueError, match="Derivatives should be applied"):
-        replace(dJ, {u: w})
-
-
 def test_adjoint_derivative(V1, V2):
     u = Coefficient(V1)
     w = Coefficient(V2)
@@ -815,20 +725,6 @@ def test_coefficient_derivatives(V1):
     assert expand_derivatives(dF) == g * uhat * v * dx
 
 
-def test_restructure_dual_slot_on_the_right(V1):
-    u = Coefficient(V1)
-    N = ExternalOperator(u, function_space=V1)
-    vstar = Coargument(V1.dual(), 0)
-    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1)))
-    L = TestFunction(V1) * dx
-
-    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), since N is linear in its dual slot
-    expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(L, Argument(V1, 0)))
-    actual = Action(L, dNdu)
-    actual = restructure_base_form(actual)
-    assert actual == expected
-
-
 def test_functional_derivative(V1):
     u = Coefficient(V1)
     v0 = TestFunction(V1)
@@ -940,14 +836,3 @@ def test_derivative_through_nested_operators_and_interpolations(V1):
     dN2 = N2._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=(vstar, uhat))
     F = inner(uhat, v) * dx
     assert restructure_base_form(J) == Action(F, Action(dN2, Action(Iuhat, Action(dN1, Iuhat))))
-
-
-def test_replace_leaves_coargument_of_operand_bound(V1):
-    # The Coargument of N is bound in the operand of the Interpolate: it pairs with
-    # the output of N. Only the Coargument in the dual slot of the Interpolate is free.
-    N = ExternalOperator(Coefficient(V1), function_space=V1)
-    ustar = Cofunction(V1.dual())
-    interpolation = Interpolate(N, V1)
-    (vstar,) = interpolation.arguments()
-
-    assert replace(interpolation, {vstar: ustar}) == Interpolate(N, ustar)

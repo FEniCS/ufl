@@ -1,4 +1,4 @@
-"""Assemblability and cost specifications for BaseForm restructuring.
+"""Contraction rules, assemblability and cost specifications for BaseForm restructuring.
 
 For derivative-expanded input, every assembly node must have rank at most
 two. A BaseForm used as a value in an integrand, operator operand or argument
@@ -36,6 +36,8 @@ from ufl import (
     FunctionSpace,
     Matrix,
     Mesh,
+    TestFunction,
+    TrialFunction,
     conj,
     derivative,
     dx,
@@ -112,59 +114,36 @@ def _optimal_assembly_cost(root):
 
 
 @pytest.fixture
-def V():
-    mesh = Mesh(LagrangeElement(triangle, 1, (2,)))
-    return FunctionSpace(mesh, LagrangeElement(triangle, 1))
+def domain():
+    return Mesh(LagrangeElement(triangle, 1, (2,)))
 
 
-@pytest.mark.parametrize("arity", [0, 1, 2])
-def test_restructure_expands_interpolation_derivatives(V, arity):
-    u, direction = Coefficient(V), Coefficient(V)
-    target = Cofunction(V.dual()) if arity == 0 else V
-    if arity == 2:
-        direction = Argument(V, 1)
-    expression = derivative(Interpolate(u, target), u, direction)
-
-    actual = restructure_base_form(expression)
-
-    assert actual == Interpolate(direction, target)
-    assert len(actual.arguments()) == arity
+@pytest.fixture
+def V1(domain):
+    return FunctionSpace(domain, LagrangeElement(triangle, 1))
 
 
-@pytest.mark.parametrize("order", [1, 2])
-def test_restructure_expands_derivatives_through_interpolation(V, order):
-    u = Coefficient(V)
-    expression = inner(Interpolate(u, V), Interpolate(u, V)) * dx
-    for _ in range(order):
-        expression = derivative(expression, u)
-    expected = restructure_base_form(expand_derivatives(expression))
-
-    actual = restructure_base_form(expression)
-
-    assert actual == expected
-    assert _optimal_assembly_cost(actual) == _optimal_assembly_cost(expected)
+@pytest.fixture
+def V2(domain):
+    return FunctionSpace(domain, LagrangeElement(triangle, 2))
 
 
-def test_restructure_leaves_ordinary_forms_for_the_compiler(V):
-    u, direction = Coefficient(V), Argument(V, 0)
-    form = derivative(inner(grad(u**2), grad(direction)) * dx, u)
-
-    assert restructure_base_form(form) is form
+@pytest.fixture
+def V3(domain):
+    return FunctionSpace(domain, LagrangeElement(triangle, 3))
 
 
-@pytest.mark.parametrize("complex_mode", [False, True])
-def test_restructure_preprocesses_forms_with_operators(V, complex_mode):
-    u, v = Coefficient(V), Argument(V, 0)
-    operator = Interpolate(u, V)
-    form = inner(operator, v) * dx
-    expected = (conj(v) if complex_mode else v) * operator * dx
-
-    assert restructure_base_form(form, complex_mode=complex_mode) == expected
+@pytest.fixture
+def V4(domain):
+    return FunctionSpace(domain, LagrangeElement(triangle, 4))
 
 
-def test_assembly_cost_counts_shared_operations_once(V):
-    A = Matrix(V.dual(), V)
-    u = Coefficient(V)
+# --- Cost model ---
+
+
+def test_assembly_cost_counts_shared_operations_once(V1):
+    A = Matrix(V1.dual(), V1)
+    u = Coefficient(V1)
     shared = Action(A, u)
     result = FormSum((shared, 1), (Action(A, shared), 1))
 
@@ -172,45 +151,30 @@ def test_assembly_cost_counts_shared_operations_once(V):
     assert _assembly_cost(result) == (0, 3)
 
 
-@pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
-def test_restructure_preserves_an_assembled_matrix_subclass(V, dual):
-    class AssembledMatrix(Matrix):
-        """An assembled operator supplied by another package."""
-
-    matrix = AssembledMatrix(V.dual(), V)
-    coefficient = Cofunction(V.dual()) if dual else Coefficient(V)
-    operands = (coefficient, matrix) if dual else (matrix, coefficient)
-
-    actual = restructure_base_form(Action(*operands))
-    assert actual.left() is operands[0]
-    assert actual.right() is operands[1]
-    assert _optimal_assembly_cost(actual) == (0, 1)
-
-
-def test_assembly_cost_checks_operator_dependencies(V):
-    u = Coefficient(V)
-    vstar = Argument(V.dual(), 0)
-    direction = Interpolate(u, V)
+def test_assembly_cost_checks_operator_dependencies(V1):
+    u = Coefficient(V1)
+    vstar = Argument(V1.dual(), 0)
+    direction = Interpolate(u, V1)
     applied = ExternalOperator(
-        u, function_space=V, derivatives=(1,), argument_slots=(vstar, direction)
+        u, function_space=V1, derivatives=(1,), argument_slots=(vstar, direction)
     )
     assert _assembly_cost(applied) == (0, 2)
-    assert _assembly_cost(direction * Argument(V, 0) * dx) == (0, 2)
+    assert _assembly_cost(direction * Argument(V1, 0) * dx) == (0, 2)
 
-    B = Interpolate(Argument(V, 1), V)
-    unsplit = ExternalOperator(u, function_space=V, derivatives=(1,), argument_slots=(vstar, B))
+    B = Interpolate(Argument(V1, 1), V1)
+    unsplit = ExternalOperator(u, function_space=V1, derivatives=(1,), argument_slots=(vstar, B))
     with pytest.raises(AssertionError, match="Expected a rank-zero or rank-one dependency"):
         _assembly_cost(unsplit)
 
-    trilinear = Argument(V, 0) * Argument(V, 1) * Argument(V, 2) * dx
+    trilinear = Argument(V1, 0) * Argument(V1, 1) * Argument(V1, 2) * dx
     with pytest.raises(AssertionError, match="Cannot assemble rank-3 Form"):
         _assembly_cost(trilinear)
 
 
-def test_rank_one_optimality_distinguishes_existing_and_new_matrices(V):
-    u = Coefficient(V)
-    A = Matrix(V.dual(), V)
-    bilinear = Argument(V, 0) * Argument(V, 1) * dx
+def test_rank_one_optimality_distinguishes_existing_and_new_matrices(V1):
+    u = Coefficient(V1)
+    A = Matrix(V1.dual(), V1)
+    bilinear = Argument(V1, 0) * Argument(V1, 1) * dx
 
     assert _optimal_assembly_cost(Action(A, u)) == (0, 1)
     assert _optimal_assembly_cost(bilinear) == (1, 1)
@@ -221,128 +185,123 @@ def test_rank_one_optimality_distinguishes_existing_and_new_matrices(V):
         _optimal_assembly_cost(expression)
 
 
-@pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
-def test_restructure_avoids_rank_two_actions_in_rank_one_chains(V, dual):
-    A, B = (Matrix(V.dual(), V) for _ in range(2))
-    if dual:
-        expression = Action(Cofunction(V.dual()), Action(A, B))
-    else:
-        expression = Action(Action(A, B), Coefficient(V))
+# --- Derivatives and preprocessing ---
+
+
+@pytest.mark.parametrize("arity", [0, 1, 2])
+def test_restructure_expands_interpolation_derivatives(V1, arity):
+    u = Coefficient(V1)
+    direction = Coefficient(V1)
+    target = Cofunction(V1.dual()) if arity == 0 else V1
+    if arity == 2:
+        direction = Argument(V1, 1)
+    expression = derivative(Interpolate(u, target), u, direction)
 
     actual = restructure_base_form(expression)
-    assert actual.arguments() == expression.arguments()
-    assert _optimal_assembly_cost(actual) == (0, 2)
-    assert restructure_base_form(actual) == actual
+
+    assert actual == Interpolate(direction, target)
+    assert len(actual.arguments()) == arity
 
 
-def test_restructure_applies_computed_primal_direction_without_a_matrix(V):
-    u = Coefficient(V)
-    vstar = Argument(V.dual(), 0)
-    direction = Interpolate(u, V)
-    operator = ExternalOperator(
-        u, function_space=V, derivatives=(1,), argument_slots=(vstar, Argument(V, 1))
-    )
-    expression = Action(operator, direction)
-    witness = ExternalOperator(
-        u, function_space=V, derivatives=(1,), argument_slots=(vstar, direction)
-    )
-    # One interpolation and one action of the derivative; both have rank one.
-    assert _assembly_cost(witness) == (0, 2)
-    actual = restructure_base_form(expression)
-    assert actual.arguments() == expression.arguments()
-    assert _optimal_assembly_cost(actual) == (0, 2)
-
-
-def test_restructure_exposes_operator_composition_after_contracting_a_hessian(V):
-    u = Coefficient(V)
-    vstar = Argument(V.dual(), 0)
-    first = Interpolate(Argument(V, 1), V)
-    second = Interpolate(Argument(V, 2), V)
-    hessian = ExternalOperator(
-        u, function_space=V, derivatives=(2,), argument_slots=(vstar, first, second)
-    )
-    expression = Action(hessian, u)
-    # Contract the second direction, then expose the remaining composition.
-    contracted = ExternalOperator(
-        u,
-        function_space=V,
-        derivatives=(2,),
-        argument_slots=(vstar, Argument(V, 1), Interpolate(u, V)),
-    )
-    witness = Action(contracted, first)
-    assert witness.arguments() == expression.arguments()
-    assert _assembly_cost(witness) == (3, 4)
+@pytest.mark.parametrize("order", [1, 2])
+def test_restructure_expands_derivatives_through_interpolation(V1, order):
+    u = Coefficient(V1)
+    expression = inner(Interpolate(u, V1), Interpolate(u, V1)) * dx
+    for _ in range(order):
+        expression = derivative(expression, u)
+    expected = restructure_base_form(expand_derivatives(expression))
 
     actual = restructure_base_form(expression)
-    assert actual.arguments() == expression.arguments()
-    # Rank two at the root is insufficient: its remaining rank-two slot
-    # cannot be assembled into a coefficient for the external operator.
-    assert _optimal_assembly_cost(actual) == (3, 4)
-    assert restructure_base_form(actual) == actual
 
-
-def test_restructure_contracts_a_newly_exposed_composition_from_its_parent(V):
-    u, direction = Coefficient(V), Coefficient(V)
-    vstar = Argument(V.dual(), 0)
-    first = Interpolate(Argument(V, 1), V)
-    second = Interpolate(Argument(V, 2), V)
-    hessian = ExternalOperator(
-        u, function_space=V, derivatives=(2,), argument_slots=(vstar, first, second)
-    )
-    expression = Action(Action(hessian, u), direction)
-    witness = ExternalOperator(
-        u,
-        function_space=V,
-        derivatives=(2,),
-        argument_slots=(vstar, Interpolate(direction, V), Interpolate(u, V)),
-    )
-
-    actual = restructure_base_form(expression)
-    assert actual.arguments() == expression.arguments()
-    # Completing the inner contraction exposes an Action in the parent's
-    # left operand. Reassociate that parent before trying its contraction.
-    assert _optimal_assembly_cost(actual) == (0, 3)
-    assert actual == witness
-    assert restructure_base_form(actual) == actual
-
-
-@pytest.mark.parametrize("adjoint", [False, True], ids=["jacobian", "adjoint"])
-def test_restructure_action_of_composition(V, adjoint):
-    # Jacobian of F = inner(N(I(u)), v) * dx: dF/dN, dN/dI, dI/du.
-    w = Coefficient(V)
-    vstar, v = Argument(V.dual(), 0), Argument(V, 0)
-    operand = Interpolate(Coefficient(V), V)
-    dFdN = inner(Argument(V, 1), v) * dx
-    dNdI = ExternalOperator(
-        operand, function_space=V, derivatives=(1,), argument_slots=(vstar, Argument(V, 1))
-    )
-    dIdu = Interpolate(Argument(V, 1), V)
-    jacobian = Action(dFdN, Action(dNdI, dIdu))
-    if adjoint:
-        expression = Action(Adjoint(jacobian), w)
-        # dI/du*[dN/dI*(dF/dN*[w], v)]
-        slots = (conj(inner(v, w)) * dx, v)
-        expected = Interpolate(
-            v, dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
-        )
-    else:
-        expression = Action(jacobian, w)
-        # dF/dN[dN/dI[dI/du[w]]]
-        slots = (vstar, Interpolate(w, V))
-        applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
-        expected = inner(applied, v) * dx
-
-    actual = restructure_base_form(expression, complex_mode=True)
     assert actual == expected
+    assert _optimal_assembly_cost(actual) == _optimal_assembly_cost(expected)
+
+
+def test_restructure_leaves_ordinary_forms_for_the_compiler(V1):
+    u = Coefficient(V1)
+    direction = Argument(V1, 0)
+    form = derivative(inner(grad(u**2), grad(direction)) * dx, u)
+
+    assert restructure_base_form(form) is form
+
+
+@pytest.mark.parametrize("complex_mode", [False, True])
+def test_restructure_preprocesses_forms_with_operators(V1, complex_mode):
+    u = Coefficient(V1)
+    v = Argument(V1, 0)
+    operator = Interpolate(u, V1)
+    form = inner(operator, v) * dx
+    expected = (conj(v) if complex_mode else v) * operator * dx
+
+    assert restructure_base_form(form, complex_mode=complex_mode) == expected
+
+
+# --- Actions and Adjoints ---
+
+
+def test_restructure_action_of_adjoint_matrix(V1, V2):
+    # Action(Adjoint(A), x) -> Action(x, A)
+    A = Matrix(V1.dual(), V2)
+    f = Argument(V1, 0) * dx
+    assert restructure_base_form(Action(Adjoint(A), f)) == Action(f, A)
+    x = Coefficient(V1.dual())
+    assert restructure_base_form(Action(Adjoint(A), x)) == Action(x, A)
+    # The right operand has rank two, so the Adjoint stays.
+    matrix_action = restructure_base_form(Action(Adjoint(A), Matrix(V1, V2)))
+    assert isinstance(matrix_action.left(), Adjoint)
+
+
+def test_restructure_action_of_adjoint_of_action(V1, V2):
+    A = Matrix(V2.dual(), V1.dual())
+    B = Matrix(V1, V2)
+    x = Coefficient(V2.dual())
+
+    # Action(Adjoint(Action(A, B)), x) -> Action(x, Action(A, B)) -> Action(Action(x, A), B)
+    assert restructure_base_form(Action(Adjoint(Action(A, B)), x)) == Action(Action(x, A), B)
+
+
+def test_restructure_action_of_adjoint_form(V1, V2):
+    form = TestFunction(V1) * TrialFunction(V2) * dx
+    x = Coefficient(V1)
+
+    assert restructure_base_form(Action(Adjoint(form), x)) == conj(x * TrialFunction(V2)) * dx
+
+
+@pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
+def test_restructure_preserves_an_assembled_matrix_subclass(V1, dual):
+    class AssembledMatrix(Matrix):
+        """An assembled operator supplied by another package."""
+
+    matrix = AssembledMatrix(V1.dual(), V1)
+    coefficient = Cofunction(V1.dual()) if dual else Coefficient(V1)
+    operands = (coefficient, matrix) if dual else (matrix, coefficient)
+
+    actual = restructure_base_form(Action(*operands))
+    assert actual.left() is operands[0]
+    assert actual.right() is operands[1]
+    assert _optimal_assembly_cost(actual) == (0, 1)
+
+
+@pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
+def test_restructure_avoids_rank_two_actions_in_rank_one_chains(V1, dual):
+    A = Matrix(V1.dual(), V1)
+    B = Matrix(V1.dual(), V1)
+    if dual:
+        expression = Action(Cofunction(V1.dual()), Action(A, B))
+    else:
+        expression = Action(Action(A, B), Coefficient(V1))
+
+    actual = restructure_base_form(expression)
     assert actual.arguments() == expression.arguments()
-    # One Form and three operators, each assembled with rank one.
-    assert _optimal_assembly_cost(actual) == (0, 4)
-    assert restructure_base_form(actual, complex_mode=True) == actual
+    assert _optimal_assembly_cost(actual) == (0, 2)
+    assert restructure_base_form(actual) == actual
 
 
 @pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
-def test_restructure_keeps_matrix_sums_factored(V, sum_on_left):
-    A, B, C = (Matrix(V.dual(), V) for _ in range(3))
+def test_restructure_keeps_matrix_sums_factored(V1, sum_on_left):
+    A = Matrix(V1.dual(), V1)
+    B = Matrix(V1.dual(), V1)
+    C = Matrix(V1.dual(), V1)
     expression = Action(B + C, A) if sum_on_left else Action(A, B + C)
     # The input is already assemblable: one matrix sum and one matrix product.
     # Expanding it needs two matrix products and an additional matrix sum.
@@ -354,39 +313,57 @@ def test_restructure_keeps_matrix_sums_factored(V, sum_on_left):
 
 
 @pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
-def test_restructure_factors_a_shared_action_on_a_rank_one_formsum(V, dual):
-    A, B, C = (Matrix(V.dual(), V) for _ in range(3))
+def test_restructure_factors_a_shared_action_on_a_rank_one_formsum(V1, dual):
+    A = Matrix(V1.dual(), V1)
+    B = Matrix(V1.dual(), V1)
+    C = Matrix(V1.dual(), V1)
     if dual:
-        x = Cofunction(V.dual())
+        x = Cofunction(V1.dual())
         expression = Action(Action(x, B + C), A)
-        witness = Action(Action(x, B) + Action(x, C), A)
+        expected = Action(Action(x, B) + Action(x, C), A)
     else:
-        x = Coefficient(V)
+        x = Coefficient(V1)
         expression = Action(A, Action(B + C, x))
-        witness = Action(A, Action(B, x) + Action(C, x))
+        expected = Action(A, Action(B, x) + Action(C, x))
     # Three rank-one Actions and one rank-one FormSum suffice, with the
     # rank-one operand on either side of the chain.
-    assert witness.arguments() == expression.arguments()
-    assert _assembly_cost(witness) == (0, 4)
+    assert expected.arguments() == expression.arguments()
+    assert _assembly_cost(expected) == (0, 4)
 
     actual = restructure_base_form(expression)
     assert actual.arguments() == expression.arguments()
     assert _optimal_assembly_cost(actual) == (0, 4)
 
 
+def test_restructure_conjugates_weights_when_contracting_a_matrix_sum_from_the_left(V1):
+    A = Matrix(V1.dual(), V1)
+    B = Matrix(V1.dual(), V1)
+    x = Cofunction(V1.dual())
+    expression = Action(x, FormSum((A, 1j), (B, 1)))
+    # (i A + B)^H x = -i A^H x + B^H x.
+    expected = FormSum((Action(x, A), -1j), (Action(x, B), 1))
+
+    actual = restructure_base_form(expression)
+    assert actual == expected
+    assert _optimal_assembly_cost(actual) == (0, 3)
+
+
 @pytest.mark.parametrize("contractions", [1, 2])
-def test_restructure_contracts_a_trilinear_form_before_assembly(V, contractions):
-    v, w, z = (Argument(V, i) for i in range(3))
-    u, direction = Coefficient(V), Coefficient(V)
+def test_restructure_contracts_a_trilinear_form_before_assembly(V1, contractions):
+    v = Argument(V1, 0)
+    w = Argument(V1, 1)
+    z = Argument(V1, 2)
+    u = Coefficient(V1)
+    direction = Coefficient(V1)
     expression = Action(v * w * z * dx, u)
-    witness = v * w * u * dx
+    expected = v * w * u * dx
     if contractions == 2:
         expression = Action(expression, direction)
-        witness = v * direction * u * dx
+        expected = v * direction * u * dx
     cost = (int(contractions == 1), 1)
     # Substitute coefficients before assembly to avoid a rank-three Form.
-    assert witness.arguments() == expression.arguments()
-    assert _assembly_cost(witness) == cost
+    assert expected.arguments() == expression.arguments()
+    assert _assembly_cost(expected) == cost
 
     actual = restructure_base_form(expression)
     assert actual.arguments() == expression.arguments()
@@ -394,27 +371,302 @@ def test_restructure_contracts_a_trilinear_form_before_assembly(V, contractions)
 
 
 @pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
-def test_restructure_contracts_bilinear_forms_with_complex_directions(V, dual):
-    v, w = Argument(V, 0), Argument(V, 1)
+def test_restructure_contracts_bilinear_forms_with_complex_directions(V1, dual):
+    v = Argument(V1, 0)
+    w = Argument(V1, 1)
     form = inner(w, v) * dx
-    direction = Interpolate((1 + 2j) * Coefficient(V), V)
+    direction = Interpolate((1 + 2j) * Coefficient(V1), V1)
     expression = Action(direction, form) if dual else Action(form, direction)
-    witness = conj(inner(w, direction)) * dx if dual else inner(direction, v) * dx
+    expected = conj(inner(w, direction)) * dx if dual else inner(direction, v) * dx
 
     actual = restructure_base_form(expression, complex_mode=True)
-    assert actual == witness
+    assert actual == expected
     assert actual.arguments() == expression.arguments()
     assert _optimal_assembly_cost(actual) == (0, 2)
     assert restructure_base_form(actual, complex_mode=True) == actual
 
 
-def test_restructure_conjugates_weights_when_contracting_a_matrix_sum_from_the_left(V):
-    A, B = (Matrix(V.dual(), V) for _ in range(2))
-    x = Cofunction(V.dual())
-    expression = Action(x, FormSum((A, 1j), (B, 1)))
-    # (i A + B)^H x = -i A^H x + B^H x.
-    witness = FormSum((Action(x, A), -1j), (Action(x, B), 1))
+# --- Operator argument slots ---
+
+
+def test_restructure_fills_interpolate_operand(V1, V2):
+    vstar = Argument(V2.dual(), 0)
+    u = Coefficient(V1)
+    Iu = Interpolate(u, vstar)
+    Iv = Interpolate(TrialFunction(V1), vstar)  # V1 -> V2
+    F = TrialFunction(V2) * TestFunction(V1) * dx
+
+    # Interpolate is linear in its operand: Action(I(v1; v*), u) -> I(u; v*)
+    assert restructure_base_form(Action(Iv, u)) == Iu
+    # Associate before absorption, then assemble the resulting one-form directly.
+    assert restructure_base_form(Action(Action(F, Iv), u)) == Iu * TestFunction(V1) * dx
+
+
+def test_restructure_adjoint_of_operator_swaps_argument_numbers(V1, V2):
+    Iv = Interpolate(TrialFunction(V1), Argument(V2.dual(), 0))
+
+    assert restructure_base_form(Adjoint(Iv)) == Interpolate(
+        Argument(V1, 0), Argument(V2.dual(), 1)
+    )
+
+
+def test_restructure_action_of_adjoint_operator_fills_dual_slot(V1, V2):
+    Iv = Interpolate(TrialFunction(V1), Argument(V2.dual(), 0))
+    w = Cofunction(V2.dual())
+
+    # Operands are restructured before their Action:
+    # Action(Adjoint(Iv), w) -> Action(I(v0; v1*), w) -> I(v0; w)
+    assert restructure_base_form(Action(Adjoint(Iv), w)) == Interpolate(Argument(V1, 0), w)
+
+
+def test_restructure_dual_slot_on_the_right(V1):
+    u = Coefficient(V1)
+    N = ExternalOperator(u, function_space=V1)
+    vstar = Coargument(V1.dual(), 0)
+    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1)))
+    L = TestFunction(V1) * dx
+
+    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), since N is linear in its dual slot
+    expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(L, Argument(V1, 0)))
+    actual = Action(L, dNdu)
+    actual = restructure_base_form(actual)
+    assert actual == expected
+
+
+def test_restructure_formsum_fills_dual_slot_whole(V1, V2):
+    u = Coefficient(V1)
+    L = TestFunction(V2) * dx + Cofunction(V2.dual())
+
+    # A FormSum fills the dual slot without distributing the Action over it.
+    assert restructure_base_form(Action(Interpolate(u, V2), L)) == Interpolate(u, L)
+
+
+def test_restructure_splits_rank_2_dual_slot(V1, V2):
+    u = Coefficient(V1)
+    A = Matrix(V2, V1)
+
+    # I(u; A) -> Action(A, I(u; v*))
+    assert restructure_base_form(Interpolate(u, A)) == Action(
+        A, Interpolate(u, Argument(V1.dual(), 0))
+    )
+
+
+def test_restructure_external_operator_keeps_arguments_of_form_without_argument_0(V1, V2, V3, V4):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+    N = ExternalOperator(Coefficient(V4), function_space=V3, argument_slots=(dual_slot, w))
+
+    assert restructure_base_form(N).arguments() == (w, free)
+
+
+def test_restructure_interpolate_keeps_arguments_of_form_without_argument_0(V1, V2, V3):
+    w = Argument(V1, 0)
+    free = Argument(V2, 1)
+    dual_slot = inner(Argument(V3, 2), free) * dx
+
+    restructured = restructure_base_form(Interpolate(w, dual_slot))
+
+    assert restructured.arguments() == (w, free)
+
+
+def test_restructure_keeps_operand_arguments(V1, V2):
+    # The Coargument of an operand Interpolate is bound inside that operand.
+    # Restructuring renumbers or contracts only the arguments in the argument
+    # slots of the outer operator, so the operand stays the same.
+    operand = Interpolate(Coefficient(V1), V2)
+    vstar = Argument(V2.dual(), 0)
+    uhat = Argument(V2, 1)
+    N = ExternalOperator(operand, function_space=V2, argument_slots=(vstar, uhat))
+
+    swapped = restructure_base_form(Adjoint(N))
+    assert swapped.ufl_operands == (operand,)
+    assert swapped.argument_slots() == (Argument(V2.dual(), 1), Argument(V2, 0))
+
+    w = Cofunction(V2.dual())
+    contracted = restructure_base_form(Action(w, N))
+    assert contracted.ufl_operands == (operand,)
+    assert contracted.argument_slots() == (w, Argument(V2, 0))
+
+    u = Coefficient(V2)
+    applied = restructure_base_form(Action(N, u))
+    assert applied.ufl_operands == (operand,)
+    assert applied.argument_slots() == (vstar, u)
+
+
+def test_restructure_applies_computed_primal_direction_without_a_matrix(V1):
+    u = Coefficient(V1)
+    vstar = Argument(V1.dual(), 0)
+    direction = Interpolate(u, V1)
+    operator = ExternalOperator(
+        u, function_space=V1, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1))
+    )
+    expression = Action(operator, direction)
+    expected = ExternalOperator(
+        u, function_space=V1, derivatives=(1,), argument_slots=(vstar, direction)
+    )
+    # One interpolation and one action of the derivative; both have rank one.
+    assert _assembly_cost(expected) == (0, 2)
+    actual = restructure_base_form(expression)
+    assert actual.arguments() == expression.arguments()
+    assert _optimal_assembly_cost(actual) == (0, 2)
+
+
+# --- Operator compositions ---
+
+
+def test_restructure_splits_rank_2_operand_slot(V1, V2):
+    # The chain rule puts the rank 2 derivative B of the operand into an
+    # argument slot. A base form operator is linear in that slot, so the
+    # restructurer splits it off: N(u; v*, B) -> Action(N(u; v*, uhat), B).
+    u = Coefficient(V1)
+    operand = Interpolate(u, V2)
+    N = ExternalOperator(operand, function_space=V2)
+    vstar = Argument(V2.dual(), 0)
+    B = Interpolate(TrialFunction(V1), V2)
+
+    dN = expand_derivatives(derivative(N, u))
+    assert dN == N._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=(vstar, B))
+
+    left = N._ufl_expr_reconstruct_(
+        operand, derivatives=(1,), argument_slots=(vstar, Argument(V2, 1))
+    )
+    assert restructure_base_form(dN) == Action(left, B)
+
+
+def test_restructure_composition_in_interpolate_slot(V1):
+    # Interpolating A o A is the same three-map composition however it is associated.
+    A = Interpolate(TrialFunction(V1), V1)
+    ustar = Cofunction(V1.dual())
+
+    restructured = restructure_base_form(Action(ustar, Interpolate(Action(A, A), V1)))
+
+    assert restructured == restructure_base_form(Action(ustar, Action(A, Action(A, A))))
+    assert restructured.arguments() == (TestFunction(V1),)
+    assert restructure_base_form(restructured) == restructured
+
+
+def test_restructure_weighted_sum_in_interpolate_slot(V1):
+    # Interpolating 2 A + 3 B is 2 A o A + 3 A o B, with A the interpolation of a trial function.
+    A = Interpolate(TrialFunction(V1), V1)
+    B = Interpolate(2 * TrialFunction(V1), V1)
+    ustar = Cofunction(V1.dual())
+
+    restructured = restructure_base_form(Action(ustar, Interpolate(FormSum((A, 2), (B, 3)), V1)))
+
+    assert restructured == FormSum(
+        (restructure_base_form(Action(ustar, Action(A, A))), 2),
+        (restructure_base_form(Action(ustar, Action(A, B))), 3),
+    )
+    assert restructured.arguments() == (TestFunction(V1),)
+    assert restructure_base_form(restructured) == restructured
+
+
+def test_restructure_contracts_covector_first(V1, V2):
+    # A rank 1 operand on the left of a chain of Actions is contracted first:
+    # Action(x, Action(A, dN)) contracts x into A before filling dN's dual
+    # slot, so neither operand needs a rank-two assembly.
+    u = Coefficient(V1)
+    N = ExternalOperator(u, function_space=V2)
+    dN = N._ufl_expr_reconstruct_(
+        u, derivatives=(1,), argument_slots=(Argument(V2.dual(), 0), Argument(V1, 1))
+    )
+    A = inner(TrialFunction(V2), TestFunction(V1)) * dx
+    x = Coefficient(V1)
+
+    expected = N._ufl_expr_reconstruct_(
+        u,
+        derivatives=(1,),
+        argument_slots=(conj(inner(Argument(V2, 0), x)) * dx, Argument(V1, 0)),
+    )
+    assert restructure_base_form(Action(x, Action(A, dN))) == expected
+    assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
+
+
+@pytest.mark.parametrize("adjoint", [False, True], ids=["jacobian", "adjoint"])
+def test_restructure_action_of_composition(V1, adjoint):
+    # Jacobian of F = inner(N(I(u)), v) * dx: dF/dN, dN/dI, dI/du.
+    w = Coefficient(V1)
+    vstar = Argument(V1.dual(), 0)
+    v = Argument(V1, 0)
+    operand = Interpolate(Coefficient(V1), V1)
+    dFdN = inner(Argument(V1, 1), v) * dx
+    dNdI = ExternalOperator(
+        operand, function_space=V1, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1))
+    )
+    dIdu = Interpolate(Argument(V1, 1), V1)
+    jacobian = Action(dFdN, Action(dNdI, dIdu))
+    if adjoint:
+        expression = Action(Adjoint(jacobian), w)
+        # dI/du*[dN/dI*(dF/dN*[w], v)]
+        slots = (conj(inner(v, w)) * dx, v)
+        expected = Interpolate(
+            v, dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        )
+    else:
+        expression = Action(jacobian, w)
+        # dF/dN[dN/dI[dI/du[w]]]
+        slots = (vstar, Interpolate(w, V1))
+        applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        expected = inner(applied, v) * dx
+
+    actual = restructure_base_form(expression, complex_mode=True)
+    assert actual == expected
+    assert actual.arguments() == expression.arguments()
+    # One Form and three operators, each assembled with rank one.
+    assert _optimal_assembly_cost(actual) == (0, 4)
+    assert restructure_base_form(actual, complex_mode=True) == actual
+
+
+def test_restructure_exposes_operator_composition_after_contracting_a_hessian(V1):
+    u = Coefficient(V1)
+    vstar = Argument(V1.dual(), 0)
+    first = Interpolate(Argument(V1, 1), V1)
+    second = Interpolate(Argument(V1, 2), V1)
+    hessian = ExternalOperator(
+        u, function_space=V1, derivatives=(2,), argument_slots=(vstar, first, second)
+    )
+    expression = Action(hessian, u)
+    # Contract the second direction, then expose the remaining composition.
+    contracted = ExternalOperator(
+        u,
+        function_space=V1,
+        derivatives=(2,),
+        argument_slots=(vstar, Argument(V1, 1), Interpolate(u, V1)),
+    )
+    expected = Action(contracted, first)
+    assert expected.arguments() == expression.arguments()
+    assert _assembly_cost(expected) == (3, 4)
 
     actual = restructure_base_form(expression)
-    assert actual == witness
+    assert actual.arguments() == expression.arguments()
+    # Rank two at the root is insufficient: its remaining rank-two slot
+    # cannot be assembled into a coefficient for the external operator.
+    assert _optimal_assembly_cost(actual) == (3, 4)
+    assert restructure_base_form(actual) == actual
+
+
+def test_restructure_contracts_a_newly_exposed_composition_from_its_parent(V1):
+    u = Coefficient(V1)
+    direction = Coefficient(V1)
+    vstar = Argument(V1.dual(), 0)
+    first = Interpolate(Argument(V1, 1), V1)
+    second = Interpolate(Argument(V1, 2), V1)
+    hessian = ExternalOperator(
+        u, function_space=V1, derivatives=(2,), argument_slots=(vstar, first, second)
+    )
+    expression = Action(Action(hessian, u), direction)
+    expected = ExternalOperator(
+        u,
+        function_space=V1,
+        derivatives=(2,),
+        argument_slots=(vstar, Interpolate(direction, V1), Interpolate(u, V1)),
+    )
+
+    actual = restructure_base_form(expression)
+    assert actual.arguments() == expression.arguments()
+    # Completing the inner contraction exposes an Action in the parent's
+    # left operand. Reassociate that parent before trying its contraction.
     assert _optimal_assembly_cost(actual) == (0, 3)
+    assert actual == expected
+    assert restructure_base_form(actual) == actual
