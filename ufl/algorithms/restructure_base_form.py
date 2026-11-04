@@ -52,11 +52,13 @@ class BaseFormRestructurer(DAGTraverser):
     Expression                         Result
     =================================  ===================================================
     ``Action(Adjoint(A), x)``          ``Action(x, A)``
+    ``Action(x, Adjoint(A))``          ``Action(A, x)``
     ``Action(x, Action(A, B))``        ``Action(Action(x, A), B)``
     ``Action(Action(A, B), x)``        ``Action(A, Action(B, x))``
     ``Action(a * A + b * B, x)``       ``a * Action(A, x) + b * Action(B, x)``
     ``Action(x, a * A + b * B)``       ``conj(a) * Action(x, A) + conj(b) * Action(x, B)``
     ``Action(L, N(u; v_0*, uhat_1))``  ``N(u; L, uhat_0)``
+    ``Action(w, N(u; v_1*, uhat_0))``  ``N(u; v_0*, w)``
     ``Action(N(u; v_1*, uhat_0), L)``  ``N(u; L, uhat_0)``
     ``Action(N(u; v_0*, uhat_1), w)``  ``N(u; v_0*, w)``
     ``Action(F(v_0, v_1), w)``         ``F(v_0, w)``
@@ -180,6 +182,8 @@ class BaseFormRestructurer(DAGTraverser):
         # higher ranks, the argument contracted depends on the position in the chain.
         if isinstance(left, Adjoint) and right_is_rank_one:
             return self(Action(right, left.form()))
+        if isinstance(right, Adjoint) and left_is_rank_one:
+            return self(Action(right.form(), left))
         if left_is_rank_one and isinstance(right, Action) and _rank(right.left()) == 2:
             return self(Action(Action(left, right.left()), right.right()))
         if (
@@ -207,7 +211,7 @@ class BaseFormRestructurer(DAGTraverser):
         # A base form operator is linear in its argument slots. Any BaseForm fills
         # the dual slot, while a primal slot takes an expression.
         if isinstance(right, BaseFormOperator) and left_is_rank_one:
-            if isinstance(left, BaseForm) and right.argument_slots()[0] == right.arguments()[0]:
+            if isinstance(left, Expr) or right.argument_slots()[0] == right.arguments()[0]:
                 return self(_contract_first(right, left))
         if isinstance(left, BaseFormOperator) and right_is_rank_one:
             if isinstance(right, Expr) or left.argument_slots()[0] == left.arguments()[-1]:

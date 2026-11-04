@@ -331,6 +331,37 @@ def test_restructure_form_absorbs_expression_sum(V1):
     assert restructure_base_form(Action(v * u * dx, a + b)) == v * (a + b) * dx
 
 
+def test_restructure_adjoint_on_right(V1, V2):
+    # Action(x, Adjoint(A)) -> Action(A, x)
+    A = Matrix(V2.dual(), V1)
+    u = Coefficient(V1)
+    assert restructure_base_form(Action(u, Adjoint(A))) == Action(A, u)
+
+    form = TrialFunction(V1) * TestFunction(V2) * dx
+    assert restructure_base_form(Action(u, Adjoint(form))) == u * TestFunction(V2) * dx
+
+
+def test_restructure_adjoint_operator_on_right(V1, V2):
+    Iv = Interpolate(TrialFunction(V1), Argument(V2.dual(), 0))
+    u = Coefficient(V1)
+
+    # Action(u, Adjoint(Iv)) -> Action(u, I(v0; v1*)) -> I(u; v0*)
+    actual = restructure_base_form(Action(u, Adjoint(Iv)))
+    assert actual == Interpolate(u, Argument(V2.dual(), 0))
+    assert _optimal_assembly_cost(actual) == (0, 1)
+
+
+def test_restructure_adjoint_form_and_matrix_sum_rank(V1, V2):
+    x = Coefficient(V2)
+    form = TestFunction(V2) * TrialFunction(V1) * dx
+    expression = Action(Adjoint(FormSum((form, 1), (Matrix(V2, V1), 2))), x)
+
+    actual = restructure_base_form(expression)
+    assert isinstance(actual, FormSum)
+    assert len(actual.arguments()) == 1
+    assert _optimal_assembly_cost(actual) == (0, 3)
+
+
 @pytest.mark.parametrize("terms", [("mass",), ("interpolation",), ("mass", "interpolation")])
 def test_restructure_adjoint_action_arguments(V1, V2, terms):
     u = Coefficient(V1)
