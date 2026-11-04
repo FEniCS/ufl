@@ -22,7 +22,6 @@ from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.duals import is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
@@ -275,8 +274,13 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     @property
     def _parent_type(self):
-        """Is this a primal or dual expression?"""
-        return Operator if is_primal(self.ufl_function_space()) else BaseForm
+        """Is this an expression or a form?
+
+        The operator is an expression if its dual slot leaves the output free,
+        otherwise the dual slot contracts the output and leaves a form.
+        """
+        dual_slot_arguments = self.argument_slots()[0].arguments()
+        return Operator if any(isinstance(a, Coargument) for a in dual_slot_arguments) else BaseForm
 
     def __add__(self, other):
         """Add."""

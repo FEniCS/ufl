@@ -34,7 +34,8 @@ class Replacer(DAGTraverser):
         def get_shape(x):
             """Get the shape of an object."""
             if isinstance(x, BaseForm):
-                return x.arguments()[0].ufl_shape
+                arguments = x.arguments()
+                return arguments[0].ufl_shape if arguments else ()
             return x.ufl_shape
 
         if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
