@@ -38,6 +38,8 @@ from ufl import (
     Mesh,
     TestFunction,
     TrialFunction,
+    action,
+    adjoint,
     conj,
     derivative,
     dx,
@@ -264,7 +266,42 @@ def test_restructure_action_of_adjoint_form(V1, V2):
     form = TestFunction(V1) * TrialFunction(V2) * dx
     x = Coefficient(V1)
 
-    assert restructure_base_form(Action(Adjoint(form), x)) == conj(x * TrialFunction(V2)) * dx
+    assert restructure_base_form(Action(Adjoint(form), x)) == conj(x * TestFunction(V2)) * dx
+
+
+def test_restructure_adjoint_form_matrix_action(V1, V2):
+    form = TestFunction(V2) * TrialFunction(V2) * dx
+    B = Matrix(V2.dual(), V1)
+    x = Coefficient(V2)
+
+    restructured = restructure_base_form(Action(Adjoint(Action(form, B)), x))
+
+    # The Form in the chain is assembled, so its argument is numbered from zero.
+    assert restructured == Action(conj(x * TestFunction(V2)) * dx, B)
+
+
+def test_restructure_adjoint_formsum_weights(V1, V2):
+    A, B = Matrix(V2.dual(), V1), Matrix(V2.dual(), V1)
+    x = Coefficient(V2.dual())
+
+    restructured = restructure_base_form(Action(Adjoint(FormSum((A, 1 + 2j), (B, 3))), x))
+
+    assert restructured == FormSum((Action(x, A), 1 - 2j), (Action(x, B), 3))
+
+
+@pytest.mark.parametrize("terms", [("mass",), ("interpolation",), ("mass", "interpolation")])
+def test_restructure_adjoint_action_arguments(V1, V2, terms):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    integrands = {"mass": inner(u, v) * dx, "interpolation": inner(Interpolate(u, V2), v) * dx}
+    F = sum(integrands[term] for term in terms)
+    expression = action(adjoint(derivative(F, u)), Coefficient(V2))
+
+    restructured = restructure_base_form(expression)
+
+    assert restructured.arguments() == expression.arguments() == (TestFunction(V1),)
+    if isinstance(restructured, FormSum):
+        assert all(c.arguments() == (TestFunction(V1),) for c in restructured.components())
 
 
 @pytest.mark.parametrize("dual", [False, True], ids=["primal", "dual"])
@@ -377,11 +414,11 @@ def test_restructure_contracts_bilinear_forms_with_complex_directions(V1, dual):
     form = inner(w, v) * dx
     direction = Interpolate((1 + 2j) * Coefficient(V1), V1)
     expression = Action(direction, form) if dual else Action(form, direction)
-    expected = conj(inner(w, direction)) * dx if dual else inner(direction, v) * dx
+    expected = conj(inner(v, direction)) * dx if dual else inner(direction, v) * dx
 
     actual = restructure_base_form(expression, complex_mode=True)
     assert actual == expected
-    assert actual.arguments() == expression.arguments()
+    assert actual.arguments() == (v,)
     assert _optimal_assembly_cost(actual) == (0, 2)
     assert restructure_base_form(actual, complex_mode=True) == actual
 
@@ -449,6 +486,28 @@ def test_restructure_splits_rank_2_dual_slot(V1, V2):
     assert restructure_base_form(Interpolate(u, A)) == Action(
         A, Interpolate(u, Argument(V1.dual(), 0))
     )
+
+
+def test_restructure_interp_hessian(V1, V2):
+    # The residual is I(v0; dJ/dIu), with the dual slot depending on u.
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0, v1 = TestFunction(V1), TrialFunction(V1)
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    J = 0.5 * (Iu - f) ** 2 * dx
+    residual = restructure_base_form(derivative(J, u))
+    assert isinstance(residual, Interpolate)
+
+    hessian = restructure_base_form(derivative(residual, u, v1))
+
+    # d2J/du2[v0, v1] = I^T d2J/dIu2 I
+    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert hessian == expected
+    assert hessian == restructure_base_form(derivative(derivative(J, u), u))
+    _assembly_cost(hessian)
 
 
 def test_restructure_external_operator_keeps_arguments_of_form_without_argument_0(V1, V2, V3, V4):

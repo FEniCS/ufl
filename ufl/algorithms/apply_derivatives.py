@@ -16,11 +16,7 @@ import numpy as np
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.algorithms.analysis import (
-    extract_arguments,
-    extract_coefficients,
-    extract_type,
-)
+from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
@@ -67,7 +63,7 @@ from ufl.classes import (
 )
 from ufl.conditional import BinaryCondition, Conditional, NotCondition
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
+from ufl.core.base_form_operator import BaseFormOperator, _number_contracted_argument
 from ufl.core.expr import ufl_err_str
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
@@ -1870,50 +1866,19 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         """Differentiate a base form operator.
 
         N(u; v*) is linear in its dual slot v*, so the product rule gives
-        D[N(u; v*)] = DN(u; v*) + N(u; Dv*), where N(u; Dv*) is the action
-        of N(u; vhat) on Dv*, with vhat a new coargument in the dual slot.
+        D[N(u; v*)] = DN(u; v*) + N(u; Dv*).
         """
         dN_dN = self._process_coefficient(N)
         if dN_dN != 0:
             # Differentiation with respect to N itself.
             return dN_dN
-        vstar, *_ = N.argument_slots()
-        return self._expression_rules(N) + dual_slot_action(N, vstar, derivative=self)
-
-
-def dual_slot_action(
-    N: BaseFormOperator, A: BaseForm, derivative: BaseFormDerivativeRuleset | None = None
-) -> Action:
-    """Return ``N(u; A)`` as an Action, where ``A`` replaces the dual slot of ``N``.
-
-    With ``derivative``, return ``N(u; DA)``, where ``derivative`` differentiates ``A``.
-
-    ``A`` has the contracted argument of the dual slot of ``N``. That argument is bound,
-    so its number is free: it is numbered to be the one that the Action contracts.
-    """
-    vstar, *slots = N.argument_slots()
-    slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
-    contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
-    space = contracted.ufl_function_space().dual()
-    slot_numbers = [a.number() for a in slot_args]
-    numbers = [a.number() for a in A.arguments() if a != contracted]
-    if derivative is not None:
-        numbers += [a.number() for a in derivative._direction_arguments]
-    operator_first = 0 in slot_numbers
-    if operator_first:
-        # N(u; A) = Action(N(u; v*), A), with v* the last argument of N(u; v*).
-        number = 0
-        vhat_number = 1 + max(slot_numbers)
-    else:
-        # N(u; A) = Action(A, N(u; v*)), with v* the first argument of N(u; v*).
-        number = 1 + max(numbers, default=-1)
-        vhat_number = 0
-    A = replace(A, {contracted: contracted.reconstruct(number=number)})
-    if derivative is not None:
-        A = derivative(A)
-    vhat = contracted.reconstruct(function_space=space, number=vhat_number)
-    Nhat = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
-    return Action(Nhat, A) if operator_first else Action(A, Nhat)
+        vstar, *slots = N.argument_slots()
+        arguments = N.arguments() + self._direction_arguments
+        dvstar = self(_number_contracted_argument(N, vstar, arguments))
+        if isinstance(dvstar, ZeroBaseForm):
+            return self._expression_rules(N) + ZeroBaseForm(arguments)
+        dual_term = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+        return self._expression_rules(N) + dual_term
 
 
 class DerivativeRuleDispatcher(DAGTraverser):

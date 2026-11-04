@@ -8,18 +8,17 @@
 
 from collections.abc import Callable
 from functools import singledispatchmethod
-from numbers import Complex
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
 from ufl.algorithms.ad import expand_derivatives
-from ufl.algorithms.apply_derivatives import dual_slot_action
+from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.compute_form_data import preprocess_form
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
-from ufl.argument import Coargument
-from ufl.core.base_form_operator import BaseFormOperator
+from ufl.argument import Argument, Coargument
+from ufl.core.base_form_operator import BaseFormOperator, _number_contracted_argument
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, Form, FormSum
@@ -81,7 +80,23 @@ class BaseFormTraversal(DAGTraverser):
 
 
 class BaseFormRestructurer(BaseFormTraversal):
-    """Split operator compositions and simplify Actions and Adjoints."""
+    """Split operator compositions, associate Actions and absorb their operands.
+
+    Each Action goes through ActionAssociator, ActionAbsorber and ActionDistributor.
+    The other rules are below, where ``N`` is an operator, ``B`` has rank two, ``A`` has
+    rank above one, ``L`` is a one-form and ``w_i`` is an Argument numbered ``i``. An
+    operator with one rank-two primal slot ``B`` is split first.
+
+    ============================  ===============================================
+    Expression                    Result
+    ============================  ===============================================
+    ``N(u; v*, B)``               ``Action(N(u; v*, uhat), B)``
+    ``N(u; A, w_0)``              ``Action(N(u; vhat, w_0), A)``
+    ``N(u; A, w_1)``              ``Action(A, N(u; vhat, w_1))``
+    ``N(u; L(v_1))``              ``N(u; L(v_0))``
+    ``Adjoint(N(u; v_0*, w_1))``  ``N(u; v_1*, w_0)``
+    ============================  ===============================================
+    """
 
     def __init__(
         self,
@@ -89,13 +104,14 @@ class BaseFormRestructurer(BaseFormTraversal):
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
     ) -> None:
-        """Cache the association and contraction traversers."""
+        """Cache the association, absorption and distribution traversers."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
         # Each pass memoises a different transformation of the same nodes,
         # so their visited and result caches must remain independent.
         self._dag_traverser_cache: dict[type[BaseFormTraversal], BaseFormTraversal] = {
             ActionAssociator: ActionAssociator(compress=compress),
-            ActionContractor: ActionContractor(self, compress=compress),
+            ActionAbsorber: ActionAbsorber(self, compress=compress),
+            ActionDistributor: ActionDistributor(self, compress=compress),
         }
 
     # Work around singledispatchmethod inheritance issue;
@@ -141,8 +157,18 @@ class BaseFormRestructurer(BaseFormTraversal):
 
         dual = self(v)
         if len(dual.arguments()) > 1:
-            # A base form operator is linear in its dual slot, so it splits into an Action.
-            return self(dual_slot_action(o, dual))
+            # A base form operator is linear in its dual slot, so N(u; A) splits into
+            # Action(N(u; vhat), A) if the primal slots use number 0, and otherwise
+            # into Action(A, N(u; vhat)). Each contracts the contracted argument of A.
+            A = _number_contracted_argument(o, dual, o.arguments())
+            slot_numbers = [a.number() for s in slots for a in extract_type(s, Argument, True)]
+            operator_first = 0 in slot_numbers
+            contracted = A.arguments()[0 if operator_first else -1]
+            space = contracted.ufl_function_space().dual()
+            vhat_number = 1 + max(slot_numbers) if operator_first else 0
+            vhat = contracted.reconstruct(function_space=space, number=vhat_number)
+            Nhat = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vhat, *slots))
+            return self(Action(Nhat, A) if operator_first else Action(A, Nhat))
         if isinstance(dual, Form) and dual.arguments()[0].number() != 0:
             # The contracted argument of a one-form is bound in the dual slot, so its
             # number is free. Forms are assembled with arguments numbered from zero.
@@ -163,20 +189,16 @@ class BaseFormRestructurer(BaseFormTraversal):
                 form, {u: u.reconstruct(number=v.number()), v: v.reconstruct(number=u.number())}
             )
             return self(adjoint)
-
         return Adjoint(form)
 
     @process.register(Action)
     @DAGTraverser.postorder
     def _(self, o: Action, left: Expr | BaseForm, right: Expr | BaseForm) -> Expr | BaseForm:
         """Restructure an Action after processing its operands."""
-        if isinstance(left, Adjoint) and _rank(right) == 1:
-            # Action(Adjoint(A), x) is the same contraction as Action(x, A).
-            return self(Action(right, left.form()))
-
         associate = self._dag_traverser_cache[ActionAssociator]
-        absorb = self._dag_traverser_cache[ActionContractor]
-        return absorb(associate(Action(left, right)))
+        absorb = self._dag_traverser_cache[ActionAbsorber]
+        distribute = self._dag_traverser_cache[ActionDistributor]
+        return distribute(absorb(associate(Action(left, right))))
 
 
 class ActionAssociator(BaseFormTraversal):
@@ -187,6 +209,19 @@ class ActionAssociator(BaseFormTraversal):
     to avoid assembling a sum of rank greater than one. Reassociate across
     rank-two operands only: for higher ranks, the argument contracted by an
     Action depends on its position in the chain.
+
+    Here ``x`` has rank one, ``A`` and ``B`` have rank two except that the left operand
+    of a chain can have a higher rank.
+
+    ============================  ===================================================
+    Expression                    Result
+    ============================  ===================================================
+    ``Action(Adjoint(A), x)``     ``Action(x, A)``
+    ``Action(x, Action(A, B))``   ``Action(Action(x, A), B)``
+    ``Action(Action(A, B), x)``   ``Action(A, Action(B, x))``
+    ``Action(a * A + b * B, x)``  ``a * Action(A, x) + b * Action(B, x)``
+    ``Action(x, a * A + b * B)``  ``conj(a) * Action(x, A) + conj(b) * Action(x, B)``
+    ============================  ===================================================
     """
 
     # Work around singledispatchmethod inheritance issue;
@@ -200,6 +235,10 @@ class ActionAssociator(BaseFormTraversal):
     @DAGTraverser.postorder
     def _(self, o: Action, left: Expr | BaseForm, right: Expr | BaseForm) -> Expr | BaseForm:
         """Associate an Action to avoid rank-two intermediate forms."""
+        if isinstance(left, Adjoint) and _rank(right) == 1:
+            # Action(Adjoint(A), x) is the same contraction as Action(x, A).
+            return self(Action(right, left.form()))
+
         if _rank(left) == 1 and isinstance(right, Action) and _rank(right.left()) == 2:
             # A rank 1 operand is contracted first, so that every Action in the
             # chain gives another rank 1 operand:
@@ -224,15 +263,30 @@ class ActionAssociator(BaseFormTraversal):
             # the rank-two FormSum A must be conjugated.
             return FormSum(
                 *(
-                    (self(Action(left, c)), w.conjugate() if isinstance(w, Complex) else Conj(w))
+                    (self(Action(left, c)), Conj(w))
                     for c, w in zip(right.components(), right.weights())
                 )
             )
         return Action(left, right)
 
 
-class ActionContractor(BaseFormTraversal):
-    """Contract arguments in Forms and BaseFormOperator slots."""
+class ActionAbsorber(BaseFormTraversal):
+    """Absorb Action operands into Forms and BaseFormOperator slots.
+
+    The rules are tried in order, where ``N`` is an operator with ``v*`` or ``uhat`` free,
+    ``L`` is a rank one BaseForm, ``F`` is a Form and ``w`` is an expression. An operator
+    is restructured again after absorbing, as is an Action whose operands changed.
+
+    =============================  ===================
+    Expression                     Result
+    =============================  ===================
+    ``Action(L, N(u; v*, uhat))``  ``N(u; L, uhat)``
+    ``Action(N(u; v*), L)``        ``N(u; L)``
+    ``Action(N(u; v*, uhat), w)``  ``N(u; v*, w)``
+    ``Action(F(v_0, v_1), w)``     ``F(v_0, w)``
+    ``Action(w, F(v_0, v_1))``     ``conj(F(w, v_0))``
+    =============================  ===================
+    """
 
     def __init__(
         self,
@@ -243,9 +297,9 @@ class ActionContractor(BaseFormTraversal):
     ) -> None:
         """Store the dispatcher used to restructure changed operators."""
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
-        # The dispatcher splits rank-two slots into Actions. Contractions fill
+        # The dispatcher splits rank-two slots into Actions. Absorption fills
         # slots with rank-one forms or coefficient expressions, so restructuring
-        # a contracted operator does not reverse those splits.
+        # an operator after absorption does not reverse those splits.
         self._restructure = restructure
 
     # Work around singledispatchmethod inheritance issue;
@@ -258,11 +312,11 @@ class ActionContractor(BaseFormTraversal):
     @process.register(Action)
     @DAGTraverser.postorder
     def _(self, o: Action, left: Expr | BaseForm, right: Expr | BaseForm) -> Expr | BaseForm:
-        """Replace contracted arguments in forms and operator slots."""
+        """Absorb an operand of an Action into a form or operator slot."""
         if (left is not o.left() and left != o.left()) or (
             right is not o.right() and right != o.right()
         ):
-            # Completing a child contraction can expose a composition to this
+            # Absorbing into a child can expose a composition to this
             # parent. Redispatch only the Action whose operands changed.
             return self._restructure(Action(left, right))
 
@@ -277,8 +331,8 @@ class ActionContractor(BaseFormTraversal):
             if right.argument_slots()[0] == vstar:
                 # The other arguments are renumbered after the contracted v*.
                 mapping = {a: a.reconstruct(number=a.number() - 1) for a in others}
-                contracted = replace(right, {vstar: left, **mapping})
-                return self._restructure(contracted)
+                absorbed = replace(right, {vstar: left, **mapping})
+                return self._restructure(absorbed)
 
         if isinstance(left, BaseFormOperator):
             v, *slots = left.argument_slots()
@@ -286,32 +340,76 @@ class ActionContractor(BaseFormTraversal):
                 # A base form operator is linear in its dual slot:
                 # Action(N(u; v*), R) -> N(u; R)
                 if v == left.arguments()[-1]:
-                    contracted = left._ufl_expr_reconstruct_(
+                    absorbed = left._ufl_expr_reconstruct_(
                         *left.ufl_operands, argument_slots=(right, *slots)
                     )
-                    return self._restructure(contracted)
+                    return self._restructure(absorbed)
             if isinstance(right, Expr) and _rank(right) == 1:
                 # A base form operator is linear in its other argument slots:
                 # Action(N(u; v*, uhat), w) -> N(u; v*, w)
                 uhat = left.arguments()[-1]
                 if v != uhat:
-                    contracted = replace(left, {uhat: right})
-                    return self._restructure(contracted)
+                    absorbed = replace(left, {uhat: right})
+                    return self._restructure(absorbed)
 
         if isinstance(left, Form) and isinstance(right, Expr) and _rank(right) == 1:
             return replace(left, {left.arguments()[-1]: right})
         if isinstance(right, Form) and isinstance(left, Expr) and _rank(left) == 1:
             # Contract the lowest-numbered argument, then conjugate the integrands.
-            return map_integrands(Conj, replace(right, {right.arguments()[0]: left}))
-
-        # Expression Sums cannot be assembled independently. Distribute over
-        # these sums, keeping FormSums unexpanded.
-        if isinstance(left, Sum):
-            return FormSum(*((self(Action(c, right)), 1) for c in left.ufl_operands))
-        if isinstance(right, Sum):
-            return FormSum(*((self(Action(left, c)), 1) for c in right.ufl_operands))
+            # The other arguments are renumbered after the contracted argument.
+            contracted, *others = right.arguments()
+            mapping = {a: a.reconstruct(number=a.number() - 1) for a in others}
+            return map_integrands(Conj, replace(right, {contracted: left, **mapping}))
 
         return Action(left, right)
+
+
+class ActionDistributor(BaseFormTraversal):
+    """Distribute Actions over the expression Sums that were not absorbed.
+
+    An expression Sum cannot be assembled independently, unlike a FormSum, which stays
+    unexpanded. Here ``a + b`` is an expression Sum.
+
+    ====================  ===============================
+    Expression            Result
+    ====================  ===============================
+    ``Action(a + b, R)``  ``Action(a, R) + Action(b, R)``
+    ``Action(L, a + b)``  ``Action(L, a) + Action(L, b)``
+    ====================  ===============================
+    """
+
+    def __init__(
+        self,
+        restructure: Callable[[Expr | BaseForm], Expr | BaseForm],
+        compress: bool | None = True,
+        visited_cache: dict[tuple, Expr | BaseForm] | None = None,
+        result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+    ) -> None:
+        """Store the dispatcher that restructures the distributed Actions."""
+        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        self._restructure = restructure
+
+    # Work around singledispatchmethod inheritance issue;
+    # see https://bugs.python.org/issue36457.
+    @singledispatchmethod
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
+        """Process ``o``."""
+        return super().process(o)
+
+    @process.register(Action)
+    @DAGTraverser.postorder
+    def _(self, o: Action, left: Expr | BaseForm, right: Expr | BaseForm) -> Expr | BaseForm:
+        """Distribute an Action over an expression Sum in an operand."""
+        if isinstance(left, Sum):
+            return FormSum(*((self._restructure(Action(c, right)), 1) for c in left.ufl_operands))
+        if isinstance(right, Sum):
+            return FormSum(*((self._restructure(Action(left, c)), 1) for c in right.ufl_operands))
+        if (left is not o.left() and left != o.left()) or (
+            right is not o.right() and right != o.right()
+        ):
+            # Distributing in a child can expose a composition to this parent.
+            return self._restructure(Action(left, right))
+        return o
 
 
 def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> Expr | BaseForm:
@@ -319,8 +417,8 @@ def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> 
 
     Leave Forms without base form operators unchanged for the form compiler.
     Split compositions in argument slots into Actions, associate rank-one
-    contractions first, and replace contracted arguments in Forms and operator
-    slots. Revisit only operators and Actions changed by those contractions.
+    contractions first, absorb Action operands into Forms and operator slots,
+    and distribute over the remaining expression Sums. Revisit only changed nodes.
 
     Args:
         form: The expression or BaseForm to restructure.
