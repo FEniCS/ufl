@@ -174,7 +174,8 @@ class Interpolate(BaseFormOperator):
         A dual slot that contracts the value leaves a form in any free arguments,
         which can be combined with other forms.
         """
-        if not isinstance(self.argument_slots()[0], Coargument) and self.arguments():
+        dual_slot_arguments = self.argument_slots()[0].arguments()
+        if self.arguments() and not any(isinstance(a, Coargument) for a in dual_slot_arguments):
             return BaseForm
         function_space = self._function_space
         if function_space is None or not is_dual(function_space):
