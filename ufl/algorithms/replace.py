@@ -97,8 +97,8 @@ class Replacer(DAGTraverser):
             return self.mapping[o]
         base_form, coefficients, arguments, coefficient_derivatives = o.ufl_operands
         others = set(extract_coefficients(base_form)) - set(coefficients)
-        images = {self.mapping.get(c, c) for c in others}
-        if any(self.mapping.get(c, c) in images for c in coefficients):
+        replaced_others = {self.mapping.get(c, c) for c in others}
+        if any(self.mapping.get(c, c) in replaced_others for c in coefficients):
             raise ValueError(
                 "Derivatives should be applied before executing replace, "
                 "if a differentiation variable maps to another coefficient of the form."
