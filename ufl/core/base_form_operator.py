@@ -47,6 +47,25 @@ def _split_dual_slot_arguments(dual_arg, slot_args):
     return contracted, tuple(a for a in arguments if a != contracted)
 
 
+def _number_contracted_argument(N, A, others):
+    """Return ``A`` with its contracted argument numbered as a dual slot of ``N`` contracts it.
+
+    The contracted argument is bound in the dual slot, so its number is free. Number it
+    before differentiating ``A``, since the derivative can bind other arguments.
+    """
+    from ufl.algorithms.analysis import extract_type
+    from ufl.algorithms.replace import replace
+
+    vstar, *slots = N.argument_slots()
+    slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
+    contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
+    if any(a.number() == 0 for a in slot_args):
+        number = 0
+    else:
+        number = 1 + max((a.number() for a in others), default=-1)
+    return replace(A, {contracted: contracted.reconstruct(number=number)})
+
+
 @ufl_type(num_ops="varying", is_differential=True)
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator ``N(u; v*, uhat)``.

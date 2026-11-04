@@ -603,10 +603,10 @@ def test_dual_slot_derivative(V1, V2):
         derivatives=(1,),
         argument_slots=(vstar, u_hat),
     )
-    # N is linear in its dual slot, so the product rule acts with N(u; vhat) on dv*.
-    vhat = Coargument(V2.dual(), 0)
-    N_vhat = ExternalOperator(u, function_space=V2, argument_slots=(vhat,))
-    expected = dNdu + Action(inner(u_hat, Argument(V2, 2)) * dx, N_vhat)
+    # N is linear in its dual slot, so the product rule gives N(u; Dv*).
+    dvstar = inner(u_hat, Argument(V2, 2)) * dx
+    N_dvstar = ExternalOperator(u, function_space=V2, argument_slots=(dvstar,))
+    expected = dNdu + N_dvstar
 
     dN = derivative(N, u, u_hat)
     assert isinstance(dN, BaseFormOperatorDerivative)
@@ -624,11 +624,10 @@ def test_dual_slot_second_derivative(V1, V2):
         return ExternalOperator(u, function_space=V2, derivatives=(n,), argument_slots=slots)
 
     # D^2 N(u; v*(u))[u1, u2] = d2N(u; v*)[u1, u2] + dN(u; Dv*[u2])[u1] + dN(u; Dv*[u1])[u2]
-    vhat = Coargument(V2.dual(), 0)
     expected = {
         dN((vstar, u1, u2), 2),
-        Action(inner(u2, Argument(V2, 3)) * dx, dN((vhat, u1), 1)),
-        Action(inner(u1, Argument(V2, 2)) * dx, dN((vhat, u2), 1)),
+        dN((inner(u2, Argument(V2, 3)) * dx, u1), 1),
+        dN((inner(u1, Argument(V2, 2)) * dx, u2), 1),
     }
     d2N = expand_derivatives(derivative(derivative(N, u, u1), u, u2))
     assert set(d2N.components()) == expected

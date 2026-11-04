@@ -154,3 +154,8 @@ def test_unit_dyads(self):
     self.assertEqual(as_matrix(((0, 1), (0, 0))), eij)
     self.assertEqual(as_matrix(((0, 0), (1, 0))), eji)
     self.assertEqual(as_matrix(((0, 0), (0, 1))), ejj)
+
+
+def test_complex_value_equals_python_complex():
+    assert ComplexValue(1 - 2j) == 1 - 2j
+    assert ComplexValue(1 - 2j) != 1 + 2j
