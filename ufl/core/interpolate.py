@@ -170,7 +170,12 @@ class Interpolate(BaseFormOperator):
         combined with one inside an integrand. ``_parent_type`` instead follows
         ``ufl_function_space()``, the adjoint's source dual, and still drives
         addition, where a sum of adjoint interpolations must stay a form.
+
+        A dual slot that contracts the value leaves a form in any free arguments,
+        which can be combined with other forms.
         """
+        if not isinstance(self.argument_slots()[0], Coargument) and self.arguments():
+            return BaseForm
         function_space = self._function_space
         if function_space is None or not is_dual(function_space):
             return Operator
