@@ -45,6 +45,7 @@ from ufl import (
     dx,
     grad,
     inner,
+    rhs,
     triangle,
 )
 from ufl.algorithms.ad import expand_derivatives
@@ -287,6 +288,24 @@ def test_restructure_adjoint_formsum_weights(V1, V2):
     restructured = restructure_base_form(Action(Adjoint(FormSum((A, 1 + 2j), (B, 3))), x))
 
     assert restructured == FormSum((Action(x, A), 1 - 2j), (Action(x, B), 3))
+
+
+@pytest.mark.parametrize("matrix_first", [False, True], ids=["form-first", "matrix-first"])
+def test_formsum_rank_with_action_numbering(V1, V2, matrix_first):
+    # Action(x, A) numbers its argument 1, while the absorbed Form numbers it 0.
+    x = Coefficient(V2)
+    A = Action(x, Matrix(V2, V1))
+    F = restructure_base_form(Action(x, TestFunction(V2) * TrialFunction(V1) * dx))
+    assert [a.number() for a in A.arguments()] == [1]
+    assert [a.number() for a in F.arguments()] == [0]
+
+    components = ((A, 1), (F, 1)) if matrix_first else ((F, 1), (A, 1))
+    assert FormSum(*components).arguments() == F.arguments()
+
+
+def test_formsum_empty_form(V1):
+    v, u = TestFunction(V1), TrialFunction(V1)
+    assert (rhs(v * u * dx) + Cofunction(V1.dual())).arguments() == (v,)
 
 
 @pytest.mark.parametrize("terms", [("mass",), ("interpolation",), ("mass", "interpolation")])

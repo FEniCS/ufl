@@ -802,13 +802,15 @@ class FormSum(BaseForm):
 
     def _analyze_form_arguments(self):
         """Return all ``Argument`` objects found in form."""
-        arguments = []
         coefficients = []
         for component in self._components:
-            arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
-        # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
+        # An empty Form has no arguments, and an Action numbers its arguments as its
+        # operands do. So report the highest rank, with the lowest numbers.
+        self._arguments = min(
+            (component.arguments() for component in self._components),
+            key=lambda arguments: (-len(arguments), [a.number() for a in arguments]),
+        )
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
