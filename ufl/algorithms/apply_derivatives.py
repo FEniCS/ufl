@@ -1846,17 +1846,21 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
 
     @process.register(Action)
     def _(self, o: Action) -> BaseForm:
-        """Differentiate an action with the Leibniz rule."""
+        """Differentiate an action: D[Action(L, R)] = Action(DL, R) + Action(L, DR)."""
         left, right = o.ufl_operands
         # Number the last argument of `left` after the direction, so that the Action
         # contracts it and not the argument of the direction.
-        left_after_v = left
+        left_after_direction = left
         left_arguments = left.arguments() if isinstance(left, BaseForm) else extract_arguments(left)
         if left_arguments:
-            *_, vleft = left_arguments
-            number = 1 + max((vleft.number(), *(a.number() for a in self._direction_arguments)))
-            left_after_v = replace(left, {vleft: vleft.reconstruct(number=number)})
-        return Action(self(left_after_v), right) + Action(left, self(right))
+            *_, contracted = left_arguments
+            number = 1 + max(
+                (contracted.number(), *(a.number() for a in self._direction_arguments))
+            )
+            left_after_direction = replace(
+                left, {contracted: contracted.reconstruct(number=number)}
+            )
+        return Action(self(left_after_direction), right) + Action(left, self(right))
 
     @process.register(BaseFormOperator)
     def _(self, N: BaseFormOperator) -> Expr | BaseForm:
