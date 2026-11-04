@@ -17,7 +17,11 @@ from ufl.algorithms.compute_form_data import preprocess_form
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
 from ufl.argument import Argument, Coargument
-from ufl.core.base_form_operator import BaseFormOperator, _number_contracted_argument
+from ufl.core.base_form_operator import (
+    BaseFormOperator,
+    _number_contracted_argument,
+    _split_dual_slot_arguments,
+)
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.form import BaseForm, Form, FormSum
@@ -141,9 +145,10 @@ class BaseFormRestructurer(DAGTraverser):
             # Action(N(u; vhat), A) if the primal slots use number 0, and otherwise
             # into Action(A, N(u; vhat)). Each contracts the contracted argument of A.
             A = _number_contracted_argument(o, v, o.arguments())
-            slot_numbers = [a.number() for s in slots for a in extract_type(s, Argument, True)]
+            slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
+            contracted, _ = _split_dual_slot_arguments(A, slot_arguments)
+            slot_numbers = [a.number() for a in slot_arguments]
             operator_first = 0 in slot_numbers
-            contracted = A.arguments()[0 if operator_first else -1]
             space = contracted.ufl_function_space().dual()
             vhat_number = 1 + max(slot_numbers) if operator_first else 0
             vhat = contracted.reconstruct(function_space=space, number=vhat_number)

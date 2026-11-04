@@ -1823,10 +1823,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             dN = self._expression_rules(
                 N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
             )
-            if direction_first:
-                dform += Action(dN, dform_dN)
-            else:
-                dform += Action(dform_dN, dN)
+            dform += Action(dN, dform_dN) if direction_first else Action(dform_dN, dN)
         return dform
 
     @process.register(FormSum)
@@ -1876,8 +1873,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         arguments = N.arguments() + self._direction_arguments
         dvstar = self(_number_contracted_argument(N, vstar, arguments))
         if isinstance(dvstar, ZeroBaseForm):
-            return self._expression_rules(N) + ZeroBaseForm(arguments)
-        dual_term = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+            dual_term = ZeroBaseForm(arguments)
+        else:
+            dual_term = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
         return self._expression_rules(N) + dual_term
 
 
