@@ -308,6 +308,29 @@ def test_formsum_empty_form(V1):
     assert (rhs(v * u * dx) + Cofunction(V1.dual())).arguments() == (v,)
 
 
+@pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
+def test_restructure_distributes_expression_sum(V1, sum_on_left):
+    a, b = Coefficient(V1), Coefficient(V1)
+    if sum_on_left:
+        A = Matrix(V1, V1)
+        expression = Action(a + b, A)
+        expected = (Action(a, A), Action(b, A))
+    else:
+        A = Matrix(V1.dual(), V1)
+        expression = Action(A, a + b)
+        expected = (Action(A, a), Action(A, b))
+
+    assert restructure_base_form(expression) == FormSum(*((c, 1) for c in expected))
+
+
+def test_restructure_form_absorbs_expression_sum(V1):
+    # Absorption comes before distribution, so a Form absorbs a Sum whole.
+    a, b = Coefficient(V1), Coefficient(V1)
+    v, u = TestFunction(V1), TrialFunction(V1)
+
+    assert restructure_base_form(Action(v * u * dx, a + b)) == v * (a + b) * dx
+
+
 @pytest.mark.parametrize("terms", [("mass",), ("interpolation",), ("mass", "interpolation")])
 def test_restructure_adjoint_action_arguments(V1, V2, terms):
     u = Coefficient(V1)
