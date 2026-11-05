@@ -297,7 +297,14 @@ def _handle_derivative_arguments(form, coefficient, argument):
             # in tests. Remove?
             form_arguments = extract_arguments(form)
 
-        numbers = sorted(set(arg.number() for arg in form_arguments))
+        numbers = [arg.number() for arg in form_arguments]
+        # An Action contracts the lowest argument of its right operand,
+        # so the new argument must come after that one too.
+        left = form
+        while isinstance(left, Action):
+            left, right = left.ufl_operands
+            if isinstance(right, BaseForm):
+                numbers.append(right.arguments()[0].number())
         number = max(numbers + [-1]) + 1
 
         # Don't know what to do with parts, let the user sort it out

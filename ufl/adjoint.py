@@ -25,6 +25,9 @@ class Adjoint(BaseForm):
     Adjoint objects will result when the adjoint of an assembled object
     (e.g. a Matrix) is taken. This delays the evaluation of the adjoint until
     assembly occurs.
+
+    The operand is a 2-form or a row: a rank-one BaseForm whose Argument is not
+    numbered 0, such as ``Action(x, A)``, which is ``x^H A``.
     """
 
     __slots__ = (
@@ -65,8 +68,10 @@ class Adjoint(BaseForm):
         """Initialise."""
         BaseForm.__init__(self)
 
-        if len(form.arguments()) != 2:
-            raise ValueError("Can only take Adjoint of a 2-form.")
+        arguments = form.arguments()
+        is_row = len(arguments) == 1 and arguments[0].number() > 0
+        if len(arguments) != 2 and not is_row:
+            raise ValueError("Can only take Adjoint of a 2-form or a row.")
 
         self._form = form
         self.ufl_operands = (self._form,)

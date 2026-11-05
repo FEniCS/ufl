@@ -1848,18 +1848,26 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     def _(self, o: Action) -> BaseForm:
         """Differentiate an action: D[Action(L, R)] = Action(DL, R) + Action(L, DR)."""
         left, right = o.ufl_operands
-        # Number the last argument of `left` after the direction, so that the Action
-        # contracts it and not the argument of the direction.
         left_after_direction = left
         left_arguments = left.arguments() if isinstance(left, BaseForm) else extract_arguments(left)
         if left_arguments:
             *_, contracted = left_arguments
-            number = 1 + max(
-                (contracted.number(), *(a.number() for a in self._direction_arguments))
-            )
-            left_after_direction = replace(
-                left, {contracted: contracted.reconstruct(number=number)}
-            )
+            # The Action contracts the last argument of `left`, so it goes after the direction.
+            # The arguments above it shift too, so that every Action contracts the same one.
+            number = contracted.number()
+            direction_number = max((a.number() for a in self._direction_arguments), default=-1)
+            shift = 1 + direction_number - number
+            if shift > 0:
+
+                def shift_arguments(e: Expr) -> Expr:
+                    mapping = {
+                        a: a.reconstruct(number=a.number() + shift)
+                        for a in extract_arguments(e)
+                        if a == contracted or a.number() > number
+                    }
+                    return replace(e, mapping)
+
+                left_after_direction = map_integrands(shift_arguments, left)
         return Action(self(left_after_direction), right) + Action(left, self(right))
 
     @process.register(BaseFormOperator)
