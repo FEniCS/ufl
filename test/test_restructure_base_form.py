@@ -307,6 +307,58 @@ def test_formsum_adjoint_row(V1, V2, matrix_first):
     assert FormSum(*components).arguments() == F.arguments()
 
 
+def test_adjoint_row_sum_weights(V1, V2):
+    # (2i x^H A)^H = -2i A^H x, for the weight of a sum or of its right operand.
+    x = Coefficient(V1)
+    A = Matrix(V1, V2)
+    expected = FormSum((Adjoint(Action(x, A)), -2j))
+    assert restructure_base_form(Adjoint(FormSum((Action(x, A), 2j)))) == expected
+    assert restructure_base_form(Adjoint(Action(x, FormSum((A, 2j))))) == expected
+
+
+def test_adjoint_absorbed_row_sum_weights(V1, V2):
+    # Forms absorb x, and their weights conjugate as those of a Matrix do.
+    x = Coefficient(V1)
+    v = TestFunction(V1)
+    u = TrialFunction(V2)
+    F = inner(u, v) * dx
+    G = 2 * inner(u, v) * dx
+    sum_of_rows = FormSum((Action(x, F), 1), (Action(x, G), 2j))
+    expected = FormSum(
+        (restructure_base_form(Action(x, F)), 1),
+        (restructure_base_form(Action(x, G)), (2j).conjugate()),
+    )
+    assert restructure_base_form(Adjoint(sum_of_rows)) == expected
+
+
+def test_adjoint_mixed_row_sum(V1, V2):
+    # A Form absorbs x and a Matrix does not, so the sum takes the column of each.
+    x = Coefficient(V1)
+    F = inner(TrialFunction(V2), TestFunction(V1)) * dx
+    A = Matrix(V1, V2)
+    restructured = restructure_base_form(Adjoint(FormSum((Action(x, F), 1), (Action(x, A), 2j))))
+    expected = FormSum((restructure_base_form(Action(x, F)), 1), (Adjoint(Action(x, A)), -2j))
+    assert restructured == expected
+    assert [a.number() for a in restructured.arguments()] == [0]
+
+
+def test_mixed_row_sum_nested(V1, V2):
+    # Action(x, A + B) is a sum of rows within a sum of rows, so its column is split too.
+    x = Coefficient(V1)
+    F = inner(TrialFunction(V2), TestFunction(V1)) * dx
+    A = Matrix(V1, V2)
+    B = Matrix(V1, V2)
+    restructured = restructure_base_form(
+        FormSum((Action(x, F), 1), (Action(x, FormSum((A, 1), (B, 2j))), 3j))
+    )
+    expected = FormSum(
+        (restructure_base_form(Action(x, F)), 1),
+        (Adjoint(Action(x, A)), -3j),
+        (Adjoint(Action(x, B)), -6),
+    )
+    assert restructured == expected
+
+
 def test_adjoint_column_raises(V1):
     with pytest.raises(ValueError):
         Adjoint(Argument(V1, 0) * dx)
@@ -473,8 +525,8 @@ def test_restructure_conjugates_matrix_sum_weights(V1):
     B = Matrix(V1.dual(), V1)
     x = Cofunction(V1.dual())
     expression = Action(x, FormSum((A, 1j), (B, 1)))
-    # (i A + B)^H x = -i A^H x + B^H x.
-    expected = FormSum((Action(x, A), -1j), (Action(x, B), 1))
+    # x^H (i A + B) = i x^H A + x^H B.
+    expected = FormSum((Action(x, A), 1j), (Action(x, B), 1))
 
     actual = restructure_base_form(expression)
     assert actual == expected
