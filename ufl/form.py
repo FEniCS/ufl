@@ -22,6 +22,7 @@ from ufl.checks import is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
@@ -222,8 +223,10 @@ class BaseForm(metaclass=UFLType):
         return NotImplemented
 
     def __mul__(self, coefficient):
-        """Take the action of this form on the given coefficient."""
-        if isinstance(coefficient, Expr):
+        """Scale this form by a number, or take its action on the given coefficient."""
+        if not isinstance(coefficient, FormArgument) and is_scalar_constant_expression(coefficient):
+            return self.__rmul__(coefficient)
+        if isinstance(coefficient, Expr) and self.arguments():
             from ufl.formoperators import action
 
             return action(self, coefficient)
@@ -525,14 +528,6 @@ class Form(BaseForm):
             return Form([scalar * itg for itg in self.integrals()])
         return NotImplemented
 
-    def __mul__(self, coefficient):
-        """UFL form operator: Take the action of this form on the given coefficient."""
-        if isinstance(coefficient, Expr):
-            from ufl.formoperators import action
-
-            return action(self, coefficient)
-        return NotImplemented
-
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and coefficients.
 
@@ -579,8 +574,6 @@ class Form(BaseForm):
             return replace(self, repdict)
         else:
             return self
-
-    __matmul__ = __mul__
 
     # --- String conversion functions, for UI purposes only ---
 

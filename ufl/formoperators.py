@@ -194,6 +194,8 @@ def action(form, coefficient=None, derivatives_expanded=None):
     become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
     form = as_form(form)
+    if not form.arguments():
+        raise ValueError("Cannot take the action of a form without arguments.")
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )
