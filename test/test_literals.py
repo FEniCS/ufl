@@ -79,6 +79,8 @@ def test_complex(self):
     assert f4 == f5
     assert f6 + f7 == f2 + f3
     assert f4 == f8
+    # -2j has the real part -0.0, which is equal to 0.0 and must hash as it does.
+    assert hash(as_ufl(-2j)) == hash(as_ufl((2j).conjugate()))
 
 
 def test_scalar_sums(self):

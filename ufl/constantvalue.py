@@ -239,6 +239,10 @@ class ScalarValue(ConstantValue):
         else:
             return False
 
+    def _ufl_compute_hash_(self):
+        """Hash the value, so that equal values have equal hashes."""
+        return hash((self._ufl_typecode_, self._value))
+
     def __str__(self):
         """Format as a string."""
         return str(self._value)
