@@ -656,6 +656,28 @@ def test_action_derivative_wrt_base_form_operator(V1):
     assert expand_derivatives(dA) == inner(u, v) * dx
 
 
+def test_derivative_wrt_composed_operator(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+
+    # N(u; F) is F composed with N, and F is linear, so dN(u; F)/dN[v] = F[v].
+    F = inner(u, v) * dx
+    NF = N._ufl_expr_reconstruct_(u, argument_slots=(F,))
+    assert expand_derivatives(derivative(NF, N, v)) == F
+    assert expand_derivatives(derivative(NF, N, f)) == inner(u, f) * dx
+
+    # The free argument of a 2-form in the dual slot stays free.
+    A = inner(TrialFunction(V1), TestFunction(V2)) * dx
+    NA = N._ufl_expr_reconstruct_(u, argument_slots=(A,))
+    assert expand_derivatives(derivative(NA, N, f)) == inner(f, TestFunction(V2)) * dx
+
+    # An operator into another space is not N.
+    M = Interpolate(u, V2)
+    assert expand_derivatives(derivative(NF, M, TestFunction(V2))) == 0
+
+
 def test_chain_rule_for_each_derivative(V1):
     u = Coefficient(V1)
     w = Coefficient(V1)

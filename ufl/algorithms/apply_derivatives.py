@@ -16,7 +16,7 @@ import numpy as np
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
+from ufl.algorithms.analysis import extract_arguments, extract_coefficients, extract_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
@@ -63,7 +63,11 @@ from ufl.classes import (
 )
 from ufl.conditional import BinaryCondition, Conditional, NotCondition
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.core.base_form_operator import BaseFormOperator, _number_contracted_argument
+from ufl.core.base_form_operator import (
+    BaseFormOperator,
+    _number_contracted_argument,
+    _split_dual_slot_arguments,
+)
 from ufl.core.expr import ufl_err_str
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
@@ -1882,6 +1886,20 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             # Differentiation with respect to N itself.
             return dN_dN
         vstar, *slots = N.argument_slots()
+        slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
+        contracted, _ = _split_dual_slot_arguments(vstar, slot_arguments)
+        for w, v in self._w2v.items():
+            if contracted is None or not isinstance(w, BaseFormOperator):
+                continue
+            wstar, *_ = w.argument_slots()
+            if not isinstance(wstar, Coargument):
+                continue
+            if wstar.ufl_function_space() != contracted.ufl_function_space().dual():
+                continue
+            if w._ufl_expr_reconstruct_(*w.ufl_operands, argument_slots=(vstar, *slots)) == N:
+                # N(u; F) is F composed with w(u; v*), and F is linear, so the
+                # derivative with respect to w in the direction v is F[v].
+                return replace(vstar, {contracted: v})
         arguments = N.arguments() + self._direction_arguments
         dvstar = self(_number_contracted_argument(N, vstar, arguments))
         if isinstance(dvstar, ZeroBaseForm):
