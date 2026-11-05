@@ -71,8 +71,13 @@ class Interpolate(BaseFormOperator):
 
         # Reversed order convention
         argument_slots = (v, expr)
-        # Get the primal space (V** = V)
-        function_space = v.arguments()[0].ufl_function_space()
+        # A FormSum can list a Coargument before its paired primal argument.
+        dual_slot_arguments = v.arguments()
+        target_argument = next(
+            (arg for arg in dual_slot_arguments if not isinstance(arg, Coargument)),
+            dual_slot_arguments[0],
+        )
+        function_space = target_argument.ufl_function_space()
         self._function_space = function_space
 
         # Set the operand as `expr` for DAG traversal purpose.
@@ -173,7 +178,13 @@ class Interpolate(BaseFormOperator):
         combined with one inside an integrand. ``_parent_type`` instead follows
         ``ufl_function_space()``, the adjoint's source dual, and still drives
         addition, where a sum of adjoint interpolations must stay a form.
+
+        A dual slot that contracts the value leaves a form in any free arguments,
+        which can be combined with other forms.
         """
+        dual_slot_arguments = self.argument_slots()[0].arguments()
+        if self.arguments() and not any(isinstance(a, Coargument) for a in dual_slot_arguments):
+            return BaseForm
         function_space = self._function_space
         if function_space is None or not is_dual(function_space):
             return Operator
