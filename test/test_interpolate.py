@@ -135,6 +135,24 @@ def test_shape_and_negation(domain_2d, V1, V2):
     assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
 
 
+def test_negation_of_contracted_interpolation_with_arguments(V1, V2):
+    v = TestFunction(V1)
+    interpolation = Interpolate(v, Cofunction(V2.dual()))
+
+    for scaled in (-interpolation, -1 * interpolation):
+        assert isinstance(scaled, FormSum)
+        assert scaled.arguments() == (v,)
+    assert isinstance(inner(1, v) * dx - interpolation, FormSum)
+
+
+def test_negation_of_interpolation_with_scaled_coargument(V1, V2):
+    coargument = Coargument(V2.dual(), 0)
+    u = Coefficient(V1)
+
+    for dual_slot in (coargument, 2 * coargument, coargument + coargument):
+        assert isinstance(-Interpolate(u, dual_slot), Product)
+
+
 def test_scaling_agrees_with_negation(domain_2d, V1, V2):
     """Scaling an interpolation must agree with negating it.
 
