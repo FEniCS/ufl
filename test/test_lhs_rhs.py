@@ -3,6 +3,7 @@ __authors__ = "Marie E. Rognes"
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
+import pytest
 from utils import LagrangeElement
 
 from ufl import (
@@ -11,15 +12,19 @@ from ufl import (
     Constant,
     FunctionSpace,
     Mesh,
+    SpatialCoordinate,
     TestFunction,
     TrialFunction,
     action,
+    conditional,
     derivative,
     dS,
     ds,
     dx,
     exp,
     interval,
+    lhs,
+    rhs,
     system,
 )
 
@@ -51,6 +56,27 @@ def test_lhs_rhs_simple():
     F3 = action(F2, f)
     a, L = system(F3)
     assert len(L.integrals()) == 1
+
+
+@pytest.mark.parametrize(
+    "weights", [(1, 1, 2, 2), (0, 0, 2, 2), (1, 1, 0, 0), (1, 1, 0, 2), (0, 1, 2, 2)]
+)
+def test_lhs_rhs_conditional(weights):
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 1))
+    u, v, f = TrialFunction(space), TestFunction(space), Coefficient(space)
+    x = SpatialCoordinate(domain)
+    ut, ft, uf, ff = weights
+    F = conditional(x[0] > 0, ut * u - ft * f, uf * u - ff * f) * v * dx
+
+    a, L = system(F)
+    for actual_a, actual_L in [(lhs(F), rhs(F)), (a, L)]:
+        for coordinate, u_weight, f_weight in [(1, ut, ft), (-1, uf, ff)]:
+            mapping = {u: 2, v: 3, f: 5}
+            a_value = sum(i.integrand()((coordinate,), mapping) for i in actual_a.integrals())
+            L_value = sum(i.integrand()((coordinate,), mapping) for i in actual_L.integrals())
+            assert a_value == 6 * u_weight
+            assert L_value == 15 * f_weight
 
 
 def test_lhs_rhs_derivatives():
