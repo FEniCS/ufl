@@ -25,7 +25,9 @@ from ufl.core.base_form_operator import (
 )
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.differentiation import BaseFormDerivative
 from ufl.form import BaseForm, Form, FormSum
+from ufl.formoperators import default_direction_number, derivative
 
 
 def _rank(o: Expr | BaseForm) -> int:
@@ -124,6 +126,29 @@ class BaseFormRestructurer(DAGTraverser):
         if is_row and any(c.arguments()[0].number() == 0 for c in components):
             return self.column_sum(components, o.weights())
         return FormSum(*zip(components, o.weights()))
+
+    @process.register(BaseFormDerivative)
+    def _(self, o: BaseFormDerivative) -> BaseForm:
+        """Restructure the operand of a derivative and renumber its direction to match."""
+        operand, coefficients, directions, coefficient_derivatives = o.ufl_operands
+        restructured = self(operand)
+        if restructured == operand:
+            return o
+        # A direction numbered as a default one stays right after the free arguments.
+        first = default_direction_number(operand)
+        shift = default_direction_number(restructured) - first
+        mapping = {
+            a: a.reconstruct(number=a.number() + shift)
+            for a in extract_type(directions, Argument)
+            if a.number() >= first
+        }
+        cd = coefficient_derivatives.ufl_operands
+        return derivative(
+            restructured,
+            coefficients.ufl_operands,
+            tuple(replace(v, mapping) for v in directions.ufl_operands),
+            dict(zip(cd[::2], cd[1::2])),
+        )
 
     @process.register(BaseFormOperator)
     def _(self, o: BaseFormOperator) -> Expr | BaseForm:
@@ -284,10 +309,11 @@ def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> 
     Returns:
         The restructured BaseForm.
     """
+    restructurer = BaseFormRestructurer()
     if isinstance(form, Form):
         if not form.base_form_operators():
             return form
-        form = preprocess_form(form, complex_mode)
-    else:
-        form = expand_derivatives(form)
-    return BaseFormRestructurer()(form)
+        return restructurer(preprocess_form(form, complex_mode))
+    # Restructure before expanding derivatives too, so that each derivative
+    # numbers its direction after the free arguments of its restructured operand.
+    return restructurer(expand_derivatives(restructurer(form)))

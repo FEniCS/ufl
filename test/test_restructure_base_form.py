@@ -324,11 +324,9 @@ def test_adjoint_absorbed_row_sum_weights(V1, V2):
     F = inner(u, v) * dx
     G = 2 * inner(u, v) * dx
     sum_of_rows = FormSum((Action(x, F), 1), (Action(x, G), 2j))
-    expected = FormSum(
-        (restructure_base_form(Action(x, F)), 1),
-        (restructure_base_form(Action(x, G)), (2j).conjugate()),
-    )
-    assert restructure_base_form(Adjoint(sum_of_rows)) == expected
+    Fx = restructure_base_form(Action(x, F))
+    Gx = restructure_base_form(Action(x, G))
+    assert restructure_base_form(Adjoint(sum_of_rows)) == Fx + -2j * Gx
 
 
 def test_adjoint_mixed_row_sum(V1, V2):
@@ -936,6 +934,16 @@ def test_action_derivative_of_operator(V1, V3):
     assert [a.number() for a in restructure_base_form(dA).arguments()] == [0]
     ddA = expand_derivatives(derivative(dA, u))
     assert [a.number() for a in restructure_base_form(ddA).arguments()] == [0, 1]
+
+
+def test_action_second_derivative(V1, V3):
+    # Action(N, L) and Action(L, N) are N(u; L), so their Hessians number from zero.
+    u = Coefficient(V3)
+    L = Argument(V1, 0) * u**3 * dx
+    N = Interpolate(u**3, V1)
+    for A in (Action(N, L), Action(L, N), Interpolate(u**3, L)):
+        ddA = restructure_base_form(derivative(derivative(A, u), u))
+        assert [a.number() for a in ddA.arguments()] == [0, 1]
 
 
 def test_action_argument(V1, V2):

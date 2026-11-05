@@ -269,6 +269,24 @@ def set_list_item(li, i, v):
     li[i[-1]] = v
 
 
+def default_direction_number(form: Expr | BaseForm) -> int:
+    """Return the number of the default direction of a derivative of ``form``.
+
+    The direction comes after the free arguments of ``form``. An Action contracts
+    the lowest argument of its right operand, so it comes after that one too.
+    """
+    if isinstance(form, BaseForm):
+        numbers = [a.number() for a in form.arguments()]
+    else:
+        numbers = [a.number() for a in extract_arguments(form)]
+    left = form
+    while isinstance(left, Action):
+        left, right = left.ufl_operands
+        if isinstance(right, BaseForm):
+            numbers.append(right.arguments()[0].number())
+    return max(numbers, default=-1) + 1
+
+
 def _handle_derivative_arguments(form, coefficient, argument):
     """Handle derivative arguments."""
     # Wrap single coefficient in tuple for uniform treatment below
@@ -297,15 +315,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             # in tests. Remove?
             form_arguments = extract_arguments(form)
 
-        numbers = [arg.number() for arg in form_arguments]
-        # An Action contracts the lowest argument of its right operand,
-        # so the new argument must come after that one too.
-        left = form
-        while isinstance(left, Action):
-            left, right = left.ufl_operands
-            if isinstance(right, BaseForm):
-                numbers.append(right.arguments()[0].number())
-        number = max(numbers + [-1]) + 1
+        number = default_direction_number(form)
 
         # Don't know what to do with parts, let the user sort it out
         # in that case
@@ -408,7 +418,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         # Eagerly simplify spatial derivatives when Action results in a scalar.
         if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
             return ZeroBaseForm(())
-        # The Leibniz rule for Action is applied by `expand_derivatives`.
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
     if coefficient_derivatives is None:
