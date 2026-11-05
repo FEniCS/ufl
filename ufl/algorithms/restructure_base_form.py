@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from collections.abc import Iterable
 from functools import singledispatchmethod
 
 from ufl.action import Action
@@ -25,7 +26,9 @@ from ufl.core.base_form_operator import (
 )
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.differentiation import BaseFormDerivative
 from ufl.form import BaseForm, Form, FormSum
+from ufl.formoperators import default_direction_number, derivative
 
 
 def _rank(o: Expr | BaseForm) -> int:
@@ -43,10 +46,12 @@ def _contract_first(form: BaseForm, value: Expr | BaseForm) -> BaseForm:
 class BaseFormRestructurer(DAGTraverser):
     """Split operator compositions, associate Actions and absorb their operands.
 
-    ``Action(A, x)`` is the product ``A x`` and ``Action(x, A)`` is ``A^H x``. The operands
-    of an Action are restructured first, and the first rule that matches applies. An
-    Action numbers its free arguments as its operands do, whereas a Form or operator that
-    absorbs an operand numbers them from zero. Rank and function spaces are preserved.
+    ``Action(A, x)`` is the product ``A x``. A rank-one left operand enters through the
+    antilinear slot, so ``Action(x, A)`` is the row ``x^H A``, whose Adjoint is the column
+    ``A^H x``. The operands of an Action are restructured first, and the first rule that
+    matches applies. An Action numbers its free arguments as its operands do, whereas a
+    Form or operator that absorbs an operand numbers them from zero. Rank and function
+    spaces are preserved.
 
     Here ``N`` is an operator, ``v*`` its Coargument and ``uhat`` an Argument in a primal
     slot, numbered as subscripted. ``x`` has rank one, ``L`` is a rank one BaseForm and
@@ -59,12 +64,12 @@ class BaseFormRestructurer(DAGTraverser):
     =================================  ===================================================
     Expression                         Result
     =================================  ===================================================
-    ``Action(Adjoint(A), x)``          ``Action(x, A)``
+    ``Action(Adjoint(A), x)``          ``Adjoint(Action(x, A))``
     ``Action(x, Adjoint(A))``          ``Action(A, x)``
     ``Action(x, Action(A, B))``        ``Action(Action(x, A), B)``
     ``Action(Action(A, B), x)``        ``Action(A, Action(B, x))``
     ``Action(c * A + d * B, x)``       ``c * Action(A, x) + d * Action(B, x)``
-    ``Action(x, c * A + d * B)``       ``conj(c) * Action(x, A) + conj(d) * Action(x, B)``
+    ``Action(x, c * A + d * B)``       ``c * Action(x, A) + d * Action(x, B)``
     ``Action(L, N(u; v_0*, uhat_1))``  ``N(u; L, uhat_0)``
     ``Action(w, N(u; v_1*, uhat_0))``  ``N(u; v_0*, w)``
     ``Action(N(u; v_1*, uhat_0), L)``  ``N(u; L, uhat_0)``
@@ -87,8 +92,17 @@ class BaseFormRestructurer(DAGTraverser):
     ``N(u; A, w_1)``              ``Action(A, N(u; vhat, w_1))``
     ``N(u; L(v_1))``              ``N(u; L(v_0))``
     ``Adjoint(N(u; v_0*, w_1))``  ``N(u; v_1*, w_0)``
+    ``Adjoint(F(x, v_0))``        ``F(x, v_0)``
     ============================  ===============================================
     """
+
+    def column_sum(self, rows: Iterable[BaseForm], weights: Iterable) -> BaseForm:
+        """Return the column conj(c) A^H x + conj(d) B^H x of the sum of rows c x^H A + d x^H B.
+
+        Absorbing the left operand of a row gives the column, so such a row stays as it is.
+        """
+        columns = [r if r.arguments()[0].number() == 0 else self(Adjoint(r)) for r in rows]
+        return FormSum(*zip(columns, map(Conj, weights)))
 
     @singledispatchmethod
     def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
@@ -109,7 +123,33 @@ class BaseFormRestructurer(DAGTraverser):
     @DAGTraverser.postorder
     def _(self, o: FormSum, *components: BaseForm) -> BaseForm:
         """Traverse the components of a FormSum."""
+        is_row = _rank(o) == 1 and o.arguments()[0].number() > 0
+        if is_row and any(c.arguments()[0].number() == 0 for c in components):
+            return self.column_sum(components, o.weights())
         return FormSum(*zip(components, o.weights()))
+
+    @process.register(BaseFormDerivative)
+    def _(self, o: BaseFormDerivative) -> BaseForm:
+        """Restructure the operand of a derivative and renumber its direction to match."""
+        operand, coefficients, directions, coefficient_derivatives = o.ufl_operands
+        restructured = self(operand)
+        if restructured == operand:
+            return o
+        # A direction numbered as a default one stays right after the free arguments.
+        first = default_direction_number(operand)
+        shift = default_direction_number(restructured) - first
+        mapping = {
+            a: a.reconstruct(number=a.number() + shift)
+            for a in extract_type(directions, Argument)
+            if a.number() >= first
+        }
+        cd = coefficient_derivatives.ufl_operands
+        return derivative(
+            restructured,
+            coefficients.ufl_operands,
+            tuple(replace(v, mapping) for v in directions.ufl_operands),
+            dict(zip(cd[::2], cd[1::2])),
+        )
 
     @process.register(BaseFormOperator)
     def _(self, o: BaseFormOperator) -> Expr | BaseForm:
@@ -170,6 +210,14 @@ class BaseFormRestructurer(DAGTraverser):
     @DAGTraverser.postorder
     def _(self, o: Adjoint, form: BaseForm) -> Expr | BaseForm:
         """Swap argument numbers for the Adjoint of a base form operator."""
+        is_row = _rank(form) == 1 and form.arguments()[0].number() > 0
+        if is_row:
+            if isinstance(form, FormSum):
+                return self.column_sum(form.components(), form.weights())
+            return Adjoint(form)
+        if _rank(form) == 1:
+            # form is already a column vector.
+            return form
         if isinstance(form, BaseFormOperator):
             # Adjoint(N(u; v_0*, w_1)) -> N(u; v_1*, w_0)
             first, last = form.arguments()
@@ -193,14 +241,14 @@ class BaseFormRestructurer(DAGTraverser):
         # Contract rank-one operands first, so that every Action in a chain gives another
         # rank-one operand. Associate across rank-two operands only: for higher ranks,
         # the argument that an Action contracts depends on its position in the chain.
-        if isinstance(left, Adjoint) and right_is_rank_one:
-            # (A^H) x = Action(x, A)
-            return self(Action(right, left.form()))
-        if isinstance(right, Adjoint) and left_is_rank_one:
+        if isinstance(left, Adjoint) and _rank(left.form()) == 2 and right_is_rank_one:
+            # A^H x = (x^H A)^H
+            return self(Adjoint(Action(right, left.form())))
+        if isinstance(right, Adjoint) and _rank(right.form()) == 2 and left_is_rank_one:
             # (A^H)^H x = A x
             return self(Action(right.form(), left))
         if left_is_rank_one and isinstance(right, Action) and _rank(right.left()) == 2:
-            # (A B)^H x = B^H (A^H x)
+            # x^H (A B) = (x^H A) B
             return self(Action(Action(left, right.left()), right.right()))
         if (
             right_is_rank_one
@@ -218,13 +266,9 @@ class BaseFormRestructurer(DAGTraverser):
                 *((self(Action(A, right)), c) for A, c in zip(left.components(), left.weights()))
             )
         if isinstance(right, FormSum) and _rank(right) > 1 and left_is_rank_one:
-            # (c A + d B)^H x = conj(c) A^H x + conj(d) B^H x
-            return FormSum(
-                *(
-                    (self(Action(left, A)), Conj(c))
-                    for A, c in zip(right.components(), right.weights())
-                )
-            )
+            # x^H (c A + d B) = c x^H A + d x^H B
+            rows = [Action(left, A) for A in right.components()]
+            return self(FormSum(*zip(rows, right.weights())))
 
         # An operator is linear in its argument slots. The dual slot takes any
         # rank-one BaseForm, while a primal slot takes only an expression.
@@ -237,7 +281,9 @@ class BaseFormRestructurer(DAGTraverser):
 
         # A Form is linear in its last argument and antilinear in its first.
         if isinstance(left, Form) and isinstance(right, Expr) and right_is_rank_one:
-            return replace(left, {left.arguments()[-1]: right})
+            *free, contracted = left.arguments()
+            mapping = {a: a.reconstruct(number=a.number() - free[0].number()) for a in free}
+            return replace(left, {contracted: right, **mapping})
         if isinstance(right, Form) and isinstance(left, Expr) and left_is_rank_one:
             return map_integrands(Conj, _contract_first(right, left))
 
@@ -264,6 +310,7 @@ def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> 
     Returns:
         The restructured BaseForm.
     """
+    restructurer = BaseFormRestructurer()
     if isinstance(form, Form):
         if not form.base_form_operators():
             return form
@@ -272,6 +319,7 @@ def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> 
         form = expand_coefficient_derivatives(form)
         if not complex_mode:
             form = remove_complex_nodes(form)
-    else:
-        form = expand_coefficient_derivatives(form)
-    return BaseFormRestructurer()(form)
+        return restructurer(form)
+    # Restructure before expanding derivatives too, so that each derivative
+    # numbers its direction after the free arguments of its restructured operand.
+    return restructurer(expand_coefficient_derivatives(restructurer(form)))

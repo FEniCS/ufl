@@ -4,8 +4,8 @@ For derivative-expanded input, every assembly node must have rank at most
 two. A BaseForm used as a value in an integrand, operator operand or argument
 slot must have rank at most one. Arguments and Coarguments bound inside a
 form or operator stay symbolic. Action operands must have rank one or two,
-Adjoint operands must have rank two, and FormSum components must have the
-same rank. Assume assembly is implemented for each Form and BaseFormOperator.
+Adjoint operands must be rank two or rows, and FormSum components must have
+the same rank. Assume assembly is implemented for each Form and BaseFormOperator.
 
 For rank-one results, optimality additionally requires no newly assembled
 rank-two forms. Existing Matrix terminals are allowed. The assembler must
@@ -94,7 +94,7 @@ def _assembly_cost(root):
                 assert 1 <= rank(operand) <= 2, "Action operands must have rank one or two"
                 visit(operand)
         elif isinstance(node, Adjoint):
-            assert rank(node.form()) == 2, "Adjoint operand must have rank two"
+            assert 1 <= rank(node.form()) <= 2, "Adjoint operand must have rank one or two"
             visit(node.form())
         elif isinstance(node, FormSum):
             for operand in node.components():
@@ -251,12 +251,15 @@ def test_restructure_preserves_compound_gradient(V1):
 
 
 def test_restructure_action_of_adjoint_matrix(V1, V2):
-    # Action(Adjoint(A), x) -> Action(x, A)
+    # Action(Adjoint(A), x) -> Adjoint(Action(x, A))
     A = Matrix(V1.dual(), V2)
     f = Argument(V1, 0) * dx
-    assert restructure_base_form(Action(Adjoint(A), f)) == Action(f, A)
+    assert restructure_base_form(Action(Adjoint(A), f)) == Adjoint(Action(f, A))
     x = Coefficient(V1.dual())
-    assert restructure_base_form(Action(Adjoint(A), x)) == Action(x, A)
+    column = restructure_base_form(Action(Adjoint(A), x))
+    assert column == Adjoint(Action(x, A))
+    assert [a.number() for a in column.arguments()] == [0]
+    assert restructure_base_form(column) == column
     # The right operand has rank two, so the Adjoint stays.
     matrix_action = restructure_base_form(Action(Adjoint(A), Matrix(V1, V2)))
     assert isinstance(matrix_action.left(), Adjoint)
@@ -267,8 +270,9 @@ def test_restructure_action_of_adjoint_of_action(V1, V2):
     B = Matrix(V1, V2)
     x = Coefficient(V2.dual())
 
-    # Action(Adjoint(Action(A, B)), x) -> Action(x, Action(A, B)) -> Action(Action(x, A), B)
-    assert restructure_base_form(Action(Adjoint(Action(A, B)), x)) == Action(Action(x, A), B)
+    # (A B)^H x = (x^H A B)^H
+    expected = Adjoint(Action(Action(x, A), B))
+    assert restructure_base_form(Action(Adjoint(Action(A, B)), x)) == expected
 
 
 def test_restructure_action_of_adjoint_form(V1, V2):
@@ -286,7 +290,7 @@ def test_restructure_adjoint_form_matrix_action(V1, V2):
     restructured = restructure_base_form(Action(Adjoint(Action(form, B)), x))
 
     # The Form in the chain is assembled, so its argument is numbered from zero.
-    assert restructured == Action(conj(x * TestFunction(V2)) * dx, B)
+    assert restructured == Adjoint(Action(conj(x * TestFunction(V2)) * dx, B))
 
 
 def test_restructure_adjoint_formsum_weights(V1, V2):
@@ -295,25 +299,75 @@ def test_restructure_adjoint_formsum_weights(V1, V2):
 
     restructured = restructure_base_form(Action(Adjoint(FormSum((A, 1 + 2j), (B, 3))), x))
 
-    assert restructured == FormSum((Action(x, A), 1 - 2j), (Action(x, B), 3))
+    assert restructured == FormSum((Adjoint(Action(x, A)), 1 - 2j), (Adjoint(Action(x, B)), 3))
 
 
 @pytest.mark.parametrize("matrix_first", [False, True], ids=["form-first", "matrix-first"])
-def test_formsum_action_numbering(V1, V2, matrix_first):
-    # Action(x, A) numbers its argument 1, while the Form that absorbs x numbers it 0.
+def test_formsum_adjoint_row(V1, V2, matrix_first):
+    # The row x^H A numbers its argument 1, and its Adjoint numbers it 0 as the Form does.
     x = Coefficient(V2)
-    A = Action(x, Matrix(V2, V1))
+    row = Action(x, Matrix(V2, V1))
     F = restructure_base_form(Action(x, TestFunction(V2) * TrialFunction(V1) * dx))
-    assert [a.number() for a in A.arguments()] == [1]
+    assert [a.number() for a in row.arguments()] == [1]
     assert [a.number() for a in F.arguments()] == [0]
 
-    components = ((A, 1), (F, 1)) if matrix_first else ((F, 1), (A, 1))
+    components = ((Adjoint(row), 1), (F, 1)) if matrix_first else ((F, 1), (Adjoint(row), 1))
     assert FormSum(*components).arguments() == F.arguments()
 
 
-def test_formsum_empty_form(V1):
-    v, u = TestFunction(V1), TrialFunction(V1)
-    assert (rhs(v * u * dx) + Cofunction(V1.dual())).arguments() == (v,)
+def test_adjoint_row_sum_weights(V1, V2):
+    # (2i x^H A)^H = -2i A^H x, for the weight of a sum or of its right operand.
+    x = Coefficient(V1)
+    A = Matrix(V1, V2)
+    expected = FormSum((Adjoint(Action(x, A)), -2j))
+    assert restructure_base_form(Adjoint(FormSum((Action(x, A), 2j)))) == expected
+    assert restructure_base_form(Adjoint(Action(x, FormSum((A, 2j))))) == expected
+
+
+def test_adjoint_absorbed_row_sum_weights(V1, V2):
+    # Forms absorb x, and their weights conjugate as those of a Matrix do.
+    x = Coefficient(V1)
+    v = TestFunction(V1)
+    u = TrialFunction(V2)
+    F = inner(u, v) * dx
+    G = 2 * inner(u, v) * dx
+    sum_of_rows = FormSum((Action(x, F), 1), (Action(x, G), 2j))
+    Fx = restructure_base_form(Action(x, F))
+    Gx = restructure_base_form(Action(x, G))
+    assert restructure_base_form(Adjoint(sum_of_rows)) == Fx + -2j * Gx
+
+
+def test_adjoint_mixed_row_sum(V1, V2):
+    # A Form absorbs x and a Matrix does not, so the sum takes the column of each.
+    x = Coefficient(V1)
+    F = inner(TrialFunction(V2), TestFunction(V1)) * dx
+    A = Matrix(V1, V2)
+    restructured = restructure_base_form(Adjoint(FormSum((Action(x, F), 1), (Action(x, A), 2j))))
+    expected = FormSum((restructure_base_form(Action(x, F)), 1), (Adjoint(Action(x, A)), -2j))
+    assert restructured == expected
+    assert [a.number() for a in restructured.arguments()] == [0]
+
+
+def test_mixed_row_sum_nested(V1, V2):
+    # Action(x, A + B) is a sum of rows within a sum of rows, so its column is split too.
+    x = Coefficient(V1)
+    F = inner(TrialFunction(V2), TestFunction(V1)) * dx
+    A = Matrix(V1, V2)
+    B = Matrix(V1, V2)
+    restructured = restructure_base_form(
+        FormSum((Action(x, F), 1), (Action(x, FormSum((A, 1), (B, 2j))), 3j))
+    )
+    expected = FormSum(
+        (restructure_base_form(Action(x, F)), 1),
+        (Adjoint(Action(x, A)), -3j),
+        (Adjoint(Action(x, B)), -6),
+    )
+    assert restructured == expected
+
+
+def test_adjoint_column_raises(V1):
+    with pytest.raises(ValueError):
+        Adjoint(Argument(V1, 0) * dx)
 
 
 @pytest.mark.parametrize("matrix_first", [False, True], ids=["form-first", "matrix-first"])
@@ -330,13 +384,9 @@ def test_formsum_space_mismatch(V1, V2):
     assert len((v * dx + c).arguments()) == 2
 
 
-def test_action_derivative_numbering(V1, V2):
-    # The direction must not take the number of an argument inside the operand of the Action.
-    x = Coefficient(V1)
-    u = Coefficient(V2)
-    F = Argument(V1, 0) * u**2 * Argument(V2, 1) * dx
-    dA = expand_derivatives(derivative(Action(x, F), u))
-    assert [a.number() for a in dA.arguments()] == [1, 2]
+def test_formsum_empty_form(V1):
+    v, u = TestFunction(V1), TrialFunction(V1)
+    assert (rhs(v * u * dx) + Cofunction(V1.dual())).arguments() == (v,)
 
 
 @pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
@@ -389,8 +439,8 @@ def test_restructure_adjoint_form_matrix_sum(V1, V2):
 
     actual = restructure_base_form(expression)
     assert isinstance(actual, FormSum)
-    assert len(actual.arguments()) == 1
-    assert _optimal_assembly_cost(actual) == (0, 3)
+    assert [a.number() for a in actual.arguments()] == [0]
+    assert _optimal_assembly_cost(actual) == (0, 4)
 
 
 @pytest.mark.parametrize("terms", [("mass",), ("interpolation",), ("mass", "interpolation")])
@@ -481,8 +531,8 @@ def test_restructure_conjugates_matrix_sum_weights(V1):
     B = Matrix(V1.dual(), V1)
     x = Cofunction(V1.dual())
     expression = Action(x, FormSum((A, 1j), (B, 1)))
-    # (i A + B)^H x = -i A^H x + B^H x.
-    expected = FormSum((Action(x, A), -1j), (Action(x, B), 1))
+    # x^H (i A + B) = i x^H A + x^H B.
+    expected = FormSum((Action(x, A), 1j), (Action(x, B), 1))
 
     actual = restructure_base_form(expression)
     assert actual == expected
@@ -833,3 +883,88 @@ def test_restructure_hessian_two_actions(V1):
     assert _optimal_assembly_cost(actual) == (0, 3)
     assert actual == expected
     assert restructure_base_form(actual) == actual
+
+
+def test_action_derivative_numbering(V1, V2):
+    # The direction must not take the number of an argument inside the operand of the Action.
+    x = Coefficient(V1)
+    u = Coefficient(V2)
+    F = Argument(V1, 0) * u**2 * Argument(V2, 1) * dx
+    dA = expand_derivatives(derivative(Action(x, F), u))
+    assert [a.number() for a in dA.arguments()] == [1, 2]
+
+
+def test_action_derivative_arguments(V1, V2, V3):
+    # Three distinct spaces, so that a wrong slot or order cannot pass.
+    x, y, z = Coefficient(V1), Coefficient(V1), Coefficient(V1)
+    u = Coefficient(V3)
+    v0, v1, v2, v3 = (Argument(V1, i) for i in range(4))
+    F = v0 * v1 * u**2 * dx
+    G = v0 * v1 * Argument(V3, 2) * u * dx
+    H = v0 * v1 * v2 * u**2 * dx
+    T = v0 * v2 * v3 * u**2 * dx
+    w1 = Argument(V2, 1)
+    B = Interpolate(w1, V1)
+    Bu = Interpolate(u * w1, V1)
+    for A, expected in (
+        (Action(x, v0 * u**2 * dx), [(V3, 1)]),
+        (Action(Action(x, F), y), [(V3, 1)]),
+        (Action(Action(H, y), z), [(V1, 0), (V3, 1)]),
+        (Action(Action(H, y), B), [(V1, 0), (V2, 1), (V3, 2)]),
+        (Action(Action(T, B), x), [(V1, 0), (V2, 1), (V3, 2)]),
+        (Action(Action(T, Bu), x), [(V1, 0), (V2, 1), (V3, 2)]),
+        (Action(Action(G, u), B), [(V1, 0), (V2, 1), (V3, 2)]),
+        (Action(Action(H, B), Coefficient(V2)), [(V1, 0), (V1, 1), (V3, 2)]),
+    ):
+        dA = expand_derivatives(derivative(A, u))
+        assert [(a.ufl_function_space(), a.number()) for a in dA.arguments()] == expected
+
+
+def test_action_derivative_slots(V1, V3):
+    # H is unsymmetric, so contracting the wrong argument changes the form.
+    y, z = Coefficient(V1), Coefficient(V1)
+    u = Coefficient(V3)
+    v0, v1, v2 = (Argument(V1, i) for i in range(3))
+    H = v0 * v1**2 * v2**3 * u**2 * dx
+    dA = expand_derivatives(derivative(Action(Action(H, y), z), u))
+    expected = expand_derivatives(derivative(v0 * z**2 * y**3 * u**2 * dx, u))
+    assert restructure_base_form(dA).signature() == expected.signature()
+
+
+def test_action_derivative_of_operator(V1, V3):
+    # The operator contracts v_0 on the right, and the absorbing Form numbers from zero.
+    x = Coefficient(V1)
+    u = Coefficient(V3)
+    L = Argument(V1, 0) * u**2 * dx
+    dA = expand_derivatives(derivative(Action(L, Interpolate(u, V1)), u))
+    assert [a.number() for a in restructure_base_form(dA).arguments()] == [0]
+    dA = expand_derivatives(derivative(Action(L, Interpolate(x, V1)), u))
+    assert [a.number() for a in restructure_base_form(dA).arguments()] == [0]
+    ddA = expand_derivatives(derivative(dA, u))
+    assert [a.number() for a in restructure_base_form(ddA).arguments()] == [0, 1]
+
+
+def test_action_second_derivative(V1, V3):
+    # Action(N, L) and Action(L, N) are N(u; L), so their Hessians number from zero.
+    u = Coefficient(V3)
+    L = Argument(V1, 0) * u**3 * dx
+    N = Interpolate(u**3, V1)
+    for A in (Action(N, L), Action(L, N), Interpolate(u**3, L)):
+        ddA = restructure_base_form(derivative(derivative(A, u), u))
+        assert [a.number() for a in ddA.arguments()] == [0, 1]
+
+
+def test_action_argument(V1, V2):
+    # The Argument takes the place of the contracted argument.
+    v0, v1 = Argument(V1, 0), Argument(V1, 1)
+    w = Argument(V1, 2)
+    assert Action(v0 * v1 * dx, w).arguments() == (v0, w)
+
+
+def test_action_derivative_direction_clash(V1, V3):
+    # The row x^H F has the free argument v_1, so the direction cannot take that number.
+    x = Coefficient(V1)
+    u = Coefficient(V3)
+    F = Argument(V1, 0) * Argument(V1, 1) * u**2 * dx
+    with pytest.raises(ValueError, match="same number"):
+        expand_derivatives(derivative(Action(x, F), u, Argument(V3, 1)))
