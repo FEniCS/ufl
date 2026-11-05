@@ -308,6 +308,29 @@ def test_formsum_empty_form(V1):
     assert (rhs(v * u * dx) + Cofunction(V1.dual())).arguments() == (v,)
 
 
+@pytest.mark.parametrize("matrix_first", [False, True], ids=["form-first", "matrix-first"])
+def test_formsum_rank_mismatch(V1, matrix_first):
+    M = Matrix(V1, V1)
+    L = Argument(V1, 2) * dx
+    components = ((M, 1), (L, 1)) if matrix_first else ((L, 1), (M, 1))
+    assert [a.number() for a in FormSum(*components).arguments()] == [0, 1, 2]
+
+
+def test_formsum_space_mismatch(V1, V2):
+    v = TestFunction(V1)
+    c = Cofunction(V2.dual())
+    assert len((v * dx + c).arguments()) == 2
+
+
+def test_action_derivative_numbering(V1, V2):
+    # The direction must not take the number of an argument inside the operand of the Action.
+    x = Coefficient(V1)
+    u = Coefficient(V2)
+    F = Argument(V1, 0) * u**2 * Argument(V2, 1) * dx
+    dA = expand_derivatives(derivative(Action(x, F), u))
+    assert [a.number() for a in dA.arguments()] == [1, 2]
+
+
 @pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
 def test_restructure_distributes_expression_sum(V1, sum_on_left):
     a, b = Coefficient(V1), Coefficient(V1)
