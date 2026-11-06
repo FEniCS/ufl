@@ -38,7 +38,7 @@ from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
-from ufl.form import BaseForm, ZeroBaseForm
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -222,7 +222,8 @@ def test_derivative_of_contracted_dual_slot(V1, V2):
     )
 
 
-def test_differentiation_procedure_action(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_differentiation_procedure_action(V1, V2, max_rank):
     s = Coefficient(V1)
     u = Coefficient(V2)
     m = Coefficient(V2)
@@ -256,24 +257,38 @@ def test_differentiation_procedure_action(V1, V2):
     a1 = inner(N1, m) * dx
     Ja1 = derivative(a1, u, u_hat)
     Ja1 = expand_derivatives(Ja1)
-    Ja1 = restructure_base_form(Ja1)
+    Ja1 = restructure_base_form(Ja1, max_composed_rank=max_rank)
 
     a2 = inner(N2, m) * dx
     Ja2 = derivative(a2, s, s_hat)
     Ja2 = expand_derivatives(Ja2)
-    Ja2 = restructure_base_form(Ja2)
+    Ja2 = restructure_base_form(Ja2, max_composed_rank=max_rank)
 
-    # Ja = dF/dN[dN/du(..; v*, u_hat)], with u_hat numbered from zero
+    # Ja = dF/dN[dN/du(..; v*, u_hat)]
     dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar_N1, u_hat))
-    slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
-    assert Ja1 == conj(m) * dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots) * dx
+    if max_rank == 1:
+        # The Action of the rank-two operator is kept.
+        slots = (Coargument(V1.dual(), 2), u_hat)
+        dN1du_hat = dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots)
+        expected = Action(dN1du_hat, conj(m) * TestFunction(V1) * dx)
+    else:
+        # dF/dN composes with the operator, with u_hat numbered from zero.
+        slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
+        expected = conj(m) * dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots) * dx
+    assert Ja1 == expected
     dN1du_action = Action(dN1du, w)
 
     dN2du = N2._ufl_expr_reconstruct_(
         cos(s), derivatives=(1,), argument_slots=(vstar_N2, -sin(s) * s_hat)
     )
-    slots = (Coargument(V1.dual(), 1), -sin(s) * Argument(V2, 0))
-    assert Ja2 == conj(m) * dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots) * dx
+    if max_rank == 1:
+        slots = (Coargument(V1.dual(), 2), -sin(s) * s_hat)
+        dN2du_hat = dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots)
+        expected = Action(dN2du_hat, conj(m) * TestFunction(V1) * dx)
+    else:
+        slots = (Coargument(V1.dual(), 1), -sin(s) * Argument(V2, 0))
+        expected = conj(m) * dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots) * dx
+    assert Ja2 == expected
     dN2du_action = Action(dN2du, r)
 
     # Check shape
@@ -748,22 +763,30 @@ def test_coefficient_derivatives(V1):
     assert expand_derivatives(dF) == g * uhat * v * dx
 
 
-def test_functional_derivative(V1):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_functional_derivative(V1, max_rank):
     u = Coefficient(V1)
     v0 = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
     J = N**2 * dx
 
-    # dJ/du[v0] = dN/du(u; dJ/dN, v0), which dJ/dN absorbs
+    # dJ/du[v0] = dN/du(u; dJ/dN, v0)
     dJdu = expand_derivatives(derivative(J, u))
-    dJdu = restructure_base_form(dJdu)
+    dJdu = restructure_base_form(dJdu, max_composed_rank=max_rank)
     slots = (Coargument(V1.dual(), 1), v0)
     dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
-    assert dJdu == as_ufl(2) * dNdu * N * dx
+    if max_rank == 1:
+        # The Action of the rank-two operator is kept.
+        expected = Action(dNdu, 2 * v0 * N * dx)
+    else:
+        # dJ/dN composes with the operator.
+        expected = as_ufl(2) * dNdu * N * dx
+    assert dJdu == expected
     assert dJdu.arguments() == (v0,)
 
 
-def test_functional_hessian_through_composition(V1):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_functional_hessian_through_composition(V1, max_rank):
     u = Coefficient(V1)
     M = ExternalOperator(u, function_space=V1)
     N = ExternalOperator(M, function_space=V1)
@@ -782,12 +805,15 @@ def test_functional_hessian_through_composition(V1):
         return N._ufl_expr_reconstruct_(M, derivatives=(n,), argument_slots=slots)
 
     # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]],
-    # absorbed by dF/dN[Nhat] = Nhat * dx
+    # whose Actions of rank-three operators are kept.
     d2N = dN(2, c(2), dM(1, c(0), a(0)), dM(1, c(0), a(1)))
     d2M = dN(1, c(2), dM(2, c(0), a(0), a(1)))
     H = expand_derivatives(H)
-    H = restructure_base_form(H)
-    assert H == d2N * dx + d2M * dx
+    H = restructure_base_form(H, max_composed_rank=max_rank)
+    v = TestFunction(V1)
+    expected = FormSum((Action(d2N, v * dx), 1), (Action(d2M, v * dx), 1))
+    assert H == expected
+    assert H.arguments() == (a(0), a(1))
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):

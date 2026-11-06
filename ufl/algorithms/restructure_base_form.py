@@ -39,62 +39,22 @@ def _rank(o: Expr | BaseForm) -> int:
     return len(o.arguments()) if isinstance(o, BaseForm) else 1
 
 
-def _absorb(left: Expr | BaseForm, right: Expr | BaseForm) -> Form:
-    """Return ``left(right)`` if ``left`` is a Form, else ``right(left)``.
-
-    The Form absorbs the other operand into its last or first argument, as
-    ``Action(left, right)`` contracts. A function ``left`` leaves the linear slot of
-    ``right`` free, so it gives ``conj(right(left))`` to keep the test argument
-    antilinear. Free arguments are renumbered from zero, and each bound Coargument takes
-    the lowest number its operator leaves free.
-    """
-    left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
-    right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
-    mapping = {a: a.reconstruct(number=i) for i, a in enumerate((*left_free, *right_free))}
-    used: defaultdict[Coargument, set[int]] = defaultdict(set)
-    for operand in (left, right):
-        for e in iter_expressions(operand):
-            for N in unique_pre_traversal(e):
-                if not isinstance(N, BaseFormOperator):
-                    continue
-                vstar, *slots = N.argument_slots()
-                if not isinstance(vstar, Coargument):
-                    continue
-                for slot in (*N.ufl_operands, *slots):
-                    arguments = extract_type(slot, Argument, True)
-                    used[vstar].update(mapping.get(a, a).number() for a in arguments)
-    for vstar, numbers in used.items():
-        mapping[vstar] = vstar.reconstruct(number=min(set(range(len(numbers) + 1)) - numbers))
-
-    if isinstance(left, Form):
-        return replace(left, {**mapping, left.arguments()[-1]: replace(right, mapping)})
-    if isinstance(right, Form):
-        absorbed = replace(right, {**mapping, right.arguments()[0]: replace(left, mapping)})
-        if not isinstance(left, BaseForm):
-            return map_integrands(Conj, absorbed)
-        if isinstance(left, BaseFormOperator) and _rank(left) == 1:
-            if is_primal(left.ufl_function_space()):
-                return map_integrands(Conj, absorbed)
-        return absorbed
-    raise ValueError("Expecting a Form operand.")
-
-
 class BaseFormRestructurer(DAGTraverser):
-    """Split operator compositions, associate Actions and absorb their operands.
+    """Split operator compositions, associate Actions and compose their operands.
 
     ``Action(A, x)`` is the product ``A x``. A rank-one left operand enters through the
     antilinear slot, so ``Action(x, A)`` is the row ``x^H A``, whose Adjoint is the column
     ``A^H x``. The operands of an Action are restructured first, and the first rule that
     matches applies. An Action numbers its free arguments as its operands do, whereas a
-    Form or operator that absorbs an operand numbers them from zero. Rank and function
+    Form or operator composed with an operand numbers them from zero. Rank and function
     spaces are preserved.
 
     Here ``N`` is an operator, ``v*`` its Coargument and ``uhat`` an Argument in a primal
     slot, numbered as subscripted. ``x`` has rank one, ``L`` is a rank one BaseForm and
     ``w`` a rank one expression. ``A`` and ``B`` have rank two, except that the left
     operand of a chain can have a higher rank. ``F`` is a Form, ``c`` and ``d`` are
-    weights and ``y + z`` is an expression Sum. Absorbing comes before distributing,
-    so an operand absorbs a sum whole. A product or sum of rank-two operands stays as it
+    weights and ``y + z`` is an expression Sum. Composing comes before distributing,
+    so an operand composes with a sum whole. A product or sum of rank-two operands stays as it
     is, since its assembly cost depends on information unavailable here.
 
     =================================  ===================================================
@@ -120,7 +80,8 @@ class BaseFormRestructurer(DAGTraverser):
 
     The rules for operators follow, where ``B`` has rank two, ``A`` is a Form or has rank
     above one and ``w_i`` is an Argument numbered ``i``. An operator with one rank-two
-    primal slot ``B`` is split first, and a Form ``A`` absorbs the resulting operator.
+    primal slot ``B`` is split first. A Form and an operator compose only if the operator
+    has rank at most ``max_composed_rank``; otherwise the Action is kept.
 
     ============================  ===============================================
     Expression                    Result
@@ -133,10 +94,68 @@ class BaseFormRestructurer(DAGTraverser):
     ============================  ===============================================
     """
 
+    def __init__(self, max_composed_rank: int = 1, **kwargs) -> None:
+        """Initialise.
+
+        Args:
+            max_composed_rank: The highest rank of an operator that composes with a Form.
+            kwargs: Passed to the DAGTraverser.
+        """
+        super().__init__(**kwargs)
+        self.max_composed_rank = max_composed_rank
+
+    def composable(self, operator: BaseFormOperator) -> bool:
+        """Return whether the operator may compose with a Form."""
+        return _rank(operator) <= self.max_composed_rank
+
+    def compose(self, left: Expr | BaseForm, right: Expr | BaseForm) -> Expr | BaseForm:
+        """Return ``left(right)`` if ``left`` is a Form, else ``right(left)``.
+
+        The Form takes the other operand into its last or first argument, as
+        ``Action(left, right)`` contracts. A function ``left`` leaves the linear slot of
+        ``right`` free, so it gives ``conj(right(left))`` to keep the test argument
+        antilinear. Free arguments are renumbered from zero, and each bound Coargument
+        takes the lowest number its operator leaves free. The Action of an operator
+        that is not composable is kept.
+        """
+        for operand in (left, right):
+            if isinstance(operand, BaseFormOperator) and not self.composable(operand):
+                return Action(left, right)
+
+        left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
+        right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
+        mapping = {a: a.reconstruct(number=i) for i, a in enumerate((*left_free, *right_free))}
+        used: defaultdict[Coargument, set[int]] = defaultdict(set)
+        for operand in (left, right):
+            for e in iter_expressions(operand):
+                for N in unique_pre_traversal(e):
+                    if not isinstance(N, BaseFormOperator):
+                        continue
+                    vstar, *slots = N.argument_slots()
+                    if not isinstance(vstar, Coargument):
+                        continue
+                    for slot in (*N.ufl_operands, *slots):
+                        arguments = extract_type(slot, Argument, True)
+                        used[vstar].update(mapping.get(a, a).number() for a in arguments)
+        for vstar, numbers in used.items():
+            mapping[vstar] = vstar.reconstruct(number=min(set(range(len(numbers) + 1)) - numbers))
+
+        if isinstance(left, Form):
+            return replace(left, {**mapping, left.arguments()[-1]: replace(right, mapping)})
+        if isinstance(right, Form):
+            composed = replace(right, {**mapping, right.arguments()[0]: replace(left, mapping)})
+            if not isinstance(left, BaseForm):
+                return map_integrands(Conj, composed)
+            if isinstance(left, BaseFormOperator) and _rank(left) == 1:
+                if is_primal(left.ufl_function_space()):
+                    return map_integrands(Conj, composed)
+            return composed
+        raise ValueError("Expecting a Form operand.")
+
     def column_sum(self, rows: Iterable[BaseForm], weights: Iterable) -> BaseForm:
         """Return the column conj(c) A^H x + conj(d) B^H x of the sum of rows c x^H A + d x^H B.
 
-        Absorbing the left operand of a row gives the column, so such a row stays as it is.
+        Composing a row with its left operand gives the column, so such a row stays as it is.
         """
         columns = [r if r.arguments()[0].number() == 0 else self(Adjoint(r)) for r in rows]
         return FormSum(*zip(columns, map(Conj, weights)))
@@ -236,7 +255,7 @@ class BaseFormRestructurer(DAGTraverser):
             vhat = contracted.reconstruct(function_space=space, number=vhat_number)
             Nhat = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vhat, *slots))
             if isinstance(A, Form):
-                return _absorb(Nhat, A) if operator_first else _absorb(A, Nhat)
+                return self.compose(Nhat, A) if operator_first else self.compose(A, Nhat)
             return self(Action(Nhat, A) if operator_first else Action(A, Nhat))
         return o
 
@@ -305,27 +324,32 @@ class BaseFormRestructurer(DAGTraverser):
             return self(FormSum(*zip(rows, right.weights())))
 
         # An operator is linear in its argument slots. The dual slot takes any
-        # rank-one BaseForm, while a primal slot takes only an expression.
+        # rank-one BaseForm, while a primal slot takes only an expression. A Form
+        # fills the dual slot only of a composable operator.
         if isinstance(right, BaseFormOperator) and left_is_rank_one:
-            if isinstance(left, Expr) or right.argument_slots()[0] == right.arguments()[0]:
+            contracts_dual_slot = right.argument_slots()[0] == right.arguments()[0]
+            composable = not isinstance(left, Form) or self.composable(right)
+            if composable and (isinstance(left, Expr) or contracts_dual_slot):
                 contracted, *free = right.arguments()
                 mapping = {a: a.reconstruct(number=a.number() - 1) for a in free}
                 return self(replace(right, {contracted: left, **mapping}))
         if isinstance(left, BaseFormOperator) and right_is_rank_one:
-            if isinstance(right, Expr) or left.argument_slots()[0] == left.arguments()[-1]:
+            contracts_dual_slot = left.argument_slots()[0] == left.arguments()[-1]
+            composable = not isinstance(right, Form) or self.composable(left)
+            if composable and (isinstance(right, Expr) or contracts_dual_slot):
                 return self(replace(left, {left.arguments()[-1]: right}))
 
-        # A Form absorbs an expression, or an operator through its dual slot.
+        # A Form composes with an expression, or with an operator through its dual slot.
         if isinstance(left, Form) and isinstance(right, BaseFormOperator):
             if right.argument_slots()[0] == right.arguments()[0]:
-                return _absorb(left, right)
+                return self.compose(left, right)
         elif isinstance(left, Form) and isinstance(right, Expr):
-            return _absorb(left, right)
+            return self.compose(left, right)
         if isinstance(right, Form) and isinstance(left, BaseFormOperator):
             if left.argument_slots()[0] == left.arguments()[-1]:
-                return _absorb(left, right)
+                return self.compose(left, right)
         elif isinstance(right, Form) and isinstance(left, Expr):
-            return _absorb(left, right)
+            return self.compose(left, right)
 
         # An expression Sum cannot be assembled independently, unlike a FormSum.
         if isinstance(left, Sum):
@@ -335,22 +359,26 @@ class BaseFormRestructurer(DAGTraverser):
         return Action(left, right)
 
 
-def restructure_base_form(form: Expr | BaseForm, complex_mode: bool = False) -> Expr | BaseForm:
+def restructure_base_form(
+    form: Expr | BaseForm, complex_mode: bool = False, max_composed_rank: int = 1
+) -> Expr | BaseForm:
     """Expand derivatives and restructure a BaseForm for independent assembly.
 
     Leave Forms without base form operators unchanged for the form compiler.
     Split compositions in argument slots into Actions, associate rank-one
-    contractions first, absorb Action operands into Forms and operator slots,
+    contractions first, compose Forms and operators with Action operands,
     and distribute over the remaining expression Sums.
 
     Args:
         form: The expression or BaseForm to restructure.
         complex_mode: Whether to preserve complex expressions when preprocessing a Form.
+        max_composed_rank: The highest rank of an operator that composes with a Form.
+            The Actions of operators of higher rank are kept.
 
     Returns:
         The restructured BaseForm.
     """
-    restructurer = BaseFormRestructurer()
+    restructurer = BaseFormRestructurer(max_composed_rank)
     if isinstance(form, Form):
         if not form.base_form_operators():
             return form
