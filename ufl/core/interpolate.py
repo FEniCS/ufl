@@ -44,10 +44,10 @@ class Interpolate(BaseFormOperator):
         expr = as_ufl(expr)
 
         if isinstance(expr, BaseForm):
-            expr_args = expr.arguments()
-            if not isinstance(expr_args[0], Coargument):
+            coarguments = [a for a in expr.arguments() if isinstance(a, Coargument)]
+            if len(coarguments) != 1:
                 raise ValueError("Expecting the first argument to be primal.")
-            expr_args = expr_args[1:]
+            expr_args = [a for a in expr.arguments() if not isinstance(a, Coargument)]
         else:
             expr_args = extract_arguments(expr)
         expr_arg_numbers = {arg.number() for arg in expr_args}
