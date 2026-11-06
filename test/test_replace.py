@@ -10,20 +10,25 @@ from ufl import (
     Matrix,
     Mesh,
     TestFunction,
+    TrialFunction,
     as_vector,
     derivative,
+    div,
     ds,
     dx,
+    grad,
     inner,
     replace,
     triangle,
 )
 from ufl.algorithms import expand_derivatives
+from ufl.algorithms.analysis import has_exact_type
 from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative
+from ufl.differentiation import BaseFormDerivative, Div
+from ufl.form import Form
 
 
 def _contains(expr, obj):
@@ -57,6 +62,49 @@ def test_replace_keeps_equal_objects_of_other_integrals():
     F = replace(w * u * dx + w_copy * u * ds, {u: z})
     (ds_integral,) = [itg for itg in F.integrals() if itg.integral_type() == "exterior_facet"]
     assert _contains(ds_integral.integrand(), w_copy)
+
+
+@pytest.mark.parametrize("with_derivative", [False, True])
+def test_replace_preserves_divergence(with_derivative):
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    unew = Coefficient(V)
+
+    expression = div(u)
+    expected = div(unew)
+    if with_derivative:
+        Q = FunctionSpace(domain, LagrangeElement(triangle, 1))
+        f = Coefficient(Q)
+        h = Coefficient(Q)
+        expression += derivative(f**2, f, h)
+        expected += 2 * h * f
+
+    assert replace(expression, {u: unew}) == expected
+
+
+def test_replace_derivative_preserves_divergence():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    unew = Coefficient(V)
+    h = Coefficient(V)
+    F = div(u) ** 2 * dx
+
+    result = replace(derivative(F, u, h), {u: unew})
+
+    assert result == 2 * div(h) * div(unew) * dx
+
+
+def test_replace_keeps_arguments_of_a_vanishing_derivative():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    du = TrialFunction(V)
+    J = derivative(u * v * dx, w, du)
+    assert replace(J, {u: 2 * w}).arguments() == (v, du)
 
 
 def test_replace(V1):
@@ -105,22 +153,22 @@ def test_replace_base_form_operator(V1):
     assert r == M * v + Iw * v
 
 
-def test_replace_base_form_derivative(V1):
+@pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])
+def test_replace_base_form_derivative(V1, replacement):
     u = Coefficient(V1)
     w = Coefficient(V1)
     v = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
-    dJ = derivative(Action(N * u * v * dx, u), u)
+    dJ = derivative(N * u * v * dx, u)
     assert isinstance(dJ, BaseFormDerivative)
 
-    # The derivative is not applied, and the replacement is applied to the
-    # differentiation variable as well as to the base form.
-    Nw = ExternalOperator(w, function_space=V1)
-    expected = derivative(Action(Nw * w * v * dx, w), w)
-    result = replace(dJ, {u: w})
-    assert isinstance(result, BaseFormDerivative)
-    assert result.ufl_operands == expected.ufl_operands
-    assert expand_derivatives(result) == expand_derivatives(expected)
+    replacements = {
+        "coefficient": w,
+        "expression": 2 * w,
+        "operator": ExternalOperator(w, function_space=V1),
+    }
+    mapping = {u: replacements[replacement]}
+    assert replace(dJ, mapping) == replace(expand_derivatives(dJ), mapping)
 
 
 def test_replace_base_form_derivative_aliasing(V1):
@@ -130,10 +178,21 @@ def test_replace_base_form_derivative_aliasing(V1):
     N = ExternalOperator(u, function_space=V1)
     dJ = derivative(Action(N * w * v * dx, u), u)
 
-    # Mapping the differentiation variable to another coefficient of the
-    # form does not commute with the derivative.
-    with pytest.raises(ValueError, match="Derivatives should be applied"):
-        replace(dJ, {u: w})
+    # The differentiation variable maps to another coefficient of the form,
+    # and only the first of the two is differentiated.
+    assert replace(dJ, {u: w}) == replace(expand_derivatives(dJ), {u: w})
+
+
+def test_replace_base_form_derivative_preserves_spatial_derivatives(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+    dJ = derivative(N * div(grad(u)) * v * dx, u)
+
+    forms = [c for c in replace(dJ, {u: w}).components() if isinstance(c, Form)]
+    assert forms
+    assert all(has_exact_type(form, Div) for form in forms)
 
 
 def test_replace_leaves_coargument_of_operand_bound(V1):

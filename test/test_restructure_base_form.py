@@ -249,6 +249,14 @@ def test_restructure_preprocesses_forms_with_operators(V1, complex_mode):
     assert restructure_base_form(form, complex_mode=complex_mode) == expected
 
 
+def test_restructure_preserves_compound_gradient(V1):
+    u = Coefficient(V1)
+    h = Coefficient(V1)
+    expression = derivative(Interpolate(grad(u**2)[0], V1), u, h)
+
+    assert restructure_base_form(expression) == Interpolate(grad(2 * h * u)[0], V1)
+
+
 # --- Actions and Adjoints ---
 
 
