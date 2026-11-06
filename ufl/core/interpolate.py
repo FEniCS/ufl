@@ -46,7 +46,7 @@ class Interpolate(BaseFormOperator):
         if isinstance(expr, BaseForm):
             coarguments = [a for a in expr.arguments() if isinstance(a, Coargument)]
             if len(coarguments) != 1:
-                raise ValueError("Expecting the first argument to be primal.")
+                raise ValueError("Expecting a primal expression to interpolate.")
             expr_args = [a for a in expr.arguments() if not isinstance(a, Coargument)]
         else:
             expr_args = extract_arguments(expr)
