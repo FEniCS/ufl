@@ -6,6 +6,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from collections import defaultdict
 from collections.abc import Iterable
 from functools import singledispatchmethod
 
@@ -17,6 +18,7 @@ from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.compute_form_data import preprocess_form
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
+from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument, Coargument
 from ufl.core.base_form_operator import (
     BaseFormOperator,
@@ -25,7 +27,8 @@ from ufl.core.base_form_operator import (
 )
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.differentiation import BaseFormDerivative
+from ufl.corealg.traversal import unique_pre_traversal
+from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
 from ufl.form import BaseForm, Form, FormSum
 from ufl.formoperators import default_direction_number, derivative
 
@@ -35,11 +38,37 @@ def _rank(o: Expr | BaseForm) -> int:
     return len(o.arguments()) if isinstance(o, BaseForm) else 1
 
 
-def _contract_first(form: BaseForm, value: Expr | BaseForm) -> BaseForm:
-    """Contract the lowest-numbered argument of ``form`` with ``value``, renumbering the rest."""
-    contracted, *free = form.arguments()
-    mapping = {a: a.reconstruct(number=a.number() - 1) for a in free}
-    return replace(form, {contracted: value, **mapping})
+def _absorb(left: Expr | BaseForm, right: Expr | BaseForm) -> Form:
+    """Return ``left(right)`` if ``left`` is a Form, else ``conj(right(left))``.
+
+    The Form absorbs the other operand into its last or first argument, as
+    ``Action(left, right)`` contracts. Free arguments are renumbered from zero, and each
+    bound Coargument takes the lowest number its operator leaves free.
+    """
+    left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
+    right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
+    mapping = {a: a.reconstruct(number=i) for i, a in enumerate((*left_free, *right_free))}
+    used: defaultdict[Coargument, set[int]] = defaultdict(set)
+    for operand in (left, right):
+        for e in iter_expressions(operand):
+            for N in unique_pre_traversal(e):
+                if not isinstance(N, BaseFormOperator):
+                    continue
+                vstar, *slots = N.argument_slots()
+                if not isinstance(vstar, Coargument):
+                    continue
+                for slot in (*N.ufl_operands, *slots):
+                    arguments = extract_type(slot, Argument, True)
+                    used[vstar].update(mapping.get(a, a).number() for a in arguments)
+    for vstar, numbers in used.items():
+        mapping[vstar] = vstar.reconstruct(number=min(set(range(len(numbers) + 1)) - numbers))
+
+    if isinstance(left, Form):
+        return replace(left, {**mapping, left.arguments()[-1]: replace(right, mapping)})
+    if isinstance(right, Form):
+        absorbed = replace(right, {**mapping, right.arguments()[0]: replace(left, mapping)})
+        return map_integrands(Conj, absorbed)
+    raise ValueError("Expecting a Form operand.")
 
 
 class BaseFormRestructurer(DAGTraverser):
@@ -75,13 +104,15 @@ class BaseFormRestructurer(DAGTraverser):
     ``Action(N(u; v_0*, uhat_1), w)``  ``N(u; v_0*, w)``
     ``Action(F(v_0, v_1), w)``         ``F(v_0, w)``
     ``Action(w, F(v_0, v_1))``         ``conj(F(w, v_0))``
+    ``Action(F(v_0, v_1), N)``         ``F(v_0, N)``
+    ``Action(N, F(v_0, v_1))``         ``conj(F(N, v_1))``
     ``Action(y + z, A)``               ``Action(y, A) + Action(z, A)``
     ``Action(A, y + z)``               ``Action(A, y) + Action(A, z)``
     =================================  ===================================================
 
-    The rules for operators follow, where ``B`` has rank two, ``A`` has rank above one,
-    ``L`` is a one-form and ``w_i`` is an Argument numbered ``i``. An operator with one
-    rank-two primal slot ``B`` is split first.
+    The rules for operators follow, where ``B`` has rank two, ``A`` is a Form or has rank
+    above one and ``w_i`` is an Argument numbered ``i``. An operator with one rank-two
+    primal slot ``B`` is split first, and a Form ``A`` absorbs the resulting operator.
 
     ============================  ===============================================
     Expression                    Result
@@ -89,7 +120,6 @@ class BaseFormRestructurer(DAGTraverser):
     ``N(u; v*, B)``               ``Action(N(u; v*, uhat), B)``
     ``N(u; A, w_0)``              ``Action(N(u; vhat, w_0), A)``
     ``N(u; A, w_1)``              ``Action(A, N(u; vhat, w_1))``
-    ``N(u; L(v_1))``              ``N(u; L(v_0))``
     ``Adjoint(N(u; v_0*, w_1))``  ``N(u; v_1*, w_0)``
     ``Adjoint(F(x, v_0))``        ``F(x, v_0)``
     ============================  ===============================================
@@ -128,6 +158,7 @@ class BaseFormRestructurer(DAGTraverser):
         return FormSum(*zip(components, o.weights()))
 
     @process.register(BaseFormDerivative)
+    @process.register(BaseFormOperatorDerivative)
     def _(self, o: BaseFormDerivative) -> BaseForm:
         """Restructure the operand of a derivative and renumber its direction to match."""
         operand, coefficients, directions, coefficient_derivatives = o.ufl_operands
@@ -183,7 +214,7 @@ class BaseFormRestructurer(DAGTraverser):
         if isinstance(vstar, Coargument):
             return o
 
-        if len(vstar.arguments()) > 1:
+        if isinstance(vstar, Form) or len(vstar.arguments()) > 1:
             # A base form operator is linear in its dual slot, so N(u; A) splits into
             # Action(N(u; vhat), A) if the primal slots use number 0, and otherwise
             # into Action(A, N(u; vhat)). Each contracts the contracted argument of A.
@@ -196,13 +227,9 @@ class BaseFormRestructurer(DAGTraverser):
             vhat_number = 1 + max(slot_numbers) if operator_first else 0
             vhat = contracted.reconstruct(function_space=space, number=vhat_number)
             Nhat = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vhat, *slots))
+            if isinstance(A, Form):
+                return _absorb(Nhat, A) if operator_first else _absorb(A, Nhat)
             return self(Action(Nhat, A) if operator_first else Action(A, Nhat))
-        if isinstance(vstar, Form) and vstar.arguments()[0].number() != 0:
-            # N(u; L(v_1)) -> N(u; L(v_0)). The dual slot contracts the argument of L, so
-            # its number is free. Forms are assembled with arguments numbered from zero.
-            (contracted,) = vstar.arguments()
-            L = replace(vstar, {contracted: contracted.reconstruct(number=0)})
-            return o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(L, *slots))
         return o
 
     @process.register(Adjoint)
@@ -273,18 +300,24 @@ class BaseFormRestructurer(DAGTraverser):
         # rank-one BaseForm, while a primal slot takes only an expression.
         if isinstance(right, BaseFormOperator) and left_is_rank_one:
             if isinstance(left, Expr) or right.argument_slots()[0] == right.arguments()[0]:
-                return self(_contract_first(right, left))
+                contracted, *free = right.arguments()
+                mapping = {a: a.reconstruct(number=a.number() - 1) for a in free}
+                return self(replace(right, {contracted: left, **mapping}))
         if isinstance(left, BaseFormOperator) and right_is_rank_one:
             if isinstance(right, Expr) or left.argument_slots()[0] == left.arguments()[-1]:
                 return self(replace(left, {left.arguments()[-1]: right}))
 
-        # A Form is linear in its last argument and antilinear in its first.
-        if isinstance(left, Form) and isinstance(right, Expr) and right_is_rank_one:
-            *free, contracted = left.arguments()
-            mapping = {a: a.reconstruct(number=a.number() - free[0].number()) for a in free}
-            return replace(left, {contracted: right, **mapping})
-        if isinstance(right, Form) and isinstance(left, Expr) and left_is_rank_one:
-            return map_integrands(Conj, _contract_first(right, left))
+        # A Form absorbs an expression, or an operator through its dual slot.
+        if isinstance(left, Form) and isinstance(right, BaseFormOperator):
+            if right.argument_slots()[0] == right.arguments()[0]:
+                return _absorb(left, right)
+        elif isinstance(left, Form) and isinstance(right, Expr):
+            return _absorb(left, right)
+        if isinstance(right, Form) and isinstance(left, BaseFormOperator):
+            if left.argument_slots()[0] == left.arguments()[-1]:
+                return _absorb(left, right)
+        elif isinstance(right, Form) and isinstance(left, Expr):
+            return _absorb(left, right)
 
         # An expression Sum cannot be assembled independently, unlike a FormSum.
         if isinstance(left, Sum):
