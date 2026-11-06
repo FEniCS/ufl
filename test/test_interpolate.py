@@ -337,7 +337,7 @@ def test_form_dual_slot_rank_two_interpolate(V1, V2, max_rank):
     restructured = restructure_base_form(interpolation, max_composed_rank=max_rank)
 
     if max_rank == 1:
-        expected = Action(Interpolate(Argument(V1, 0), Argument(V2.dual(), 1)), dual_slot)
+        expected = interpolation
     else:
         expected = Interpolate(TestFunction(V1), V2) * dx
     assert restructured == expected
@@ -410,8 +410,7 @@ def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2, max_rank
     restructured = restructure_base_form(Action(Adjoint(N), w), max_composed_rank=max_rank)
 
     if max_rank == 1:
-        row = conj(Argument(V2, 0).dx(0) * w) * dx
-        expected = Adjoint(Action(row, Interpolate(Argument(V1, 1), V2)))
+        expected = Interpolate(Argument(V1, 0), conj(Argument(V2, 0).dx(0) * w) * dx)
     else:
         expected = conj(Interpolate(Argument(V1, 0), V2).dx(0) * w) * dx
     assert restructured == expected
@@ -480,7 +479,7 @@ def test_action_adjoint(V1, V2, max_rank):
     one_form_action = action(one_form, Iv)  # V2^* -> V1^*
     action_one_form = restructure_base_form(one_form_action, max_composed_rank=max_rank)
     if max_rank == 1:
-        expected = Action(one_form, Iv)
+        expected = Interpolate(Argument(V1, 0), one_form)
     else:
         expected = Interpolate(Argument(V1, 0), V2) * dx
     assert action_one_form == expected
@@ -549,8 +548,7 @@ def test_differentiation(V1, V2, max_rank):
     # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu)
     restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
     if max_rank == 1:
-        I_adjoint = Interpolate(Argument(V1, 0), Argument(V2.dual(), 1))
-        expected = Action(I_adjoint, Argument(V2, 0) * dx)
+        expected = Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
     else:
         # dJ/dIu composes with the operator.
         expected = Interpolate(Argument(V1, 0), V2) * dx
@@ -585,7 +583,7 @@ def test_second_derivative(V1, V2, max_rank):
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
     restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
     if max_rank == 1:
-        expected = Action(Interpolate(v0, Argument(V2.dual(), 1)), dJdIu)
+        expected = Interpolate(v0, dJdIu)
     else:
         expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
     assert restructured == expected

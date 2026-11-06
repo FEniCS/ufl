@@ -8,13 +8,12 @@ symbolic. Action operands must have rank one or two,
 Adjoint operands must be rank two or rows, and FormSum components must have
 the same rank. Assume assembly is implemented for each Form and BaseFormOperator.
 
-With max_composed_rank=1, the Actions of rank-two operators are kept instead
-of being composed with Forms.
+With max_composed_rank=1, a rank-one Form stays in the dual slot of a rank-two
+operator instead of composing with it.
 
-For rank-one results that do not retain a rank-two operator, optimality
-additionally requires no newly assembled rank-two forms. Existing Matrix
-terminals are allowed. The assembler must support the contracted forms and
-operators needed to satisfy this requirement.
+For rank-one results, optimality additionally requires no newly assembled
+rank-two forms. Existing Matrix terminals are allowed. The assembler must
+support the contracted forms and operators needed to satisfy this requirement.
 
 Among equivalent assemblable DAGs satisfying that requirement, compare costs
 lexicographically: (rank-two assembly operations, all assembly operations).
@@ -228,11 +227,7 @@ def test_restructure_derivative_through_interpolation(V1, order, max_rank):
     actual = restructure_base_form(expression, max_composed_rank=max_rank)
 
     assert actual == expected
-    if max_rank == 1:
-        # A rank-two operator in an Action needs a rank-two assembly.
-        assert _assembly_cost(actual) == _assembly_cost(expected)
-    else:
-        assert _optimal_assembly_cost(actual) == _optimal_assembly_cost(expected)
+    assert _optimal_assembly_cost(actual) == _optimal_assembly_cost(expected)
 
 
 def test_restructure_ordinary_form(V1):
@@ -627,8 +622,9 @@ def test_restructure_dual_slot_on_the_right(V1, max_rank):
 
     restructured = restructure_base_form(Action(L, dNdu), max_composed_rank=max_rank)
     if max_rank == 1:
-        # A rank-two operator does not compose with L, so the Action is kept.
-        expected = Action(L, dNdu)
+        # L fills the dual slot of the rank-two operator.
+        slots = (L, Argument(V1, 0))
+        expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
     else:
         # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), composed with L
         slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
@@ -668,7 +664,7 @@ def test_restructure_interp_hessian(V1, V2, max_rank):
     w0, w1 = TestFunction(V2), TrialFunction(V2)
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
     if max_rank == 1:
-        expected = Action(I_adjoint, dJdIu)
+        expected = Interpolate(v0, dJdIu)
     else:
         # dJ/dIu composes with I.
         expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
@@ -737,8 +733,7 @@ def test_restructure_nested_adjoint_interpolate(V1, V2, V3, max_rank):
 
     restructured = restructure_base_form(N, max_composed_rank=max_rank)
     if max_rank == 1:
-        I_adjoint = Interpolate(TestFunction(V1), Argument(V2.dual(), 1))
-        expected = Interpolate(w, Action(I_adjoint, F))
+        expected = N
     else:
         expected = inner(f, Interpolate(Interpolate(w, V1), V2)) * dx
     assert restructured == expected
@@ -852,9 +847,10 @@ def test_restructure_contracts_covector_first(V1, V2, max_rank):
 
     restructured = restructure_base_form(Action(x, Action(A, dN)), max_composed_rank=max_rank)
     if max_rank == 1:
-        # The Action of the rank-two operator is kept.
-        row = Action(conj(TestFunction(V2) * conj(x)) * dx, dN)
-        expected = row
+        # The row x^H A fills the dual slot of the rank-two operator.
+        row = conj(TestFunction(V2) * conj(x)) * dx
+        slots = (row, Argument(V1, 0))
+        expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
     else:
         slots = (Coargument(V2.dual(), 1), Argument(V1, 0))
         dN_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
@@ -863,8 +859,6 @@ def test_restructure_contracts_covector_first(V1, V2, max_rank):
 
     column = Action(Adjoint(Action(A, dN)), x)
     restructured = restructure_base_form(column, max_composed_rank=max_rank)
-    if max_rank == 1:
-        expected = Adjoint(row)
     assert restructured == expected
 
 
@@ -886,7 +880,9 @@ def test_restructure_action_of_composition(V1, adjoint, max_rank):
         expression = Action(Adjoint(jacobian), w)
         if max_rank == 1:
             row = conj(TestFunction(V1) * conj(w)) * dx
-            expected = Interpolate(v, Action(row, dNdI))
+            slots = (row, v)
+            applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+            expected = Interpolate(v, applied)
         else:
             # dI/du*[dN/dI*(dF/dN*[w], v)], composed with dF/dN*
             slots = (Coargument(V1.dual(), 1), Interpolate(v, V1))

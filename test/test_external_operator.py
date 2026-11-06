@@ -267,10 +267,9 @@ def test_differentiation_procedure_action(V1, V2, max_rank):
     # Ja = dF/dN[dN/du(..; v*, u_hat)]
     dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar_N1, u_hat))
     if max_rank == 1:
-        # The Action of the rank-two operator is kept.
-        slots = (Coargument(V1.dual(), 2), u_hat)
-        dN1du_hat = dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots)
-        expected = Action(dN1du_hat, conj(m) * TestFunction(V1) * dx)
+        # The Form fills the dual slot of the rank-two operator.
+        slots = (conj(m) * TestFunction(V1) * dx, u_hat)
+        expected = dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots)
     else:
         # dF/dN composes with the operator, with u_hat numbered from zero.
         slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
@@ -282,9 +281,8 @@ def test_differentiation_procedure_action(V1, V2, max_rank):
         cos(s), derivatives=(1,), argument_slots=(vstar_N2, -sin(s) * s_hat)
     )
     if max_rank == 1:
-        slots = (Coargument(V1.dual(), 2), -sin(s) * s_hat)
-        dN2du_hat = dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots)
-        expected = Action(dN2du_hat, conj(m) * TestFunction(V1) * dx)
+        slots = (conj(m) * TestFunction(V1) * dx, -sin(s) * s_hat)
+        expected = dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots)
     else:
         slots = (Coargument(V1.dual(), 1), -sin(s) * Argument(V2, 0))
         expected = conj(m) * dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots) * dx
@@ -773,13 +771,14 @@ def test_functional_derivative(V1, max_rank):
     # dJ/du[v0] = dN/du(u; dJ/dN, v0)
     dJdu = expand_derivatives(derivative(J, u))
     dJdu = restructure_base_form(dJdu, max_composed_rank=max_rank)
-    slots = (Coargument(V1.dual(), 1), v0)
-    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
     if max_rank == 1:
-        # The Action of the rank-two operator is kept.
-        expected = Action(dNdu, 2 * v0 * N * dx)
+        # The Form fills the dual slot of the rank-two operator.
+        slots = (2 * v0 * N * dx, v0)
+        expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
     else:
         # dJ/dN composes with the operator.
+        slots = (Coargument(V1.dual(), 1), v0)
+        dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
         expected = as_ufl(2) * dNdu * N * dx
     assert dJdu == expected
     assert dJdu.arguments() == (v0,)
@@ -805,13 +804,13 @@ def test_functional_hessian_through_composition(V1, max_rank):
         return N._ufl_expr_reconstruct_(M, derivatives=(n,), argument_slots=slots)
 
     # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]],
-    # whose Actions of rank-three operators are kept.
-    d2N = dN(2, c(2), dM(1, c(0), a(0)), dM(1, c(0), a(1)))
-    d2M = dN(1, c(2), dM(2, c(0), a(0), a(1)))
+    # where dF/dN = v * dx fills the dual slots of the rank-three operators.
+    L = TestFunction(V1) * dx
+    d2N = dN(2, L, dM(1, c(0), a(0)), dM(1, c(0), a(1)))
+    d2M = dN(1, L, dM(2, c(0), a(0), a(1)))
     H = expand_derivatives(H)
     H = restructure_base_form(H, max_composed_rank=max_rank)
-    v = TestFunction(V1)
-    expected = FormSum((Action(d2N, v * dx), 1), (Action(d2M, v * dx), 1))
+    expected = FormSum((d2N, 1), (d2M, 1))
     assert H == expected
     assert H.arguments() == (a(0), a(1))
 

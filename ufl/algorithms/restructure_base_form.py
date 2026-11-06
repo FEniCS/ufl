@@ -81,7 +81,8 @@ class BaseFormRestructurer(DAGTraverser):
     The rules for operators follow, where ``B`` has rank two, ``A`` is a Form or has rank
     above one and ``w_i`` is an Argument numbered ``i``. An operator with one rank-two
     primal slot ``B`` is split first. A Form and an operator compose only if the operator
-    has rank at most ``max_composed_rank``; otherwise the Action is kept.
+    has rank at most ``max_composed_rank``. Otherwise a rank-one Form stays in the dual
+    slot of the operator, and the Action of a Form of higher rank is kept.
 
     ============================  ===============================================
     Expression                    Result
@@ -255,6 +256,10 @@ class BaseFormRestructurer(DAGTraverser):
             vhat = contracted.reconstruct(function_space=space, number=vhat_number)
             Nhat = o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(vhat, *slots))
             if isinstance(A, Form):
+                if _rank(A) == 1 and not self.composable(Nhat):
+                    # A rank-one Form stays in the dual slot of an operator it does not
+                    # compose with.
+                    return o
                 return self.compose(Nhat, A) if operator_first else self.compose(A, Nhat)
             return self(Action(Nhat, A) if operator_first else Action(A, Nhat))
         return o
@@ -324,19 +329,16 @@ class BaseFormRestructurer(DAGTraverser):
             return self(FormSum(*zip(rows, right.weights())))
 
         # An operator is linear in its argument slots. The dual slot takes any
-        # rank-one BaseForm, while a primal slot takes only an expression. A Form
-        # fills the dual slot only of a composable operator.
+        # rank-one BaseForm, while a primal slot takes only an expression.
         if isinstance(right, BaseFormOperator) and left_is_rank_one:
             contracts_dual_slot = right.argument_slots()[0] == right.arguments()[0]
-            composable = not isinstance(left, Form) or self.composable(right)
-            if composable and (isinstance(left, Expr) or contracts_dual_slot):
+            if isinstance(left, Expr) or contracts_dual_slot:
                 contracted, *free = right.arguments()
                 mapping = {a: a.reconstruct(number=a.number() - 1) for a in free}
                 return self(replace(right, {contracted: left, **mapping}))
         if isinstance(left, BaseFormOperator) and right_is_rank_one:
             contracts_dual_slot = left.argument_slots()[0] == left.arguments()[-1]
-            composable = not isinstance(right, Form) or self.composable(left)
-            if composable and (isinstance(right, Expr) or contracts_dual_slot):
+            if isinstance(right, Expr) or contracts_dual_slot:
                 return self(replace(left, {left.arguments()[-1]: right}))
 
         # A Form composes with an expression, or with an operator through its dual slot.
@@ -373,7 +375,7 @@ def restructure_base_form(
         form: The expression or BaseForm to restructure.
         complex_mode: Whether to preserve complex expressions when preprocessing a Form.
         max_composed_rank: The highest rank of an operator that composes with a Form.
-            The Actions of operators of higher rank are kept.
+            A rank-one Form stays in the dual slot of an operator of higher rank.
 
     Returns:
         The restructured BaseForm.
