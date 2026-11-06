@@ -1011,10 +1011,12 @@ def test_derivative_of_form_sum_drops_vanishing_component(V1, V2):
     F = action(Action(inner(TrialFunction(V2), v) * dx, Interpolate(TrialFunction(V1), V2)), u)
     L = v * dx
 
-    J = expand_derivatives(derivative(F - L, u))
-    assert not isinstance(J, FormSum)
-    assert J.arguments() == (v, Argument(V1, 1))
-    assert J == expand_derivatives(derivative(F, u))
+    dF = expand_derivatives(derivative(F, u))
+    for G in (F - L, -L + F):
+        J = expand_derivatives(derivative(G, u))
+        assert not isinstance(J, FormSum)
+        assert J.arguments() == (v, Argument(V1, 1))
+        assert J == dF
 
 
 def test_derivative_of_form_sum_keeps_arguments_when_all_components_vanish(V1):
