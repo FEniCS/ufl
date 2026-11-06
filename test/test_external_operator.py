@@ -759,7 +759,7 @@ def test_functional_derivative(V1):
     dJdu = restructure_base_form(dJdu)
     slots = (Coargument(V1.dual(), 1), v0)
     dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
-    assert dJdu == conj(as_ufl(2) * dNdu * N) * dx
+    assert dJdu == as_ufl(2) * dNdu * N * dx
     assert dJdu.arguments() == (v0,)
 
 
@@ -787,7 +787,7 @@ def test_functional_hessian_through_composition(V1):
     d2M = dN(1, c(2), dM(2, c(0), a(0), a(1)))
     H = expand_derivatives(H)
     H = restructure_base_form(H)
-    assert H == conj(d2N) * dx + conj(d2M) * dx
+    assert H == d2N * dx + d2M * dx
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
