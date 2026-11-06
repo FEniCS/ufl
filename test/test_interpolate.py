@@ -805,7 +805,7 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
         Argument(V1.dual(), 1),
     }
 
-    with pytest.raises(ValueError, match=r"Expecting the first argument to be primal."):
+    with pytest.raises(ValueError, match="Expecting a primal expression to interpolate"):
         Interpolate(u2, V3)
 
 
