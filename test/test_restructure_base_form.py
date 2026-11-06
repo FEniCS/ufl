@@ -626,7 +626,7 @@ def test_restructure_dual_slot_on_the_right(V1):
     # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), which L absorbs
     slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
     dNdu_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
-    assert restructure_base_form(Action(L, dNdu)) == conj(dNdu_hat) * dx
+    assert restructure_base_form(Action(L, dNdu)) == dNdu_hat * dx
 
 
 def test_restructure_formsum_fills_dual_slot_whole(V1, V2):
@@ -655,12 +655,12 @@ def test_restructure_interp_hessian(V1, V2):
     v0, v1 = TestFunction(V1), TrialFunction(V1)
     J = 0.5 * (Iu - f) ** 2 * dx
     residual = restructure_base_form(derivative(J, u))
-    assert residual == conj(0.5 * ((Iu - f) * (2 * Interpolate(v0, V2)))) * dx
+    assert residual == 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
 
     hessian = restructure_base_form(derivative(residual, u, v1))
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, which d2J/dIu2 absorbs
-    expected = conj(0.5 * (as_ufl(2) * Interpolate(v0, V2) * Interpolate(v1, V2))) * dx
+    expected = 0.5 * (as_ufl(2) * Interpolate(v0, V2) * Interpolate(v1, V2)) * dx
     assert hessian == expected
     assert hessian == restructure_base_form(derivative(derivative(J, u), u))
     _assembly_cost(hessian)
@@ -683,6 +683,18 @@ def test_restructure_interpolate_form_without_argument_0(V1, V2, V3):
     restructured = restructure_base_form(Interpolate(w, dual_slot))
 
     assert restructured.arguments() == (w, free)
+
+
+def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4):
+    # Interpolate(w, Interpolate(u, a)) is a(I w, I u), with nothing conjugated.
+    f = Coefficient(V1)
+    a = f * inner(TrialFunction(V2), TestFunction(V1)) * dx
+    w = Argument(V4, 0)
+    u = Argument(V3, 1)
+    N = Interpolate(w, Interpolate(u, a))
+
+    expected = f * inner(Interpolate(u, V2), Interpolate(w, V1)) * dx
+    assert restructure_base_form(N) == expected
 
 
 def test_restructure_keeps_operand_arguments(V1, V2):

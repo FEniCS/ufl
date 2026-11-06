@@ -319,7 +319,7 @@ def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3)
 
     # v* is numbered after v, so N is the left operand of the Action, which A absorbs.
     restructured = restructure_base_form(interpolation)
-    assert restructured == conj(inner(TrialFunction(V3), Interpolate(v, V2))) * dx
+    assert restructured == inner(TrialFunction(V3), Interpolate(v, V2)) * dx
     assert restructured.arguments() == interpolation.arguments()
 
 
@@ -450,7 +450,7 @@ def test_action_adjoint(V1, V2):
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
     action_one_form = restructure_base_form(action(one_form, Iv))  # V2^* -> V1^*
-    assert action_one_form == conj(Interpolate(Argument(V1, 0), V2)) * dx
+    assert action_one_form == Interpolate(Argument(V1, 0), V2) * dx
 
     # zero-form case
     action_zero_form = action(one_form, Iu)  # a number
@@ -513,7 +513,7 @@ def test_differentiation(V1, V2):
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), which dJ/dIu absorbs
-    assert restructure_base_form(dJdu) == conj(Interpolate(Argument(V1, 0), V2)) * dx
+    assert restructure_base_form(dJdu) == Interpolate(Argument(V1, 0), V2) * dx
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
@@ -541,7 +541,7 @@ def test_second_derivative(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    expected = conj(0.5 * ((Iu - f) * (2 * Interpolate(v0, V2)))) * dx
+    expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
     assert restructure_base_form(dJdu) == expected
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear

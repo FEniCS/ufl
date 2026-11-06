@@ -30,6 +30,7 @@ from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
+from ufl.duals import is_primal
 from ufl.form import BaseForm, Form, FormSum
 from ufl.formoperators import default_direction_number, derivative
 
@@ -40,11 +41,13 @@ def _rank(o: Expr | BaseForm) -> int:
 
 
 def _absorb(left: Expr | BaseForm, right: Expr | BaseForm) -> Form:
-    """Return ``left(right)`` if ``left`` is a Form, else ``conj(right(left))``.
+    """Return ``left(right)`` if ``left`` is a Form, else ``right(left)``.
 
     The Form absorbs the other operand into its last or first argument, as
-    ``Action(left, right)`` contracts. Free arguments are renumbered from zero, and each
-    bound Coargument takes the lowest number its operator leaves free.
+    ``Action(left, right)`` contracts. A function ``left`` leaves the linear slot of
+    ``right`` free, so it gives ``conj(right(left))`` to keep the test argument
+    antilinear. Free arguments are renumbered from zero, and each bound Coargument takes
+    the lowest number its operator leaves free.
     """
     left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
     right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
@@ -68,7 +71,12 @@ def _absorb(left: Expr | BaseForm, right: Expr | BaseForm) -> Form:
         return replace(left, {**mapping, left.arguments()[-1]: replace(right, mapping)})
     if isinstance(right, Form):
         absorbed = replace(right, {**mapping, right.arguments()[0]: replace(left, mapping)})
-        return map_integrands(Conj, absorbed)
+        if not isinstance(left, BaseForm):
+            return map_integrands(Conj, absorbed)
+        if isinstance(left, BaseFormOperator) and _rank(left) == 1:
+            if is_primal(left.ufl_function_space()):
+                return map_integrands(Conj, absorbed)
+        return absorbed
     raise ValueError("Expecting a Form operand.")
 
 
