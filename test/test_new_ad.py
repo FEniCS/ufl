@@ -15,8 +15,11 @@ from ufl import (
     cos,
     derivative,
     diff,
+    div,
+    dx,
     exp,
     grad,
+    inner,
     ln,
     sin,
     tan,
@@ -24,12 +27,14 @@ from ufl import (
     variable,
     zero,
 )
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import (
     GenericDerivativeRuleset,
     GradRuleset,
     apply_derivatives,
 )
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.form import ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import L2
 
@@ -85,6 +90,19 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
         # Note the use of "is" here instead of ==, this property
         # is important for efficiency and memory usage
         assert apply_derivatives(expr) is expr
+
+
+def test_apply_derivatives_preserves_arguments_when_form_vanishes():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(cell, 1))
+    v = TestFunction(V)
+    x = SpatialCoordinate(domain)
+
+    # This is the source form from the DOLFINx Basix-element test for degree 1.
+    form = apply_algebra_lowering(inner(-div(grad(x[1])), v) * dx)
+
+    assert apply_derivatives(form) == ZeroBaseForm((v,))
 
 
 def test_literal_derivatives_are_zero():
