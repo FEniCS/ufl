@@ -308,7 +308,8 @@ def test_form_dual_slot_arguments_are_replaceable(V1, V2, V3, V4):
     assert replaced == Interpolate(u, inner(TrialFunction(V2), w) * dx)
 
 
-def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3, max_rank):
     v = TestFunction(V1)
     A = inner(TrialFunction(V3), TestFunction(V2)) * dx
 
@@ -317,10 +318,29 @@ def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3)
 
     assert interpolation.arguments() == composition.arguments() == (v, Argument(V3, 1))
 
-    # v* is numbered after v, so N is the left operand of the Action, which A absorbs.
-    restructured = restructure_base_form(interpolation)
-    assert restructured == inner(TrialFunction(V3), Interpolate(v, V2)) * dx
+    # v* is numbered after v, so N is the left operand of the Action.
+    restructured = restructure_base_form(interpolation, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = composition
+    else:
+        # A composes with N.
+        expected = inner(TrialFunction(V3), Interpolate(v, V2)) * dx
+    assert restructured == expected
     assert restructured.arguments() == interpolation.arguments()
+
+
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_form_dual_slot_rank_two_interpolate(V1, V2, max_rank):
+    dual_slot = TestFunction(V2) * dx
+    interpolation = Interpolate(TestFunction(V1), dual_slot)
+
+    restructured = restructure_base_form(interpolation, max_composed_rank=max_rank)
+
+    if max_rank == 1:
+        expected = interpolation
+    else:
+        expected = Interpolate(TestFunction(V1), V2) * dx
+    assert restructured == expected
 
 
 def test_form_dual_slot_free_argument_with_expression_number_raises(V1, V2):
@@ -381,14 +401,20 @@ def test_form_dual_slot_contracted_argument_can_share_expression_number(V1, V2):
     assert interpolation.arguments() == (Argument(V2, 0), u)
 
 
-def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2, max_rank):
     w = Coefficient(V2)
     A = Argument(V2, 1).dx(0) * Argument(V2, 0) * dx
     N = Interpolate(Argument(V1, 1), A)
 
-    restructured = restructure_base_form(Action(Adjoint(N), w))
+    restructured = restructure_base_form(Action(Adjoint(N), w), max_composed_rank=max_rank)
 
-    assert restructured == conj(Interpolate(Argument(V1, 0), V2).dx(0) * w) * dx
+    if max_rank == 1:
+        expected = Interpolate(Argument(V1, 0), conj(Argument(V2, 0).dx(0) * w) * dx)
+    else:
+        expected = conj(Interpolate(Argument(V1, 0), V2).dx(0) * w) * dx
+    assert restructured == expected
+    assert restructured.arguments() == (Argument(V1, 0),)
 
 
 def test_form_dual_slot_with_deep_shared_integrand(V1, V2):
@@ -422,7 +448,8 @@ def test_derivative_with_gapped_coargument(V1, V2):
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
-def test_action_adjoint(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_action_adjoint(V1, V2, max_rank):
     # Set dual of V2
     V2_dual = V2.dual()
     vstar = Argument(V2_dual, 0)
@@ -449,8 +476,13 @@ def test_action_adjoint(V1, V2):
 
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
-    action_one_form = restructure_base_form(action(one_form, Iv))  # V2^* -> V1^*
-    assert action_one_form == Interpolate(Argument(V1, 0), V2) * dx
+    one_form_action = action(one_form, Iv)  # V2^* -> V1^*
+    action_one_form = restructure_base_form(one_form_action, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = Interpolate(Argument(V1, 0), one_form)
+    else:
+        expected = Interpolate(Argument(V1, 0), V2) * dx
+    assert action_one_form == expected
 
     # zero-form case
     action_zero_form = action(one_form, Iu)  # a number
@@ -458,7 +490,8 @@ def test_action_adjoint(V1, V2):
     assert action_zero_form.arguments() == ()
 
 
-def test_differentiation(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_differentiation(V1, V2, max_rank):
     u = Coefficient(V1)
     v = TestFunction(V1)
 
@@ -512,8 +545,14 @@ def test_differentiation(V1, V2):
     # Derivative of form I(u, V2) wrt coefficient u
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
-    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), which dJ/dIu absorbs
-    assert restructure_base_form(dJdu) == Interpolate(Argument(V1, 0), V2) * dx
+    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu)
+    restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
+    else:
+        # dJ/dIu composes with the operator.
+        expected = Interpolate(Argument(V1, 0), V2) * dx
+    assert restructured == expected
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
@@ -529,7 +568,8 @@ def test_formsum_derivative(V1, V2):
     )
 
 
-def test_second_derivative(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_second_derivative(V1, V2, max_rank):
     u = Coefficient(V1)
     f = Coefficient(V2)
     Iu = Interpolate(u, V2)
@@ -541,8 +581,12 @@ def test_second_derivative(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
-    assert restructure_base_form(dJdu) == expected
+    restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = Interpolate(v0, dJdIu)
+    else:
+        expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
+    assert restructured == expected
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
     d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))

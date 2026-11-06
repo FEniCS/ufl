@@ -8,6 +8,9 @@ symbolic. Action operands must have rank one or two,
 Adjoint operands must be rank two or rows, and FormSum components must have
 the same rank. Assume assembly is implemented for each Form and BaseFormOperator.
 
+With max_composed_rank=1, a rank-one Form stays in the dual slot of a rank-two
+operator instead of composing with it.
+
 For rank-one results, optimality additionally requires no newly assembled
 rank-two forms. Existing Matrix terminals are allowed. The assembler must
 support the contracted forms and operators needed to satisfy this requirement.
@@ -212,15 +215,16 @@ def test_restructure_expands_interpolation_derivatives(V1, arity):
     assert len(actual.arguments()) == arity
 
 
+@pytest.mark.parametrize("max_rank", [1, 2])
 @pytest.mark.parametrize("order", [1, 2])
-def test_restructure_derivative_through_interpolation(V1, order):
+def test_restructure_derivative_through_interpolation(V1, order, max_rank):
     u = Coefficient(V1)
     expression = inner(Interpolate(u, V1), Interpolate(u, V1)) * dx
     for _ in range(order):
         expression = derivative(expression, u)
-    expected = restructure_base_form(expand_derivatives(expression))
+    expected = restructure_base_form(expand_derivatives(expression), max_composed_rank=max_rank)
 
-    actual = restructure_base_form(expression)
+    actual = restructure_base_form(expression, max_composed_rank=max_rank)
 
     assert actual == expected
     assert _optimal_assembly_cost(actual) == _optimal_assembly_cost(expected)
@@ -330,8 +334,8 @@ def test_adjoint_row_sum_weights(V1, V2):
     assert restructure_base_form(Adjoint(Action(x, FormSum((A, 2j))))) == expected
 
 
-def test_adjoint_absorbed_row_sum_weights(V1, V2):
-    # Forms absorb x, and their weights conjugate as those of a Matrix do.
+def test_adjoint_composed_row_sum_weights(V1, V2):
+    # Forms compose with x, and their weights conjugate as those of a Matrix do.
     x = Coefficient(V1)
     v = TestFunction(V1)
     u = TrialFunction(V2)
@@ -344,7 +348,7 @@ def test_adjoint_absorbed_row_sum_weights(V1, V2):
 
 
 def test_adjoint_mixed_row_sum(V1, V2):
-    # A Form absorbs x and a Matrix does not, so the sum takes the column of each.
+    # A Form composes with x and a Matrix does not, so the sum takes the column of each.
     x = Coefficient(V1)
     F = inner(TrialFunction(V2), TestFunction(V1)) * dx
     A = Matrix(V1, V2)
@@ -410,8 +414,8 @@ def test_restructure_distributes_expression_sum(V1, sum_on_left):
     assert restructure_base_form(expression) == FormSum(*((c, 1) for c in expected))
 
 
-def test_restructure_form_absorbs_expression_sum(V1):
-    # Absorption comes before distribution, so a Form absorbs a Sum whole.
+def test_restructure_form_composes_expression_sum(V1):
+    # Composition comes before distribution, so a Form composes with a Sum whole.
     a, b = Coefficient(V1), Coefficient(V1)
     v, u = TestFunction(V1), TrialFunction(V1)
 
@@ -616,17 +620,25 @@ def test_restructure_adjoint_operator_dual_slot(V1, V2):
     assert restructure_base_form(Action(Adjoint(Iv), w)) == Interpolate(Argument(V1, 0), w)
 
 
-def test_restructure_dual_slot_on_the_right(V1):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_dual_slot_on_the_right(V1, max_rank):
     u = Coefficient(V1)
     N = ExternalOperator(u, function_space=V1)
     vstar = Coargument(V1.dual(), 0)
     dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1)))
     L = TestFunction(V1) * dx
 
-    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), which L absorbs
-    slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
-    dNdu_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
-    assert restructure_base_form(Action(L, dNdu)) == dNdu_hat * dx
+    restructured = restructure_base_form(Action(L, dNdu), max_composed_rank=max_rank)
+    if max_rank == 1:
+        # L fills the dual slot of the rank-two operator.
+        slots = (L, Argument(V1, 0))
+        expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+    else:
+        # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), composed with L
+        slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
+        dNdu_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+        expected = dNdu_hat * dx
+    assert restructured == expected
 
 
 def test_restructure_formsum_fills_dual_slot_whole(V1, V2):
@@ -647,22 +659,37 @@ def test_restructure_splits_rank_2_dual_slot(V1, V2):
     )
 
 
-def test_restructure_interp_hessian(V1, V2):
-    # The residual is I(v0; dJ/dIu), which dJ/dIu absorbs.
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_interp_hessian(V1, V2, max_rank):
+    # The residual is I(v0; dJ/dIu).
     u = Coefficient(V1)
     f = Coefficient(V2)
     Iu = Interpolate(u, V2)
     v0, v1 = TestFunction(V1), TrialFunction(V1)
     J = 0.5 * (Iu - f) ** 2 * dx
-    residual = restructure_base_form(derivative(J, u))
-    assert residual == 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
+    residual = restructure_base_form(derivative(J, u), max_composed_rank=max_rank)
+    I_adjoint = Interpolate(v0, Argument(V2.dual(), 1))
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    dJdIu = expand_derivatives(derivative(J, Iu, w0))
+    if max_rank == 1:
+        expected = Interpolate(v0, dJdIu)
+    else:
+        # dJ/dIu composes with I.
+        expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
+    assert residual == expected
 
-    hessian = restructure_base_form(derivative(residual, u, v1))
+    hessian = restructure_base_form(derivative(residual, u, v1), max_composed_rank=max_rank)
 
-    # d2J/du2[v0, v1] = I^T d2J/dIu2 I, which d2J/dIu2 absorbs
-    expected = 0.5 * (as_ufl(2) * Interpolate(v0, V2) * Interpolate(v1, V2)) * dx
+    # d2J/du2[v0, v1] = I^T d2J/dIu2 I
+    if max_rank == 1:
+        d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
+        expected = Action(I_adjoint, Action(d2JdIu2, Interpolate(v1, V2)))
+    else:
+        # d2J/dIu2 composes with both interpolations.
+        expected = 0.5 * (as_ufl(2) * Interpolate(v0, V2) * Interpolate(v1, V2)) * dx
     assert hessian == expected
-    assert hessian == restructure_base_form(derivative(derivative(J, u), u))
+    d2Jdu2 = derivative(derivative(J, u), u)
+    assert hessian == restructure_base_form(d2Jdu2, max_composed_rank=max_rank)
     _assembly_cost(hessian)
 
 
@@ -685,7 +712,8 @@ def test_restructure_interpolate_form_without_argument_0(V1, V2, V3):
     assert restructured.arguments() == (w, free)
 
 
-def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4, max_rank):
     # Interpolate(w, Interpolate(u, a)) is a(I w, I u), with nothing conjugated.
     f = Coefficient(V1)
     a = f * inner(TrialFunction(V2), TestFunction(V1)) * dx
@@ -693,19 +721,31 @@ def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4):
     u = Argument(V3, 1)
     N = Interpolate(w, Interpolate(u, a))
 
-    expected = f * inner(Interpolate(u, V2), Interpolate(w, V1)) * dx
-    assert restructure_base_form(N) == expected
+    restructured = restructure_base_form(N, max_composed_rank=max_rank)
+    if max_rank == 1:
+        row = Action(f * inner(Argument(V2, 2), TestFunction(V1)) * dx, Interpolate(u, V2))
+        expected = Action(Interpolate(w, Argument(V1.dual(), 1)), row)
+    else:
+        expected = f * inner(Interpolate(u, V2), Interpolate(w, V1)) * dx
+    assert restructured == expected
+    assert restructured.arguments() == N.arguments()
 
 
-def test_restructure_nested_adjoint_interpolate(V1, V2, V3):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_nested_adjoint_interpolate(V1, V2, V3, max_rank):
     # Interpolate(w, Interpolate(v, F)) is F(I I w).
     f = Coefficient(V2)
     F = inner(f, TestFunction(V2)) * dx
     w = TestFunction(V3)
     N = Interpolate(w, Interpolate(TestFunction(V1), F))
 
-    restructured = restructure_base_form(N)
-    assert restructured == inner(f, Interpolate(Interpolate(w, V1), V2)) * dx
+    restructured = restructure_base_form(N, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = N
+    else:
+        expected = inner(f, Interpolate(Interpolate(w, V1), V2)) * dx
+    assert restructured == expected
+    assert restructured.arguments() == N.arguments()
 
 
 def test_restructure_keeps_operand_arguments(V1, V2):
@@ -800,7 +840,8 @@ def test_restructure_weighted_sum_in_interpolate_slot(V1):
     assert restructure_base_form(restructured) == restructured
 
 
-def test_restructure_contracts_covector_first(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_contracts_covector_first(V1, V2, max_rank):
     # A rank 1 operand on the left of a chain of Actions is contracted first:
     # Action(x, Action(A, dN)) contracts x into A before filling dN's dual
     # slot, so neither operand needs a rank-two assembly.
@@ -812,15 +853,26 @@ def test_restructure_contracts_covector_first(V1, V2):
     A = inner(TrialFunction(V2), TestFunction(V1)) * dx
     x = Coefficient(V1)
 
-    slots = (Coargument(V2.dual(), 1), Argument(V1, 0))
-    dN_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
-    expected = conj(conj(x) * dN_hat) * dx
-    assert restructure_base_form(Action(x, Action(A, dN))) == expected
-    assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
+    restructured = restructure_base_form(Action(x, Action(A, dN)), max_composed_rank=max_rank)
+    if max_rank == 1:
+        # The row x^H A fills the dual slot of the rank-two operator.
+        row = conj(TestFunction(V2) * conj(x)) * dx
+        slots = (row, Argument(V1, 0))
+        expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+    else:
+        slots = (Coargument(V2.dual(), 1), Argument(V1, 0))
+        dN_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+        expected = conj(conj(x) * dN_hat) * dx
+    assert restructured == expected
+
+    column = Action(Adjoint(Action(A, dN)), x)
+    restructured = restructure_base_form(column, max_composed_rank=max_rank)
+    assert restructured == expected
 
 
+@pytest.mark.parametrize("max_rank", [1, 2])
 @pytest.mark.parametrize("adjoint", [False, True], ids=["jacobian", "adjoint"])
-def test_restructure_action_of_composition(V1, adjoint):
+def test_restructure_action_of_composition(V1, adjoint, max_rank):
     # Jacobian of F = inner(N(I(u)), v) * dx: dF/dN, dN/dI, dI/du.
     w = Coefficient(V1)
     vstar = Argument(V1.dual(), 0)
@@ -834,10 +886,16 @@ def test_restructure_action_of_composition(V1, adjoint):
     jacobian = Action(dFdN, Action(dNdI, dIdu))
     if adjoint:
         expression = Action(Adjoint(jacobian), w)
-        # dI/du*[dN/dI*(dF/dN*[w], v)], which dF/dN* absorbs
-        slots = (Coargument(V1.dual(), 1), Interpolate(v, V1))
-        applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
-        expected = conj(conj(w) * applied) * dx
+        if max_rank == 1:
+            row = conj(TestFunction(V1) * conj(w)) * dx
+            slots = (row, v)
+            applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+            expected = Interpolate(v, applied)
+        else:
+            # dI/du*[dN/dI*(dF/dN*[w], v)], composed with dF/dN*
+            slots = (Coargument(V1.dual(), 1), Interpolate(v, V1))
+            applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+            expected = conj(conj(w) * applied) * dx
     else:
         expression = Action(jacobian, w)
         # dF/dN[dN/dI[dI/du[w]]]
@@ -845,12 +903,13 @@ def test_restructure_action_of_composition(V1, adjoint):
         applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
         expected = inner(applied, v) * dx
 
-    actual = restructure_base_form(expression, complex_mode=True)
+    actual = restructure_base_form(expression, complex_mode=True, max_composed_rank=max_rank)
     assert actual == expected
     assert actual.arguments() == expression.arguments()
-    # One Form, which compiles the operators in its integrand.
-    assert _optimal_assembly_cost(actual) == (0, 1)
-    assert restructure_base_form(actual, complex_mode=True) == actual
+    if isinstance(actual, Form):
+        # One Form, which compiles the operators in its integrand.
+        assert _optimal_assembly_cost(actual) == (0, 1)
+    assert restructure_base_form(actual, complex_mode=True, max_composed_rank=max_rank) == actual
 
 
 def test_restructure_hessian_action_composition(V1):
@@ -966,7 +1025,7 @@ def test_action_derivative_slots(V1, V3):
 
 
 def test_action_derivative_of_operator(V1, V3):
-    # The operator contracts v_0 on the right, and the absorbing Form numbers from zero.
+    # The operator contracts v_0 on the right, and the composed Form numbers from zero.
     x = Coefficient(V1)
     u = Coefficient(V3)
     L = Argument(V1, 0) * u**2 * dx
