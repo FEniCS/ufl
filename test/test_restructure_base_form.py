@@ -911,6 +911,18 @@ def test_action_derivative_arguments(V1, V2, V3):
         assert [(a.ufl_function_space(), a.number()) for a in dA.arguments()] == expected
 
 
+def test_action_in_form_sum_derivative(V1, V3):
+    # The Actions in the FormSum contract v0, so the direction comes after it.
+    x, y = Coefficient(V1), Coefficient(V1)
+    u = Coefficient(V3)
+    v0, v1 = Argument(V1, 0), Argument(V1, 1)
+    F = v0 * v1 * u**2 * dx
+    G = v0 * v1 * u * dx
+    A = Action(Action(x, F) + Action(x, G), y)
+    dA = expand_derivatives(derivative(A, u))
+    assert [(a.ufl_function_space(), a.number()) for a in dA.arguments()] == [(V3, 1)]
+
+
 def test_action_derivative_slots(V1, V3):
     # H is unsymmetric, so contracting the wrong argument changes the form.
     y, z = Coefficient(V1), Coefficient(V1)
