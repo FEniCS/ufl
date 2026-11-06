@@ -32,6 +32,7 @@ from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
+from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormDerivative,
@@ -272,18 +273,19 @@ def set_list_item(li, i, v):
 def default_direction_number(form: Expr | BaseForm) -> int:
     """Return the number of the default direction of a derivative of ``form``.
 
-    The direction comes after the free arguments of ``form``. An Action contracts
-    the lowest argument of its right operand, so it comes after that one too.
+    The direction comes after the free arguments of ``form``. Every Action in
+    ``form`` contracts the lowest argument of its right operand, and the derivative
+    of that operand carries the direction, so the direction comes after that one too.
     """
     if isinstance(form, BaseForm):
         numbers = [a.number() for a in form.arguments()]
     else:
         numbers = [a.number() for a in extract_arguments(form)]
-    left = form
-    while isinstance(left, Action):
-        left, right = left.ufl_operands
-        if isinstance(right, BaseForm):
-            numbers.append(right.arguments()[0].number())
+    for f in unique_pre_traversal(form):
+        if isinstance(f, Action):
+            _, right = f.ufl_operands
+            if isinstance(right, BaseForm):
+                numbers.append(right.arguments()[0].number())
     return max(numbers, default=-1) + 1
 
 
