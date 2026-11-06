@@ -697,6 +697,17 @@ def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4):
     assert restructure_base_form(N) == expected
 
 
+def test_restructure_nested_adjoint_interpolate(V1, V2, V3):
+    # Interpolate(w, Interpolate(v, F)) is F(I I w).
+    f = Coefficient(V2)
+    F = inner(f, TestFunction(V2)) * dx
+    w = TestFunction(V3)
+    N = Interpolate(w, Interpolate(TestFunction(V1), F))
+
+    restructured = restructure_base_form(N)
+    assert restructured == inner(f, Interpolate(Interpolate(w, V1), V2)) * dx
+
+
 def test_restructure_keeps_operand_arguments(V1, V2):
     # The Coargument of an operand Interpolate is bound inside that operand.
     # Restructuring renumbers or contracts only the arguments in the argument
