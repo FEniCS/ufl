@@ -18,6 +18,8 @@ from ufl import (
     TrialFunction,
     action,
     adjoint,
+    as_ufl,
+    conj,
     cos,
     derivative,
     ds,
@@ -263,17 +265,17 @@ def test_differentiation_procedure_action(V1, V2):
     Ja2 = expand_derivatives(Ja2)
     Ja2 = restructure_base_form(Ja2)
 
-    # Ja = dN/du(..; dF/dN, u_hat), the action of dN/du(..; v*, u_hat) on dF/dN
-    da1dN1 = expand_derivatives(derivative(a1, N1, Argument(V1, 0)))
+    # Ja = dF/dN[dN/du(..; v*, u_hat)], with u_hat numbered from zero
     dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar_N1, u_hat))
-    assert Ja1 == dN1du._ufl_expr_reconstruct_(u, m, argument_slots=(da1dN1, u_hat))
+    slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
+    assert Ja1 == conj(m) * dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots) * dx
     dN1du_action = Action(dN1du, w)
 
-    da2dN2 = expand_derivatives(derivative(a2, N2, Argument(V1, 0)))
     dN2du = N2._ufl_expr_reconstruct_(
         cos(s), derivatives=(1,), argument_slots=(vstar_N2, -sin(s) * s_hat)
     )
-    assert Ja2 == dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=(da2dN2, -sin(s) * s_hat))
+    slots = (Coargument(V1.dual(), 1), -sin(s) * Argument(V2, 0))
+    assert Ja2 == conj(m) * dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots) * dx
     dN2du_action = Action(dN2du, r)
 
     # Check shape
@@ -754,11 +756,12 @@ def test_functional_derivative(V1):
     N = ExternalOperator(u, function_space=V1)
     J = N**2 * dx
 
-    # dJ/du[v0] = dN/du(u; dJ/dN, v0), since N is linear in its dual slot
-    dJdN = expand_derivatives(derivative(J, N, v0))
+    # dJ/du[v0] = dN/du(u; dJ/dN, v0), which dJ/dN absorbs
     dJdu = expand_derivatives(derivative(J, u))
     dJdu = restructure_base_form(dJdu)
-    assert dJdu == N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(dJdN, v0))
+    slots = (Coargument(V1.dual(), 1), v0)
+    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+    assert dJdu == conj(as_ufl(2) * dNdu * N) * dx
     assert dJdu.arguments() == (v0,)
 
 
@@ -781,13 +784,12 @@ def test_functional_hessian_through_composition(V1):
         return N._ufl_expr_reconstruct_(M, derivatives=(n,), argument_slots=slots)
 
     # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]],
-    # in the dual slot dF/dN[Nhat] = Nhat * dx
-    dFdN = a(0) * dx
-    d2N = dN(2, dFdN, dM(1, c(0), a(0)), dM(1, c(0), a(1)))
-    d2M = dN(1, dFdN, dM(2, c(0), a(0), a(1)))
+    # absorbed by dF/dN[Nhat] = Nhat * dx
+    d2N = dN(2, c(2), dM(1, c(0), a(0)), dM(1, c(0), a(1)))
+    d2M = dN(1, c(2), dM(2, c(0), a(0), a(1)))
     H = expand_derivatives(H)
     H = restructure_base_form(H)
-    assert H == d2N + d2M
+    assert H == conj(d2N) * dx + conj(d2M) * dx
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):

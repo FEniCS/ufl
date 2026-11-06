@@ -22,6 +22,7 @@ from ufl import (
     TrialFunctions,
     action,
     adjoint,
+    conj,
     derivative,
     dx,
     exp,
@@ -316,9 +317,9 @@ def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3)
 
     assert interpolation.arguments() == composition.arguments() == (v, Argument(V3, 1))
 
-    # v* is numbered after v, so N is the left operand of the Action.
+    # v* is numbered after v, so N is the left operand of the Action, which A absorbs.
     restructured = restructure_base_form(interpolation)
-    assert restructured == composition
+    assert restructured == conj(inner(TrialFunction(V3), Interpolate(v, V2))) * dx
     assert restructured.arguments() == interpolation.arguments()
 
 
@@ -387,8 +388,7 @@ def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2):
 
     restructured = restructure_base_form(Action(Adjoint(N), w))
 
-    assert restructured.arguments() == (Argument(V1, 0),)
-    assert [a.number() for a in restructured.argument_slots()[0].arguments()] == [0]
+    assert restructured == conj(Interpolate(Argument(V1, 0), V2).dx(0) * w) * dx
 
 
 def test_form_dual_slot_with_deep_shared_integrand(V1, V2):
@@ -450,9 +450,7 @@ def test_action_adjoint(V1, V2):
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
     action_one_form = restructure_base_form(action(one_form, Iv))  # V2^* -> V1^*
-    assert isinstance(action_one_form, Interpolate)
-    assert action_one_form.arguments() == (Argument(V1, 0),)
-    assert action_one_form.ufl_function_space() == V1.dual()
+    assert action_one_form == conj(Interpolate(Argument(V1, 0), V2)) * dx
 
     # zero-form case
     action_zero_form = action(one_form, Iu)  # a number
@@ -514,8 +512,8 @@ def test_differentiation(V1, V2):
     # Derivative of form I(u, V2) wrt coefficient u
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
-    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), where I is linear in its dual slot
-    assert restructure_base_form(dJdu) == Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
+    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), which dJ/dIu absorbs
+    assert restructure_base_form(dJdu) == conj(Interpolate(Argument(V1, 0), V2)) * dx
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
@@ -543,7 +541,8 @@ def test_second_derivative(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    assert restructure_base_form(dJdu) == Interpolate(v0, dJdIu)
+    expected = conj(0.5 * ((Iu - f) * (2 * Interpolate(v0, V2)))) * dx
+    assert restructure_base_form(dJdu) == expected
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
     d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
@@ -610,7 +609,7 @@ def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     Iu = Interpolate(u, vstar)
 
     actual = restructure_base_form(expand_derivatives(derivative(Iu, u, du)))
-    expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
+    expected = inner(u, Interpolate(du, V2)) * dx + inner(du, Interpolate(u, V2)) * dx
 
     assert actual == expected
 
@@ -623,13 +622,13 @@ def test_second_derivative_through_nested_formsum(V1, V2):
     du = Coefficient(V1)
     v = TestFunction(V2)
     Iu = Interpolate(u, inner(u, v) * dx)
-    term = Interpolate(du, inner(du, v) * dx)
+    term = inner(du, Interpolate(du, V2)) * dx
 
     d2Idu2 = restructure_base_form(expand_derivatives(derivative(derivative(Iu, u, du), u, du)))
 
     # The first derivative is a FormSum because both the operand and dual slot
     # depend on u. Differentiating that nested FormSum gives the product rule twice.
-    assert d2Idu2 == FormSum((term, 1), (term, 1))
+    assert d2Idu2 == term + term
 
 
 def test_extract_base_form_operators(V1, V2):

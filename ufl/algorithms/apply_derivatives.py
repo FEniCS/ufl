@@ -1830,7 +1830,14 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             # holding N's own operands and slots fixed; dN differentiates N.
             vstar, *slots = N.argument_slots()
             primal_argument, *_ = vstar.arguments()
-            if direction_first:
+            inline = any(extract_arguments(slot) for slot in slots)
+            if inline:
+                # An Action would contract an Argument in a primal slot of dN instead of
+                # vhat, so dN takes the place of Nhat. vhat is bound in dN.
+                number = 1 + max(numbers + direction_numbers)
+                Nhat = primal_argument.reconstruct(number=number)
+                vhat = vstar.reconstruct(number=number)
+            elif direction_first:
                 Nhat = primal_argument.reconstruct(number=0)
                 vhat = vstar.reconstruct(number=1 + max(direction_numbers))
             else:
@@ -1847,7 +1854,12 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             dN = self._expression_rules(
                 N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
             )
-            dform += Action(dN, dform_dN) if direction_first else Action(dform_dN, dN)
+            if isinstance(dN, Zero):
+                continue
+            if inline:
+                dform += replace(dform_dN, {Nhat: dN})
+            else:
+                dform += Action(dN, dform_dN) if direction_first else Action(dform_dN, dN)
         return dform
 
     @process.register(FormSum)

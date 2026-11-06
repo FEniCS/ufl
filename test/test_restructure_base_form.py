@@ -1,9 +1,10 @@
 """Contraction rules, assemblability and cost specifications for BaseForm restructuring.
 
 For derivative-expanded input, every assembly node must have rank at most
-two. A BaseForm used as a value in an integrand, operator operand or argument
-slot must have rank at most one. Arguments and Coarguments bound inside a
-form or operator stay symbolic. Action operands must have rank one or two,
+two. A BaseForm used as a value in an operator operand or argument slot must
+have rank at most one. An operator in an integrand is compiled with its form,
+of any rank. Arguments and Coarguments bound inside a form or operator stay
+symbolic. Action operands must have rank one or two,
 Adjoint operands must be rank two or rows, and FormSum components must have
 the same rank. Assume assembly is implemented for each Form and BaseFormOperator.
 
@@ -40,6 +41,7 @@ from ufl import (
     TrialFunction,
     action,
     adjoint,
+    as_ufl,
     conj,
     derivative,
     dx,
@@ -64,16 +66,19 @@ def _assembly_cost(root):
     def rank(node):
         return 1 if isinstance(node, Coefficient) else len(node.arguments())
 
-    def symbolic(node):
+    def symbolic(node, compiled=False):
         # These arguments are bound inside the containing form or operator.
         if isinstance(node, (Argument, Coargument)):
             return
-        if isinstance(node, BaseForm):
+        if compiled and isinstance(node, BaseFormOperator):
+            for value in (*node.ufl_operands, *node.argument_slots()):
+                symbolic(value, compiled=True)
+        elif isinstance(node, BaseForm):
             assert rank(node) <= 1, "Expected a rank-zero or rank-one dependency"
             visit(node)
         else:
             for operand in node.ufl_operands:
-                symbolic(operand)
+                symbolic(operand, compiled=compiled)
 
     def visit(node):
         if node in visited:
@@ -88,7 +93,7 @@ def _assembly_cost(root):
                 symbolic(value)
         elif isinstance(node, Form):
             for integral in node.integrals():
-                symbolic(integral.integrand())
+                symbolic(integral.integrand(), compiled=True)
         elif isinstance(node, Action):
             for operand in node.ufl_operands:
                 assert 1 <= rank(operand) <= 2, "Action operands must have rank one or two"
@@ -162,7 +167,8 @@ def test_assembly_cost_operator_dependencies(V1):
         u, function_space=V1, derivatives=(1,), argument_slots=(vstar, direction)
     )
     assert _assembly_cost(applied) == (0, 2)
-    assert _assembly_cost(direction * Argument(V1, 0) * dx) == (0, 2)
+    # The Form compiles the operator in its integrand.
+    assert _assembly_cost(direction * Argument(V1, 0) * dx) == (0, 1)
 
     B = Interpolate(Argument(V1, 1), V1)
     unsplit = ExternalOperator(u, function_space=V1, derivatives=(1,), argument_slots=(vstar, B))
@@ -573,7 +579,7 @@ def test_restructure_bilinear_form_complex_direction(V1, dual):
     actual = restructure_base_form(expression, complex_mode=True)
     assert actual == expected
     assert actual.arguments() == (v,)
-    assert _optimal_assembly_cost(actual) == (0, 2)
+    assert _optimal_assembly_cost(actual) == (0, 1)
     assert restructure_base_form(actual, complex_mode=True) == actual
 
 
@@ -617,11 +623,10 @@ def test_restructure_dual_slot_on_the_right(V1):
     dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1)))
     L = TestFunction(V1) * dx
 
-    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), since N is linear in its dual slot
-    expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(L, Argument(V1, 0)))
-    actual = Action(L, dNdu)
-    actual = restructure_base_form(actual)
-    assert actual == expected
+    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), which L absorbs
+    slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
+    dNdu_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+    assert restructure_base_form(Action(L, dNdu)) == conj(dNdu_hat) * dx
 
 
 def test_restructure_formsum_fills_dual_slot_whole(V1, V2):
@@ -643,22 +648,19 @@ def test_restructure_splits_rank_2_dual_slot(V1, V2):
 
 
 def test_restructure_interp_hessian(V1, V2):
-    # The residual is I(v0; dJ/dIu), with the dual slot depending on u.
+    # The residual is I(v0; dJ/dIu), which dJ/dIu absorbs.
     u = Coefficient(V1)
     f = Coefficient(V2)
     Iu = Interpolate(u, V2)
     v0, v1 = TestFunction(V1), TrialFunction(V1)
-    w0, w1 = TestFunction(V2), TrialFunction(V2)
     J = 0.5 * (Iu - f) ** 2 * dx
     residual = restructure_base_form(derivative(J, u))
-    assert isinstance(residual, Interpolate)
+    assert residual == conj(0.5 * ((Iu - f) * (2 * Interpolate(v0, V2)))) * dx
 
     hessian = restructure_base_form(derivative(residual, u, v1))
 
-    # d2J/du2[v0, v1] = I^T d2J/dIu2 I
-    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
-    vhat = Argument(V2.dual(), 1)
-    expected = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    # d2J/du2[v0, v1] = I^T d2J/dIu2 I, which d2J/dIu2 absorbs
+    expected = conj(0.5 * (as_ufl(2) * Interpolate(v0, V2) * Interpolate(v1, V2))) * dx
     assert hessian == expected
     assert hessian == restructure_base_form(derivative(derivative(J, u), u))
     _assembly_cost(hessian)
@@ -787,11 +789,9 @@ def test_restructure_contracts_covector_first(V1, V2):
     A = inner(TrialFunction(V2), TestFunction(V1)) * dx
     x = Coefficient(V1)
 
-    expected = N._ufl_expr_reconstruct_(
-        u,
-        derivatives=(1,),
-        argument_slots=(conj(inner(Argument(V2, 0), x)) * dx, Argument(V1, 0)),
-    )
+    slots = (Coargument(V2.dual(), 1), Argument(V1, 0))
+    dN_hat = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+    expected = conj(conj(x) * dN_hat) * dx
     assert restructure_base_form(Action(x, Action(A, dN))) == expected
     assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
 
@@ -811,11 +811,10 @@ def test_restructure_action_of_composition(V1, adjoint):
     jacobian = Action(dFdN, Action(dNdI, dIdu))
     if adjoint:
         expression = Action(Adjoint(jacobian), w)
-        # dI/du*[dN/dI*(dF/dN*[w], v)]
-        slots = (conj(inner(v, w)) * dx, v)
-        expected = Interpolate(
-            v, dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
-        )
+        # dI/du*[dN/dI*(dF/dN*[w], v)], which dF/dN* absorbs
+        slots = (Coargument(V1.dual(), 1), Interpolate(v, V1))
+        applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
+        expected = conj(conj(w) * applied) * dx
     else:
         expression = Action(jacobian, w)
         # dF/dN[dN/dI[dI/du[w]]]
@@ -826,8 +825,8 @@ def test_restructure_action_of_composition(V1, adjoint):
     actual = restructure_base_form(expression, complex_mode=True)
     assert actual == expected
     assert actual.arguments() == expression.arguments()
-    # One Form and three operators, each assembled with rank one.
-    assert _optimal_assembly_cost(actual) == (0, 4)
+    # One Form, which compiles the operators in its integrand.
+    assert _optimal_assembly_cost(actual) == (0, 1)
     assert restructure_base_form(actual, complex_mode=True) == actual
 
 
