@@ -1,5 +1,5 @@
 import pytest
-from utils import LagrangeElement
+from utils import ForeignDerivative, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
@@ -23,6 +23,7 @@ from ufl import (
     inner,
     ln,
     replace,
+    split,
     tr,
     triangle,
     variable,
@@ -131,6 +132,63 @@ def test_replace_keeps_arguments_of_a_vanishing_derivative():
     du = TrialFunction(V)
     J = derivative(u * v * dx, w, du)
     assert replace(J, {u: 2 * w}).arguments() == (v, du)
+
+
+def test_replace_foreign_derivative():
+    """Replacement preserves derivatives supplied by other packages."""
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    space = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    f = Coefficient(space)
+    g = Coefficient(space)
+    test = TestFunction(space)
+
+    # replace Expr with ForeignDerivative
+    expr = derivative(f.dx(0) * f, f) + ForeignDerivative(f.dx(0))
+    result = replace(expr, {f: g})
+    expected = test.dx(0) * g + g.dx(0) * test + ForeignDerivative(g.dx(0))
+    assert result == expected
+
+    # replace Form with ForeignDerivative
+    Df = ForeignDerivative(f)
+    form = derivative(inner(f.dx(0), f.dx(0)) * dx, f) + inner(Df, test) * dx
+    result = replace(form, {f: g})
+
+    Dg = ForeignDerivative(g)
+    expected = (inner(g.dx(0), test.dx(0)) + inner(test.dx(0), g.dx(0))) * dx + inner(Dg, test) * dx
+    assert result == expected
+
+    # differentiate through a ForeignDerivative independent of f
+    trial = TrialFunction(space)
+    form = derivative(Dg * f**2 * test * dx, f, trial)
+    result = replace(form, {f: 3 * g})
+    expected = 2 * trial * (3 * g) * Dg * test * dx
+    assert result == expected
+
+    # differentiate through a ForeignDerivative of f
+    form = derivative(ForeignDerivative(f**2) * dx, f)
+    result = replace(form, {f: g})
+    expected = ForeignDerivative(2 * test * g) * dx
+    assert result == expected
+
+
+def test_replace_mixed_element():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    element = MixedElement([LagrangeElement(triangle, 1), LagrangeElement(triangle, 1)])
+    space = FunctionSpace(domain, element)
+    z = Coefficient(space)
+    w = Coefficient(space)
+
+    u, p = split(z)
+    form = derivative((inner(grad(u), grad(u)) + inner(p, p)) * dx, z)
+    result = replace(form, {z: w})
+
+    u, p = split(w)
+    expected = derivative((inner(grad(u), grad(u)) + inner(p, p)) * dx, w)
+    expected = expand_derivatives(expected)
+    # result and expected are built independently, so their dummy
+    # summation indices may be numbered differently; compare signatures
+    # rather than raw equality.
+    assert expand_derivatives(result).signature() == expected.signature()
 
 
 def test_replace(V1):
