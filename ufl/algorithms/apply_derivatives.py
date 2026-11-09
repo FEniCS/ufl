@@ -77,7 +77,9 @@ from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormDerivative,
+    BaseFormOperatorDerivative,
     CoefficientDerivative,
+    CompoundDerivative,
     CoordinateDerivative,
     Derivative,
     VariableDerivative,
@@ -166,9 +168,16 @@ class GenericDerivativeRuleset(DAGTraverser):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
-        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        super().__init__(
+            compress=compress,
+            visited_cache=visited_cache,
+            result_cache=result_cache,
+            preserve_types=preserve_types,
+        )
         self._var_shape = var_shape
 
     def unexpected(self, o):
@@ -1219,15 +1228,51 @@ class VariableRuleset(GenericDerivativeRuleset):
             return df
 
     @process.register(Grad)
-    def _(self, o: Expr) -> Expr:
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df: Expr) -> Expr:
         """Differentiate a grad.
 
-        Variable derivative of a gradient of a terminal must be 0.
+        The variable derivative commutes with the spatial gradient:
+        d/dv grad(f) = grad(df/dv), with the gradient index placed before those of v.
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], Grad | Terminal):
-            raise ValueError("Expecting only grads applied to a terminal.")
-        return self.independent_terminal(o)
+        if isinstance(df, Zero):
+            return self.independent_operator(o)
+        if not self._var_shape:
+            return Grad(df)
+        ii = indices(len(o.ufl_shape) - 1)
+        jj = indices(len(self._var_shape))
+        (k,) = indices(1)
+        return as_tensor(Grad(df)[ii + jj + (k,)], ii + (k,) + jj)
+
+    @process.register(CompoundDerivative)
+    def _(self, o: Expr) -> Expr:
+        """Raise error."""
+        raise ValueError(
+            f"{o._ufl_class_.__name__} must be lowered to grads before variable differentiation."
+        )
+
+    @process.register(Derivative)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a derivative of its single operand in another variable.
+
+        Such a derivative is linear in its operand, so the derivative with respect to
+        a scalar variable commutes with it: d/dv L(f) = L(df/dv).
+        """
+        if len(o.ufl_operands) != 1:
+            raise ValueError(
+                f"Unhandled derivative type {o._ufl_class_.__name__}, "
+                "nested differentiation has failed."
+            )
+        if self._var_shape:
+            raise ValueError(
+                f"Cannot differentiate {o._ufl_class_.__name__} "
+                "with respect to a non-scalar variable."
+            )
+        (f,) = o.ufl_operands
+        df = self(f)
+        if isinstance(df, Zero):
+            return self.independent_operator(o)
+        return o._ufl_expr_reconstruct_(df)
 
     # --- Rules for values or derivatives in reference frame
 
@@ -1280,10 +1325,16 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
         super().__init__(
-            (), compress=compress, visited_cache=visited_cache, result_cache=result_cache
+            (),
+            compress=compress,
+            visited_cache=visited_cache,
+            result_cache=result_cache,
+            preserve_types=preserve_types,
         )
         # Type checking
         if not isinstance(coefficients, ExprList):
@@ -1616,6 +1667,18 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         _, o1, o2, o3 = o.ufl_operands
         return CoordinateDerivative(o0, o1, o2, o3)
 
+    @process.register(Derivative)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df: Expr) -> Expr:
+        """Differentiate a derivative of its single operand in another variable.
+
+        Such a derivative is linear in its operand, so the Gateaux derivative
+        commutes with it: D_w[v](L(f)) = L(D_w[v](f)).
+        """
+        if isinstance(df, Zero):
+            return self.independent_operator(o)
+        return o._ufl_expr_reconstruct_(df)
+
     @process.register(BaseFormOperator)
     def _(self, o: BaseFormOperator) -> Expr:
         """Differentiate a base_form_operator."""
@@ -1736,7 +1799,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseForm.
 
     Implements rules for the Gateaux derivative D_w[v](B) where B is a
-    BaseForm whose own derivatives have been expanded. The integrands of B
+    BaseForm whose coefficient derivatives have been expanded. The integrands of B
     are differentiated with the PartialDerivativeRuleset, and the other
     expressions in B with the GateauxDerivativeRuleset.
     """
@@ -1749,6 +1812,8 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
         super().__init__(
@@ -1758,12 +1823,13 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             compress=compress,
             visited_cache=visited_cache,
             result_cache=result_cache,
+            preserve_types=preserve_types,
         )
         self._expression_rules = GateauxDerivativeRuleset(
-            coefficients, arguments, coefficient_derivatives
+            coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
         self._integrand_rules = PartialDerivativeRuleset(
-            coefficients, arguments, coefficient_derivatives
+            coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
 
     # Work around singledispatchmethod inheritance issue;
@@ -1826,7 +1892,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
                 Nhat = primal_argument.reconstruct(number=1 + max(numbers, default=-1))
                 vhat = vstar.reconstruct(number=0)
 
-            partial_rules = PartialDerivativeRuleset(ExprList(N), ExprList(Nhat), ExprMapping())
+            partial_rules = PartialDerivativeRuleset(
+                ExprList(N), ExprList(Nhat), ExprMapping(), preserve_types=self._preserved_types
+            )
             dform_dN = map_integrands(partial_rules, o)
             if dform_dN.empty():
                 # F depends on N only through another base form operator.
@@ -1929,9 +1997,20 @@ class DerivativeRuleDispatcher(DAGTraverser):
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
-        super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
+        super().__init__(
+            compress=compress,
+            visited_cache=visited_cache,
+            result_cache=result_cache,
+            preserve_types=preserve_types,
+        )
+        # Coefficient differentiation commutes with linear spatial operators.
+        self._gateaux_preserve_types = tuple(
+            cls for cls in preserve_types if issubclass(cls, CompoundDerivative)
+        )
         # Create DAGTraverser caches.
         self._dag_traverser_cache: dict[
             tuple[type, Expr | BaseForm]
@@ -1959,6 +2038,15 @@ class DerivativeRuleDispatcher(DAGTraverser):
         """Apply to expr and base form."""
         return self.reuse_if_untouched(o)
 
+    @process.register(BaseFormOperator)
+    def _(self, o: BaseFormOperator) -> Expr | BaseForm:
+        """Expand derivatives in an operator's operands and argument slots."""
+        operands = tuple(self(op) for op in o.ufl_operands)
+        slots = tuple(self(slot) for slot in o.argument_slots())
+        if operands == o.ufl_operands and slots == o.argument_slots():
+            return o
+        return o._ufl_expr_reconstruct_(*operands, argument_slots=slots)
+
     @process.register(Terminal)
     def _(self, o: Terminal) -> Terminal:
         """Apply to a terminal."""
@@ -1968,7 +2056,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def _(self, o: Form) -> Form:
         """Apply to a form in an operand of a base form."""
         # The integrals of a Form are not operands.
-        return map_integrands(self, apply_algebra_lowering(o))
+        return map_integrands(self, apply_algebra_lowering(o, preserve_types=self._preserved_types))
 
     @process.register(Derivative)
     def _(self, o: Derivative) -> Expr:
@@ -1994,10 +2082,14 @@ class DerivativeRuleDispatcher(DAGTraverser):
         return dag_traverser(f)  # type: ignore
 
     @process.register(VariableDerivative)
-    @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Expr | BaseForm) -> Expr | BaseForm:
-        """Apply to a variable_derivative."""
-        _, op = o.ufl_operands
+    def _(self, o: Expr) -> Expr | BaseForm:
+        """Apply to a variable_derivative.
+
+        The operand is lowered, so that compound derivatives such as div are
+        expressed with grads, which the variable rules differentiate.
+        """
+        f, op = o.ufl_operands
+        f = self(apply_algebra_lowering(f))
         key = (VariableRuleset, op)
         dag_traverser = self._dag_traverser_cache.setdefault(key, VariableRuleset(op))
         return dag_traverser(f)  # type: ignore
@@ -2010,11 +2102,12 @@ class DerivativeRuleDispatcher(DAGTraverser):
         key = (GateauxDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            GateauxDerivativeRuleset(w, v, cd),  # type: ignore
+            GateauxDerivativeRuleset(w, v, cd, preserve_types=self._gateaux_preserve_types),  # type: ignore
         )
         return dag_traverser(f)  # type: ignore
 
     @process.register(BaseFormDerivative)
+    @process.register(BaseFormOperatorDerivative)
     @DAGTraverser.postorder_only_children([0])
     def _(self, o: BaseFormDerivative, f: BaseForm) -> Expr | BaseForm:
         """Apply to a base_form_derivative."""
@@ -2022,7 +2115,7 @@ class DerivativeRuleDispatcher(DAGTraverser):
         key = (BaseFormDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            BaseFormDerivativeRuleset(w, v, cd),  # type: ignore
+            BaseFormDerivativeRuleset(w, v, cd, preserve_types=self._gateaux_preserve_types),  # type: ignore
         )
         return dag_traverser(f)  # type: ignore
 
@@ -2057,6 +2150,17 @@ class DerivativeRuleDispatcher(DAGTraverser):
         return op
 
 
+def _apply_derivative_rules(
+    rules: DerivativeRuleDispatcher, expression: Expr | BaseForm
+) -> Expr | BaseForm:
+    """Apply derivative rules, and keep the arguments of a form that vanishes."""
+    dexpression = map_integrands(rules, expression)
+    if isinstance(expression, BaseForm) and not expression.empty():
+        if isinstance(dexpression, Form) and dexpression.empty():
+            return ZeroBaseForm(expression.arguments())
+    return dexpression
+
+
 def apply_derivatives(expression):
     """Apply derivatives to an expression.
 
@@ -2066,7 +2170,7 @@ def apply_derivatives(expression):
     Returns:
         A differentiated expression
     """
-    return map_integrands(DerivativeRuleDispatcher(), expression)
+    return _apply_derivative_rules(DerivativeRuleDispatcher(), expression)
 
 
 class CoordinateDerivativeRuleset(GenericDerivativeRuleset):
@@ -2294,3 +2398,25 @@ def apply_coordinate_derivatives(expression):
     """Apply coordinate derivatives to an expression."""
     dag_traverser = CoordinateDerivativeRuleDispatcher()
     return map_integrands(dag_traverser, expression)
+
+
+def apply_coefficient_derivatives(expression: Expr | BaseForm) -> Expr | BaseForm:
+    """Expand coefficient and BaseForm derivatives while preserving other derivatives.
+
+    Args:
+        expression: The expression whose coefficient derivatives are to be expanded.
+
+    Returns:
+        The expression with coefficient and BaseForm derivatives expanded.
+    """
+    preserve_types = tuple(
+        cls
+        for cls in Expr._ufl_all_classes_
+        if not cls._ufl_is_abstract_
+        and issubclass(cls, Derivative)
+        and not issubclass(cls, VariableDerivative)
+        and (not issubclass(cls, CoefficientDerivative) or issubclass(cls, CoordinateDerivative))
+    )
+    return _apply_derivative_rules(
+        DerivativeRuleDispatcher(preserve_types=preserve_types), expression
+    )

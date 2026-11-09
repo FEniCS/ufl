@@ -13,10 +13,11 @@ from functools import singledispatchmethod
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
-from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.ad import expand_coefficient_derivatives
 from ufl.algorithms.analysis import extract_type
-from ufl.algorithms.compute_form_data import preprocess_form
+from ufl.algorithms.comparison_checker import do_comparison_check
 from ufl.algorithms.map_integrands import map_integrands
+from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace import replace
 from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument, Coargument
@@ -364,12 +365,12 @@ class BaseFormRestructurer(DAGTraverser):
 def restructure_base_form(
     form: Expr | BaseForm, complex_mode: bool = False, max_composed_rank: int = 1
 ) -> Expr | BaseForm:
-    """Expand derivatives and restructure a BaseForm for independent assembly.
+    """Expand coefficient derivatives and restructure a BaseForm for independent assembly.
 
     Leave Forms without base form operators unchanged for the form compiler.
-    Split compositions in argument slots into Actions, associate rank-one
-    contractions first, compose Forms and operators with Action operands,
-    and distribute over the remaining expression Sums.
+    Preserve spatial derivatives, split compositions in argument slots into
+    Actions, associate rank-one contractions first, compose Forms and operators
+    with Action operands, and distribute over the remaining expression Sums.
 
     Args:
         form: The expression or BaseForm to restructure.
@@ -384,7 +385,12 @@ def restructure_base_form(
     if isinstance(form, Form):
         if not form.base_form_operators():
             return form
-        return restructurer(preprocess_form(form, complex_mode))
+        if complex_mode:
+            form = do_comparison_check(form)
+        form = expand_coefficient_derivatives(form)
+        if not complex_mode:
+            form = remove_complex_nodes(form)
+        return restructurer(form)
     # Restructure before expanding derivatives too, so that each derivative
     # numbers its direction after the free arguments of its restructured operand.
-    return restructurer(expand_derivatives(restructurer(form)))
+    return restructurer(expand_coefficient_derivatives(restructurer(form)))

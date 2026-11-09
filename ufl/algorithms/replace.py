@@ -11,7 +11,7 @@
 from functools import singledispatchmethod
 
 import ufl.classes
-from ufl.algorithms.analysis import extract_coefficients, has_exact_type
+from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.argument import Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
@@ -86,29 +86,18 @@ class Replacer(DAGTraverser):
 
     @process.register(ufl.classes.BaseFormDerivative)
     def _(self, o):
-        """Replace a base form derivative without applying the derivative.
+        """Replace a base form derivative.
 
-        The replacement commutes with the derivative only if no other
-        coefficient of the base form maps to the same expression as a
-        differentiation variable. For example, replace(derivative(f(g, h), g), {g: h})
-        is not equal to derivative(f(h, h), h).
+        The replacement acts on the result of the derivative. If it acted on the
+        differentiated base form instead, then derivative(f(g), g) with g mapped to
+        an expression would differentiate with respect to that expression.
         """
         if o in self.mapping:
             return self.mapping[o]
-        base_form, coefficients, arguments, coefficient_derivatives = o.ufl_operands
-        others = set(extract_coefficients(base_form)) - set(coefficients)
-        replaced_others = {self.mapping.get(c, c) for c in others}
-        if any(self.mapping.get(c, c) in replaced_others for c in coefficients):
-            raise ValueError(
-                "Derivatives should be applied before executing replace, "
-                "if a differentiation variable maps to another coefficient of the form."
-            )
-        return o._ufl_expr_reconstruct_(
-            replace(base_form, self.mapping),
-            self(coefficients),
-            self(arguments),
-            self(coefficient_derivatives),
-        )
+        # Hack to avoid circular dependencies
+        from ufl.algorithms.ad import expand_coefficient_derivatives
+
+        return replace(expand_coefficient_derivatives(o), self.mapping)
 
 
 def replace(e, mapping):
@@ -134,8 +123,8 @@ def replace(e, mapping):
     # is not attractive), or make replace lazy too.
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
-        from ufl.algorithms.ad import expand_derivatives
+        from ufl.algorithms.ad import expand_coefficient_derivatives
 
-        e = expand_derivatives(e)
+        e = expand_coefficient_derivatives(e)
 
     return map_integrands(lambda expr: Replacer(mapping2)(expr), e)

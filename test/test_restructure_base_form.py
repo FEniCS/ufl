@@ -47,11 +47,13 @@ from ufl import (
     as_ufl,
     conj,
     derivative,
+    diff,
     dx,
     grad,
     inner,
     rhs,
     triangle,
+    variable,
 )
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.restructure_base_form import restructure_base_form
@@ -247,6 +249,23 @@ def test_restructure_preprocesses_forms_with_operators(V1, complex_mode):
     expected = (conj(v) if complex_mode else v) * operator * dx
 
     assert restructure_base_form(form, complex_mode=complex_mode) == expected
+
+
+def test_restructure_preserves_compound_gradient(V1):
+    u = Coefficient(V1)
+    h = Coefficient(V1)
+    expression = derivative(Interpolate(grad(u**2)[0], V1), u, h)
+
+    assert restructure_base_form(expression) == Interpolate(grad(2 * h * u)[0], V1)
+
+
+def test_restructure_variable_derivative(V1):
+    u = Coefficient(V1)
+    h = Coefficient(V1)
+    x = variable(u)
+    expression = derivative(Interpolate(diff(x**2, x), V1), u, h)
+
+    assert restructure_base_form(expression) == Interpolate(2.0 * h, V1)
 
 
 # --- Actions and Adjoints ---

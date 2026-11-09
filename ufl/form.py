@@ -934,6 +934,14 @@ class ZeroBaseForm(BaseForm):
         """Returns whether the ZeroBaseForm has no components, which is always true."""
         return True
 
+    def integrals(self):
+        """Return the integrals of the form. A ZeroBaseForm has none."""
+        return ()
+
+    def constants(self):
+        """Return the constants of the form. A ZeroBaseForm has none."""
+        return ()
+
     def signature(self):
         """Return a signature for use with JIT caches."""
         if self._signature is None:
