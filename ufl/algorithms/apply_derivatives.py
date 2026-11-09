@@ -1231,9 +1231,12 @@ class VariableRuleset(GenericDerivativeRuleset):
     def _(self, o: Expr) -> Expr:
         """Differentiate a grad.
 
-        A spatial gradient is independent of the variable, so its derivative is 0.
+        Variable derivative of a gradient of a terminal must be 0.
         """
-        return self.independent_operator(o)
+        # Check that o is a "differential terminal"
+        if not isinstance(o.ufl_operands[0], Grad | Terminal):
+            raise ValueError("Expecting only grads applied to a terminal.")
+        return self.independent_terminal(o)
 
     # --- Rules for values or derivatives in reference frame
 
@@ -2043,10 +2046,17 @@ class DerivativeRuleDispatcher(DAGTraverser):
         return dag_traverser(f)  # type: ignore
 
     @process.register(VariableDerivative)
-    @DAGTraverser.postorder_only_children([0])
-    def _(self, o: Expr, f: Expr | BaseForm) -> Expr | BaseForm:
-        """Apply to a variable_derivative."""
-        _, op = o.ufl_operands
+    def _(self, o: Expr) -> Expr | BaseForm:
+        """Apply to a variable_derivative.
+
+        The variable rules differentiate grads of terminals only, so the operand is
+        lowered and its derivatives are expanded fully, even those preserved elsewhere.
+        """
+        f, op = o.ufl_operands
+        if self._preserved_types:
+            f = apply_derivatives(apply_algebra_lowering(f))
+        else:
+            f = self(f)
         key = (VariableRuleset, op)
         dag_traverser = self._dag_traverser_cache.setdefault(key, VariableRuleset(op))
         return dag_traverser(f)  # type: ignore

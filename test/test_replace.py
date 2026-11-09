@@ -24,6 +24,7 @@ from ufl import (
     ln,
     replace,
     split,
+    sym,
     tr,
     triangle,
     variable,
@@ -120,6 +121,43 @@ def test_replace_derivative_of_variable_derivative():
     result = replace(jacobian(u), {u: w})
 
     expected = expand_derivatives(jacobian(w))
+    assert expand_derivatives(result).signature() == expected.signature()
+
+
+def test_replace_derivative_of_variable_derivative_of_div():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    du = TrialFunction(V)
+
+    def jacobian(u):
+        eps = variable(sym(grad(u)))
+        psi = inner(eps, eps) + 0.5 * div(u) ** 2
+        return derivative(inner(diff(psi, eps), grad(v)) * dx, u, du)
+
+    result = replace(jacobian(u), {u: w})
+
+    expected = expand_derivatives(jacobian(w))
+    assert expand_derivatives(result).signature() == expected.signature()
+
+
+def test_replace_derivative_of_variable_derivative_of_grad():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    c = Coefficient(V)
+    d = Coefficient(V)
+    q = TestFunction(V)
+    dc = TrialFunction(V)
+
+    def jacobian(c):
+        x = variable(c)
+        return derivative(diff(grad(x**2)[0], x) * q * dx, c, dc)
+
+    result = replace(jacobian(c), {c: d})
+
+    expected = expand_derivatives(jacobian(d))
     assert expand_derivatives(result).signature() == expected.signature()
 
 
