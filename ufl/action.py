@@ -68,6 +68,12 @@ class Action(BaseForm):
         # i.e. we have: V* x V -> R (resp. V x V* -> R).
         if isinstance(left, Coargument | Argument):
             return right
+        if isinstance(right, Argument) and isinstance(left, BaseForm):
+            # The Argument takes the place of the argument that the Action contracts.
+            from ufl.algorithms.replace import replace
+
+            *_, contracted = left.arguments()
+            return replace(left, {contracted: right})
         if isinstance(right, Coargument | Argument):
             return left
 

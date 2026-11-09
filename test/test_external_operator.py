@@ -13,32 +13,34 @@ from ufl import (
     Coefficient,
     Constant,
     FunctionSpace,
-    Matrix,
     Mesh,
     TestFunction,
     TrialFunction,
     action,
     adjoint,
+    as_ufl,
+    conj,
     cos,
     derivative,
     ds,
     dx,
+    grad,
     inner,
-    replace,
     sin,
     triangle,
 )
-from ufl.algorithms import expand_derivatives
+from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
+from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
+from ufl.argument import BaseArgument
 from ufl.coefficient import Cofunction
-from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
-from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
-from ufl.form import BaseForm, ZeroBaseForm
+from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative, Derivative
+from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -181,15 +183,6 @@ def test_derivative_in_argument_0_keeps_the_contracted_argument(V1, V2, V3, V4):
     assert derivative_form.arguments() == (w, free)
 
 
-def test_restructure_keeps_the_arguments_of_a_form_without_argument_0(V1, V2, V3, V4):
-    w = Argument(V1, 0)
-    free = Argument(V2, 1)
-    dual_slot = inner(Argument(V3, 2), free) * dx
-    N = ExternalOperator(Coefficient(V4), function_space=V3, argument_slots=(dual_slot, w))
-
-    assert restructure_base_form(N).arguments() == (w, free)
-
-
 @pytest.mark.parametrize(
     "primal_number, free_number, contracted_number, direction_number",
     [(0, 1, 2, 3), (None, 0, 1, 2), (1, 0, 1, 2)],
@@ -231,7 +224,8 @@ def test_derivative_of_contracted_dual_slot(V1, V2):
     )
 
 
-def test_differentiation_procedure_action(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_differentiation_procedure_action(V1, V2, max_rank):
     s = Coefficient(V1)
     u = Coefficient(V2)
     m = Coefficient(V2)
@@ -265,24 +259,36 @@ def test_differentiation_procedure_action(V1, V2):
     a1 = inner(N1, m) * dx
     Ja1 = derivative(a1, u, u_hat)
     Ja1 = expand_derivatives(Ja1)
-    Ja1 = restructure_base_form(Ja1)
+    Ja1 = restructure_base_form(Ja1, max_composed_rank=max_rank)
 
     a2 = inner(N2, m) * dx
     Ja2 = derivative(a2, s, s_hat)
     Ja2 = expand_derivatives(Ja2)
-    Ja2 = restructure_base_form(Ja2)
+    Ja2 = restructure_base_form(Ja2, max_composed_rank=max_rank)
 
-    # Ja = dN/du(..; dF/dN, u_hat), the action of dN/du(..; v*, u_hat) on dF/dN
-    da1dN1 = expand_derivatives(derivative(a1, N1, Argument(V1, 0)))
+    # Ja = dF/dN[dN/du(..; v*, u_hat)]
     dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar_N1, u_hat))
-    assert Ja1 == dN1du._ufl_expr_reconstruct_(u, m, argument_slots=(da1dN1, u_hat))
+    if max_rank == 1:
+        # The Form fills the dual slot of the rank-two operator.
+        slots = (conj(m) * TestFunction(V1) * dx, u_hat)
+        expected = dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots)
+    else:
+        # dF/dN composes with the operator, with u_hat numbered from zero.
+        slots = (Coargument(V1.dual(), 1), Argument(V1, 0))
+        expected = conj(m) * dN1du._ufl_expr_reconstruct_(u, m, argument_slots=slots) * dx
+    assert Ja1 == expected
     dN1du_action = Action(dN1du, w)
 
-    da2dN2 = expand_derivatives(derivative(a2, N2, Argument(V1, 0)))
     dN2du = N2._ufl_expr_reconstruct_(
         cos(s), derivatives=(1,), argument_slots=(vstar_N2, -sin(s) * s_hat)
     )
-    assert Ja2 == dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=(da2dN2, -sin(s) * s_hat))
+    if max_rank == 1:
+        slots = (conj(m) * TestFunction(V1) * dx, -sin(s) * s_hat)
+        expected = dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots)
+    else:
+        slots = (Coargument(V1.dual(), 1), -sin(s) * Argument(V2, 0))
+        expected = conj(m) * dN2du._ufl_expr_reconstruct_(cos(s), argument_slots=slots) * dx
+    assert Ja2 == expected
     dN2du_action = Action(dN2du, r)
 
     # Check shape
@@ -561,83 +567,6 @@ def test_multiple_external_operators(V1, V2):
     assert dFdu == dFdu_partial + Action(dFdN1, dN1du) + Action(dFdN5, dN5du)
 
 
-def test_replace(V1):
-    u = Coefficient(V1, count=0)
-    N = ExternalOperator(u, function_space=V1)
-
-    # dN(u; uhat, v*)
-    dN = expand_derivatives(derivative(N, u))
-    vstar, uhat = dN.arguments()
-    assert isinstance(vstar, Coargument)
-
-    # Replace v* by a Form
-    v = TestFunction(V1)
-    F = inner(u, v) * dx
-    G = replace(dN, {vstar: F})
-
-    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(F, uhat))
-    assert G == dN_replaced
-
-    # Replace v* by an Action
-    M = Matrix(V1, V1)
-    A = Action(M, u)
-    G = replace(dN, {vstar: A})
-
-    dN_replaced = dN._ufl_expr_reconstruct_(u, argument_slots=(A, uhat))
-    assert G == dN_replaced
-
-
-def test_replace_base_form_operator(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    M = ExternalOperator(w, function_space=V1)
-    Iw = Interpolate(w, V1)
-    e = N * v + M * v + Iw * v
-
-    # Replacing N by zero drops its term and keeps the operators that don't depend on N.
-    # Check them before comparing r, since == shares the operands of equal expressions.
-    r = replace(e, {N: Zero()})
-    operators = [
-        o for o in unique_pre_traversal(r) if isinstance(o, ExternalOperator | Interpolate)
-    ]
-    assert len(operators) == 2
-    assert all(o is M or o is Iw for o in operators)
-    assert r == M * v + Iw * v
-
-
-def test_replace_base_form_derivative(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    dJ = derivative(Action(N * u * v * dx, u), u)
-    assert isinstance(dJ, BaseFormDerivative)
-
-    # The derivative is not applied, and the replacement is applied to the
-    # differentiation variable as well as to the base form.
-    Nw = ExternalOperator(w, function_space=V1)
-    expected = derivative(Action(Nw * w * v * dx, w), w)
-    result = replace(dJ, {u: w})
-    assert isinstance(result, BaseFormDerivative)
-    assert result.ufl_operands == expected.ufl_operands
-    assert expand_derivatives(result) == expand_derivatives(expected)
-
-
-def test_replace_base_form_derivative_aliasing(V1):
-    u = Coefficient(V1)
-    w = Coefficient(V1)
-    v = TestFunction(V1)
-    N = ExternalOperator(u, function_space=V1)
-    dJ = derivative(Action(N * w * v * dx, u), u)
-
-    # Mapping the differentiation variable to another coefficient of the
-    # form does not commute with the derivative.
-    with pytest.raises(ValueError, match="Derivatives should be applied"):
-        replace(dJ, {u: w})
-
-
 def test_adjoint_derivative(V1, V2):
     u = Coefficient(V1)
     w = Coefficient(V2)
@@ -689,10 +618,10 @@ def test_dual_slot_derivative(V1, V2):
         derivatives=(1,),
         argument_slots=(vstar, u_hat),
     )
-    # N is linear in its dual slot, so the product rule acts with N(u; vhat) on dv*.
-    vhat = Coargument(V2.dual(), 0)
-    N_vhat = ExternalOperator(u, function_space=V2, argument_slots=(vhat,))
-    expected = dNdu + Action(inner(u_hat, Argument(V2, 2)) * dx, N_vhat)
+    # N is linear in its dual slot, so the product rule gives N(u; Dv*).
+    dvstar = inner(u_hat, Argument(V2, 2)) * dx
+    N_dvstar = ExternalOperator(u, function_space=V2, argument_slots=(dvstar,))
+    expected = dNdu + N_dvstar
 
     dN = derivative(N, u, u_hat)
     assert isinstance(dN, BaseFormOperatorDerivative)
@@ -710,11 +639,10 @@ def test_dual_slot_second_derivative(V1, V2):
         return ExternalOperator(u, function_space=V2, derivatives=(n,), argument_slots=slots)
 
     # D^2 N(u; v*(u))[u1, u2] = d2N(u; v*)[u1, u2] + dN(u; Dv*[u2])[u1] + dN(u; Dv*[u1])[u2]
-    vhat = Coargument(V2.dual(), 0)
     expected = {
         dN((vstar, u1, u2), 2),
-        Action(inner(u2, Argument(V2, 3)) * dx, dN((vhat, u1), 1)),
-        Action(inner(u1, Argument(V2, 2)) * dx, dN((vhat, u2), 1)),
+        dN((inner(u2, Argument(V2, 3)) * dx, u1), 1),
+        dN((inner(u1, Argument(V2, 2)) * dx, u2), 1),
     }
     d2N = expand_derivatives(derivative(derivative(N, u, u1), u, u2))
     assert set(d2N.components()) == expected
@@ -743,6 +671,28 @@ def test_action_derivative_wrt_base_form_operator(V1):
     # The Leibniz rule is applied when the derivative is expanded.
     assert isinstance(dA, BaseFormDerivative)
     assert expand_derivatives(dA) == inner(u, v) * dx
+
+
+def test_derivative_wrt_composed_operator(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(u, function_space=V1)
+
+    # N(u; F) is F composed with N, and F is linear, so dN(u; F)/dN[v] = F[v].
+    F = inner(u, v) * dx
+    NF = N._ufl_expr_reconstruct_(u, argument_slots=(F,))
+    assert expand_derivatives(derivative(NF, N, v)) == F
+    assert expand_derivatives(derivative(NF, N, f)) == inner(u, f) * dx
+
+    # The free argument of a 2-form in the dual slot stays free.
+    A = inner(TrialFunction(V1), TestFunction(V2)) * dx
+    NA = N._ufl_expr_reconstruct_(u, argument_slots=(A,))
+    assert expand_derivatives(derivative(NA, N, f)) == inner(f, TestFunction(V2)) * dx
+
+    # An operator into another space is not N.
+    M = Interpolate(u, V2)
+    assert expand_derivatives(derivative(NF, M, TestFunction(V2))) == 0
 
 
 def test_chain_rule_for_each_derivative(V1):
@@ -813,35 +763,31 @@ def test_coefficient_derivatives(V1):
     assert expand_derivatives(dF) == g * uhat * v * dx
 
 
-def test_restructure_dual_slot_on_the_right(V1):
-    u = Coefficient(V1)
-    N = ExternalOperator(u, function_space=V1)
-    vstar = Coargument(V1.dual(), 0)
-    dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1)))
-    L = TestFunction(V1) * dx
-
-    # Action(L, dN/du(u; v0*, v1)) -> dN/du(u; L, v0), since N is linear in its dual slot
-    expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(L, Argument(V1, 0)))
-    actual = Action(L, dNdu)
-    actual = restructure_base_form(actual)
-    assert actual == expected
-
-
-def test_functional_derivative(V1):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_functional_derivative(V1, max_rank):
     u = Coefficient(V1)
     v0 = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
     J = N**2 * dx
 
-    # dJ/du[v0] = dN/du(u; dJ/dN, v0), since N is linear in its dual slot
-    dJdN = expand_derivatives(derivative(J, N, v0))
+    # dJ/du[v0] = dN/du(u; dJ/dN, v0)
     dJdu = expand_derivatives(derivative(J, u))
-    dJdu = restructure_base_form(dJdu)
-    assert dJdu == N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(dJdN, v0))
+    dJdu = restructure_base_form(dJdu, max_composed_rank=max_rank)
+    if max_rank == 1:
+        # The Form fills the dual slot of the rank-two operator.
+        slots = (2 * v0 * N * dx, v0)
+        expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+    else:
+        # dJ/dN composes with the operator.
+        slots = (Coargument(V1.dual(), 1), v0)
+        dNdu = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=slots)
+        expected = as_ufl(2) * dNdu * N * dx
+    assert dJdu == expected
     assert dJdu.arguments() == (v0,)
 
 
-def test_functional_hessian_through_composition(V1):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_functional_hessian_through_composition(V1, max_rank):
     u = Coefficient(V1)
     M = ExternalOperator(u, function_space=V1)
     N = ExternalOperator(M, function_space=V1)
@@ -860,13 +806,15 @@ def test_functional_hessian_through_composition(V1):
         return N._ufl_expr_reconstruct_(M, derivatives=(n,), argument_slots=slots)
 
     # H[v0, v1] = d2N/dM2[dM/du[v0], dM/du[v1]] + dN/dM[d2M/du2[v0, v1]],
-    # in the dual slot dF/dN[Nhat] = Nhat * dx
-    dFdN = a(0) * dx
-    d2N = dN(2, dFdN, dM(1, c(0), a(0)), dM(1, c(0), a(1)))
-    d2M = dN(1, dFdN, dM(2, c(0), a(0), a(1)))
+    # where dF/dN = v * dx fills the dual slots of the rank-three operators.
+    L = TestFunction(V1) * dx
+    d2N = dN(2, L, dM(1, c(0), a(0)), dM(1, c(0), a(1)))
+    d2M = dN(1, L, dM(2, c(0), a(0), a(1)))
     H = expand_derivatives(H)
-    H = restructure_base_form(H)
-    assert H == d2N + d2M
+    H = restructure_base_form(H, max_composed_rank=max_rank)
+    expected = FormSum((d2N, 1), (d2M, 1))
+    assert H == expected
+    assert H.arguments() == (a(0), a(1))
 
 
 def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
@@ -904,3 +852,62 @@ def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     assert e4.ufl_function_space() == V5.dual()
 
     assert set(args) == {arg2, arg3, arg4, arg5, Argument(V1, 0)}
+
+
+@pytest.mark.parametrize("tensor_algebra", [False, True])
+def test_expand_coefficient_derivatives_in_operator_slot(V1, tensor_algebra):
+    u, h = Coefficient(V1), Coefficient(V1)
+    N = ExternalOperator(u, function_space=V1)
+    (vstar,) = N.argument_slots()
+    expression, expected = u**2, 2 * h * u
+    if tensor_algebra:
+        expression = inner(grad(u), grad(h))
+        expected = inner(grad(h), grad(h))
+    expression = N._ufl_expr_reconstruct_(
+        u, derivatives=(1,), argument_slots=(vstar, derivative(expression, u, h))
+    )
+    expected = N._ufl_expr_reconstruct_(
+        u,
+        derivatives=(1,),
+        argument_slots=(vstar, apply_algebra_lowering(expected, preserve_types=(Derivative,))),
+    )
+
+    actual = expand_coefficient_derivatives(expression)
+    assert actual.ufl_operands == expected.ufl_operands
+    assert tuple(renumber_indices(slot) for slot in actual.argument_slots()) == tuple(
+        renumber_indices(slot) for slot in expected.argument_slots()
+    )
+
+
+def test_extract_arguments_of_operator_with_interpolate_direction(V1):
+    # The Interpolate is an operand of the outer Interpolate through dN,
+    # and it must not be reported as one of the arguments.
+    direction = Interpolate(TrialFunction(V1), V1)
+    vstar = Argument(V1.dual(), 0)
+    dN = ExternalOperator(
+        Coefficient(V1), function_space=V1, derivatives=(1,), argument_slots=(vstar, direction)
+    )
+
+    assert extract_type(Interpolate(dN, V1), BaseArgument) == {vstar, TrialFunction(V1)}
+
+
+def test_derivative_through_nested_operators_and_interpolations(V1):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    uhat = TrialFunction(V1)
+    Iu = Interpolate(u, V1)
+    N1 = ExternalOperator(Iu, function_space=V1)
+    M = Interpolate(N1, V1)
+    N2 = ExternalOperator(M, function_space=V1)
+
+    J = expand_derivatives(derivative(inner(N2, v) * dx, u, uhat))
+
+    assert J.arguments() == (v, uhat)
+
+    # J[v, uhat] = F[dN2/dM[I[dN1/dI[I[uhat]]]]], with F[Nhat] = inner(Nhat, v) * dx
+    vstar = Argument(V1.dual(), 0)
+    Iuhat = Interpolate(uhat, V1)
+    dN1 = N1._ufl_expr_reconstruct_(Iu, derivatives=(1,), argument_slots=(vstar, uhat))
+    dN2 = N2._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=(vstar, uhat))
+    F = inner(uhat, v) * dx
+    assert restructure_base_form(J) == Action(F, Action(dN2, Action(Iuhat, Action(dN1, Iuhat))))

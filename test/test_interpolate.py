@@ -14,7 +14,6 @@ from ufl import (
     Coefficient,
     Cofunction,
     FunctionSpace,
-    Matrix,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -45,7 +44,6 @@ from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.classes import Product, ReferenceGrad, ReferenceValue
-from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
@@ -138,6 +136,24 @@ def test_shape_and_negation(domain_2d, V1, V2):
 
     assert isinstance(-Interpolate(Coefficient(V1), V2), Product)
     assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
+
+
+def test_negation_of_contracted_interpolation_with_arguments(V1, V2):
+    v = TestFunction(V1)
+    interpolation = Interpolate(v, Cofunction(V2.dual()))
+
+    for scaled in (-interpolation, -1 * interpolation):
+        assert isinstance(scaled, FormSum)
+        assert scaled.arguments() == (v,)
+    assert isinstance(inner(1, v) * dx - interpolation, FormSum)
+
+
+def test_negation_of_interpolation_with_scaled_coargument(V1, V2):
+    coargument = Coargument(V2.dual(), 0)
+    u = Coefficient(V1)
+
+    for dual_slot in (coargument, 2 * coargument, coargument + coargument):
+        assert isinstance(-Interpolate(u, dual_slot), Product)
 
 
 def test_scaling_agrees_with_negation(domain_2d, V1, V2):
@@ -292,7 +308,8 @@ def test_form_dual_slot_arguments_are_replaceable(V1, V2, V3, V4):
     assert replaced == Interpolate(u, inner(TrialFunction(V2), w) * dx)
 
 
-def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3, max_rank):
     v = TestFunction(V1)
     A = inner(TrialFunction(V3), TestFunction(V2)) * dx
 
@@ -302,9 +319,28 @@ def test_form_dual_slot_contracts_lowest_argument_with_test_function(V1, V2, V3)
     assert interpolation.arguments() == composition.arguments() == (v, Argument(V3, 1))
 
     # v* is numbered after v, so N is the left operand of the Action.
-    restructured = restructure_base_form(interpolation)
-    assert restructured == composition
+    restructured = restructure_base_form(interpolation, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = composition
+    else:
+        # A composes with N.
+        expected = inner(TrialFunction(V3), Interpolate(v, V2)) * dx
+    assert restructured == expected
     assert restructured.arguments() == interpolation.arguments()
+
+
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_form_dual_slot_rank_two_interpolate(V1, V2, max_rank):
+    dual_slot = TestFunction(V2) * dx
+    interpolation = Interpolate(TestFunction(V1), dual_slot)
+
+    restructured = restructure_base_form(interpolation, max_composed_rank=max_rank)
+
+    if max_rank == 1:
+        expected = interpolation
+    else:
+        expected = Interpolate(TestFunction(V1), V2) * dx
+    assert restructured == expected
 
 
 def test_form_dual_slot_free_argument_with_expression_number_raises(V1, V2):
@@ -337,16 +373,6 @@ def test_argument_0_contracts_the_highest_argument_of_a_form_without_argument_0(
     assert Interpolate(w, dual_slot).arguments() == (w, free)
 
 
-def test_restructure_keeps_the_arguments_of_a_form_without_argument_0(V1, V2, V3):
-    w = Argument(V1, 0)
-    free = Argument(V2, 1)
-    dual_slot = inner(Argument(V3, 2), free) * dx
-
-    restructured = restructure_base_form(Interpolate(w, dual_slot))
-
-    assert restructured.arguments() == (w, free)
-
-
 @pytest.mark.parametrize(
     "primal_number, free_number, contracted_number, direction_number",
     [(0, 1, 2, 3), (None, 0, 1, 2), (1, 0, 1, 2)],
@@ -375,15 +401,20 @@ def test_form_dual_slot_contracted_argument_can_share_expression_number(V1, V2):
     assert interpolation.arguments() == (Argument(V2, 0), u)
 
 
-def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_adjoint_action_of_form_dual_slot_is_numbered_from_zero(V1, V2, max_rank):
     w = Coefficient(V2)
     A = Argument(V2, 1).dx(0) * Argument(V2, 0) * dx
     N = Interpolate(Argument(V1, 1), A)
 
-    restructured = restructure_base_form(Action(Adjoint(N), w))
+    restructured = restructure_base_form(Action(Adjoint(N), w), max_composed_rank=max_rank)
 
+    if max_rank == 1:
+        expected = Interpolate(Argument(V1, 0), conj(Argument(V2, 0).dx(0) * w) * dx)
+    else:
+        expected = conj(Interpolate(Argument(V1, 0), V2).dx(0) * w) * dx
+    assert restructured == expected
     assert restructured.arguments() == (Argument(V1, 0),)
-    assert [a.number() for a in restructured.argument_slots()[0].arguments()] == [0]
 
 
 def test_form_dual_slot_with_deep_shared_integrand(V1, V2):
@@ -417,7 +448,8 @@ def test_derivative_with_gapped_coargument(V1, V2):
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
-def test_action_adjoint(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_action_adjoint(V1, V2, max_rank):
     # Set dual of V2
     V2_dual = V2.dual()
     vstar = Argument(V2_dual, 0)
@@ -444,10 +476,13 @@ def test_action_adjoint(V1, V2):
 
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
-    action_one_form = restructure_base_form(action(one_form, Iv))  # V2^* -> V1^*
-    assert isinstance(action_one_form, Interpolate)
-    assert action_one_form.arguments() == (Argument(V1, 0),)
-    assert action_one_form.ufl_function_space() == V1.dual()
+    one_form_action = action(one_form, Iv)  # V2^* -> V1^*
+    action_one_form = restructure_base_form(one_form_action, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = Interpolate(Argument(V1, 0), one_form)
+    else:
+        expected = Interpolate(Argument(V1, 0), V2) * dx
+    assert action_one_form == expected
 
     # zero-form case
     action_zero_form = action(one_form, Iu)  # a number
@@ -455,122 +490,8 @@ def test_action_adjoint(V1, V2):
     assert action_zero_form.arguments() == ()
 
 
-def test_restructure_base_form(V1, V2):
-    vstar = Argument(V2.dual(), 0)
-    u = Coefficient(V1)
-    Iu = Interpolate(u, vstar)
-    Iv = Interpolate(TrialFunction(V1), vstar)  # V1 -> V2
-    F = TrialFunction(V2) * TestFunction(V1) * dx
-
-    # Interpolate is linear in its operand: Action(I(v1; v*), u) -> I(u; v*)
-    assert restructure_base_form(Action(Iv, u)) == Iu
-    # Associate before absorption, then assemble the resulting one-form directly.
-    assert restructure_base_form(Action(Action(F, Iv), u)) == Iu * TestFunction(V1) * dx
-    # The adjoint of a base form operator swaps the numbers of its arguments.
-    assert restructure_base_form(Adjoint(Iv)) == Interpolate(
-        Argument(V1, 0), Argument(V2.dual(), 1)
-    )
-
-    # Action(Adjoint(A), x) -> Action(x, A)
-    A = Matrix(V1.dual(), V2)
-    f = Argument(V1, 0) * dx
-    assert restructure_base_form(Action(Adjoint(A), f)) == Action(f, A)
-    x_cofunction = Coefficient(V1.dual())
-    assert restructure_base_form(Action(Adjoint(A), x_cofunction)) == Action(x_cofunction, A)
-    matrix_action = restructure_base_form(Action(Adjoint(A), Matrix(V1, V2)))
-    assert isinstance(matrix_action.left(), Adjoint)
-
-    # Action(Adjoint(Action(A, B)), x) -> Action(x, Action(A, B)) -> Action(Action(x, A), B)
-    A, B = Matrix(V2.dual(), V1.dual()), Matrix(V1, V2)
-    x = Coefficient(V2.dual())
-    assert restructure_base_form(Action(Adjoint(Action(A, B)), x)) == Action(Action(x, A), B)
-
-    form = TestFunction(V1) * TrialFunction(V2) * dx
-    x_function = Coefficient(V1)
-    assert restructure_base_form(Action(Adjoint(form), x_function)) == (
-        conj(x_function * TrialFunction(V2)) * dx
-    )
-
-    # Operands are restructured before their Action:
-    # Action(Adjoint(Iv), w) -> Action(I(v0; v1*), w) -> I(v0; w)
-    w = Cofunction(V2.dual())
-    assert restructure_base_form(Action(Adjoint(Iv), w)) == Interpolate(Argument(V1, 0), w)
-
-    # A FormSum fills the dual slot without distributing the Action over it.
-    L = TestFunction(V2) * dx + w
-    assert restructure_base_form(Action(Iu, L)) == Interpolate(u, L)
-
-    # A rank 2 dual slot is split off: I(u; A) -> Action(A, I(u; v*))
-    A = Matrix(V2, V1)
-    assert restructure_base_form(Interpolate(u, A)) == Action(
-        A, Interpolate(u, Argument(V1.dual(), 0))
-    )
-
-
-def test_restructure_keeps_operand_arguments(V1, V2):
-    # The Coargument of an operand Interpolate is bound inside that operand.
-    # Restructuring renumbers or contracts only the arguments in the argument
-    # slots of the outer operator, so the operand stays the same.
-    operand = Interpolate(Coefficient(V1), V2)
-    vstar, uhat = Argument(V2.dual(), 0), Argument(V2, 1)
-    N = ExternalOperator(operand, function_space=V2, argument_slots=(vstar, uhat))
-
-    swapped = restructure_base_form(Adjoint(N))
-    assert swapped.ufl_operands == (operand,)
-    assert swapped.argument_slots() == (Argument(V2.dual(), 1), Argument(V2, 0))
-
-    w = Cofunction(V2.dual())
-    contracted = restructure_base_form(Action(w, N))
-    assert contracted.ufl_operands == (operand,)
-    assert contracted.argument_slots() == (w, Argument(V2, 0))
-
-    u = Coefficient(V2)
-    applied = restructure_base_form(Action(N, u))
-    assert applied.ufl_operands == (operand,)
-    assert applied.argument_slots() == (vstar, u)
-
-
-def test_restructure_splits_rank_2_operand_slot(V1, V2):
-    # The chain rule puts the rank 2 derivative B of the operand into an
-    # argument slot. A base form operator is linear in that slot, so the
-    # restructurer splits it off: N(u; v*, B) -> Action(N(u; v*, uhat), B).
-    u = Coefficient(V1)
-    operand = Interpolate(u, V2)
-    N = ExternalOperator(operand, function_space=V2)
-    vstar = Argument(V2.dual(), 0)
-    B = Interpolate(TrialFunction(V1), V2)
-
-    dN = expand_derivatives(derivative(N, u))
-    assert dN == N._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=(vstar, B))
-
-    left = N._ufl_expr_reconstruct_(
-        operand, derivatives=(1,), argument_slots=(vstar, Argument(V2, 1))
-    )
-    assert restructure_base_form(dN) == Action(left, B)
-
-
-def test_restructure_contracts_covector_first(V1, V2):
-    # A rank 1 operand on the left of a chain of Actions is contracted first:
-    # Action(x, Action(A, dN)) contracts x into A before filling dN's dual
-    # slot, so neither operand needs a rank-two assembly.
-    u = Coefficient(V1)
-    N = ExternalOperator(u, function_space=V2)
-    dN = N._ufl_expr_reconstruct_(
-        u, derivatives=(1,), argument_slots=(Argument(V2.dual(), 0), Argument(V1, 1))
-    )
-    A = inner(TrialFunction(V2), TestFunction(V1)) * dx
-    x = Coefficient(V1)
-
-    expected = N._ufl_expr_reconstruct_(
-        u,
-        derivatives=(1,),
-        argument_slots=(conj(inner(Argument(V2, 0), x)) * dx, Argument(V1, 0)),
-    )
-    assert restructure_base_form(Action(x, Action(A, dN))) == expected
-    assert restructure_base_form(Action(Adjoint(Action(A, dN)), x)) == expected
-
-
-def test_differentiation(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_differentiation(V1, V2, max_rank):
     u = Coefficient(V1)
     v = TestFunction(V1)
 
@@ -624,8 +545,14 @@ def test_differentiation(V1, V2):
     # Derivative of form I(u, V2) wrt coefficient u
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
-    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu), where I is linear in its dual slot
-    assert restructure_base_form(dJdu) == Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
+    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu)
+    restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
+    else:
+        # dJ/dIu composes with the operator.
+        expected = Interpolate(Argument(V1, 0), V2) * dx
+    assert restructured == expected
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
@@ -641,7 +568,8 @@ def test_formsum_derivative(V1, V2):
     )
 
 
-def test_second_derivative(V1, V2):
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_second_derivative(V1, V2, max_rank):
     u = Coefficient(V1)
     f = Coefficient(V2)
     Iu = Interpolate(u, V2)
@@ -653,7 +581,12 @@ def test_second_derivative(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
     # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    assert restructure_base_form(dJdu) == Interpolate(v0, dJdIu)
+    restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
+    if max_rank == 1:
+        expected = Interpolate(v0, dJdIu)
+    else:
+        expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
+    assert restructured == expected
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
     d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
@@ -720,7 +653,7 @@ def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     Iu = Interpolate(u, vstar)
 
     actual = restructure_base_form(expand_derivatives(derivative(Iu, u, du)))
-    expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
+    expected = inner(u, Interpolate(du, V2)) * dx + inner(du, Interpolate(u, V2)) * dx
 
     assert actual == expected
 
@@ -733,13 +666,13 @@ def test_second_derivative_through_nested_formsum(V1, V2):
     du = Coefficient(V1)
     v = TestFunction(V2)
     Iu = Interpolate(u, inner(u, v) * dx)
-    term = Interpolate(du, inner(du, v) * dx)
+    term = inner(du, Interpolate(du, V2)) * dx
 
     d2Idu2 = restructure_base_form(expand_derivatives(derivative(derivative(Iu, u, du), u, du)))
 
     # The first derivative is a FormSum because both the operand and dual slot
     # depend on u. Differentiating that nested FormSum gives the product rule twice.
-    assert d2Idu2 == FormSum((term, 1), (term, 1))
+    assert d2Idu2 == term + term
 
 
 def test_extract_base_form_operators(V1, V2):
@@ -916,7 +849,7 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
         Argument(V1.dual(), 1),
     }
 
-    with pytest.raises(ValueError, match=r"Expecting the first argument to be primal."):
+    with pytest.raises(ValueError, match="Expecting a primal expression to interpolate"):
         Interpolate(u2, V3)
 
 
@@ -1122,10 +1055,12 @@ def test_derivative_of_form_sum_drops_vanishing_component(V1, V2):
     F = action(Action(inner(TrialFunction(V2), v) * dx, Interpolate(TrialFunction(V1), V2)), u)
     L = v * dx
 
-    J = expand_derivatives(derivative(F - L, u))
-    assert not isinstance(J, FormSum)
-    assert J.arguments() == (v, Argument(V1, 1))
-    assert J == expand_derivatives(derivative(F, u))
+    dF = expand_derivatives(derivative(F, u))
+    for G in (F - L, -L + F):
+        J = expand_derivatives(derivative(G, u))
+        assert not isinstance(J, FormSum)
+        assert J.arguments() == (v, Argument(V1, 1))
+        assert J == dF
 
 
 def test_derivative_of_form_sum_keeps_arguments_when_all_components_vanish(V1):
@@ -1136,3 +1071,18 @@ def test_derivative_of_form_sum_keeps_arguments_when_all_components_vanish(V1):
     J = expand_derivatives(derivative(v * dx + w, u))
     assert isinstance(J, ZeroBaseForm)
     assert J.arguments() == (v, Argument(V1, 1))
+
+
+@pytest.mark.parametrize("scale", [1, 2])
+def test_action_leaves_coargument_of_interpolate_operand_bound(V1, scale):
+    # <ustar, I(scale * I(w))> pairs ustar with the output of the outer Interpolate only.
+    w = Coefficient(V1)
+    ustar = Cofunction(V1.dual())
+    operand = Interpolate(w, V1)
+    if scale != 1:
+        operand = scale * operand
+
+    restructured = restructure_base_form(Action(ustar, Interpolate(operand, V1)))
+
+    assert restructured == Interpolate(operand, ustar)
+    assert restructured.arguments() == ()
