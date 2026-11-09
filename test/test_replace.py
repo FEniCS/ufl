@@ -7,19 +7,25 @@ from ufl import (
     Coefficient,
     Cofunction,
     FunctionSpace,
+    Identity,
     Matrix,
     Mesh,
     TestFunction,
     TrialFunction,
     as_vector,
     derivative,
+    det,
+    diff,
     div,
     ds,
     dx,
     grad,
     inner,
+    ln,
     replace,
+    tr,
     triangle,
+    variable,
 )
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.analysis import has_exact_type
@@ -94,6 +100,26 @@ def test_replace_derivative_preserves_divergence():
     result = replace(derivative(F, u, h), {u: unew})
 
     assert result == 2 * div(h) * div(unew) * dx
+
+
+def test_replace_derivative_of_variable_derivative():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    du = TrialFunction(V)
+
+    def jacobian(u):
+        F = variable(Identity(2) + grad(u))
+        J = det(F)
+        psi = 0.5 * (tr(F.T * F) - 2) - ln(J) + 0.5 * ln(J) ** 2
+        return derivative(inner(diff(psi, F), grad(v)) * dx, u, du)
+
+    result = replace(jacobian(u), {u: w})
+
+    expected = expand_derivatives(jacobian(w))
+    assert expand_derivatives(result).signature() == expected.signature()
 
 
 def test_replace_keeps_arguments_of_a_vanishing_derivative():

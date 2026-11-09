@@ -1231,12 +1231,9 @@ class VariableRuleset(GenericDerivativeRuleset):
     def _(self, o: Expr) -> Expr:
         """Differentiate a grad.
 
-        Variable derivative of a gradient of a terminal must be 0.
+        A spatial gradient is independent of the variable, so its derivative is 0.
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], Grad | Terminal):
-            raise ValueError("Expecting only grads applied to a terminal.")
-        return self.independent_terminal(o)
+        return self.independent_operator(o)
 
     # --- Rules for values or derivatives in reference frame
 
@@ -1638,7 +1635,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         The Gateaux derivative commutes with it: D_w[v](Dt(f)) = Dt(D_w[v](f)).
         """
-        if isinstance(o, VariableDerivative):
+        if len(o.ufl_operands) > 1:
             raise ValueError(
                 f"Unhandled derivative type {o._ufl_class_.__name__}, "
                 "nested differentiation has failed."
@@ -2378,6 +2375,7 @@ def apply_coefficient_derivatives(expression: Expr | BaseForm) -> Expr | BaseFor
         for cls in Expr._ufl_all_classes_
         if not cls._ufl_is_abstract_
         and issubclass(cls, Derivative)
+        and not issubclass(cls, VariableDerivative)
         and (not issubclass(cls, CoefficientDerivative) or issubclass(cls, CoordinateDerivative))
     )
     return _apply_derivative_rules(
