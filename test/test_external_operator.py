@@ -266,12 +266,12 @@ def test_differentiation_procedure_action(V1, V2, max_rank):
     a1 = inner(N1, m) * dx
     Ja1 = derivative(a1, u, u_hat)
     Ja1 = expand_derivatives(Ja1)
-    Ja1 = restructure_base_form(Ja1, complex_mode=True, max_composed_rank=max_rank)
+    Ja1 = restructure_base_form(Ja1, max_composed_rank=max_rank)
 
     a2 = inner(N2, m) * dx
     Ja2 = derivative(a2, s, s_hat)
     Ja2 = expand_derivatives(Ja2)
-    Ja2 = restructure_base_form(Ja2, complex_mode=True, max_composed_rank=max_rank)
+    Ja2 = restructure_base_form(Ja2, max_composed_rank=max_rank)
 
     # Ja = dF/dN[dN/du(..; v*, u_hat)]
     dN1du = N1._ufl_expr_reconstruct_(u, m, derivatives=(1, 0), argument_slots=(vstar_N1, u_hat))
@@ -492,7 +492,7 @@ def test_multiple_external_operators(V1, V2):
     # dF/dN[Nhat] = <Nhat, v>, with Nhat numbered after the outer test function v.
     dFdN = apply_algebra_lowering(inner(v_hat, v) * dx)
     expected = Action(dFdN, dN1du) + Action(dFdN, dN3du)
-    assert restructure_base_form(dFdu, complex_mode=True) == expected
+    assert restructure_base_form(dFdu) == expected
 
     dFdm = expand_derivatives(derivative(F, m))
     dN1dm = N1._ufl_expr_reconstruct_(
@@ -897,10 +897,10 @@ def test_derivative_through_nested_operators_and_interpolations(V1):
 
     assert J.arguments() == (v, uhat)
 
-    # J[v, uhat] = F[dN2/dM[I[dN1/dI[I[uhat]]]]], with F[Nhat] = Nhat * v * dx in real mode
+    # J[v, uhat] = F[dN2/dM[I[dN1/dI[I[uhat]]]]], with F[Nhat] = <Nhat, v> * dx
     vstar = Argument(V1.dual(), 0)
     Iuhat = Interpolate(uhat, V1)
     dN1 = N1._ufl_expr_reconstruct_(Iu, derivatives=(1,), argument_slots=(vstar, uhat))
     dN2 = N2._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=(vstar, uhat))
-    F = uhat * v * dx
+    F = apply_algebra_lowering(inner(uhat, v) * dx)
     assert restructure_base_form(J) == Action(F, Action(dN2, Action(Iuhat, Action(dN1, Iuhat))))

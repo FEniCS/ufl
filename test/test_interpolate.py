@@ -665,7 +665,7 @@ def test_differentiation(V1, V2, max_rank):
     F = inner(Iu, v) * dx + inner(grad(Iu), grad(v)) * dx - inner(f, v) * dx
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    restructured = restructure_base_form(dFdu, complex_mode=True)
+    restructured = restructure_base_form(dFdu)
     assert renumber_indices(restructured) == renumber_indices(Action(dFdIu, dIu))
 
     # BaseFormOperators are treated as coefficients when a form is differentiated wrt them.

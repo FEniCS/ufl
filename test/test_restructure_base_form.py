@@ -240,15 +240,12 @@ def test_restructure_ordinary_form(V1):
     assert restructure_base_form(form) is form
 
 
-@pytest.mark.parametrize("complex_mode", [False, True])
-def test_restructure_preprocesses_forms_with_operators(V1, complex_mode):
+def test_restructure_leaves_preprocessing_to_form_compiler(V1):
     u = Coefficient(V1)
     v = Argument(V1, 0)
-    operator = Interpolate(u, V1)
-    form = inner(operator, v) * dx
-    expected = (conj(v) if complex_mode else v) * operator * dx
+    form = inner(Interpolate(u, V1), v) * dx
 
-    assert restructure_base_form(form, complex_mode=complex_mode) == expected
+    assert restructure_base_form(form) == form
 
 
 def test_restructure_preserves_compound_gradient(V1):
@@ -609,11 +606,11 @@ def test_restructure_bilinear_form_complex_direction(V1, dual):
     expression = Action(direction, form) if dual else Action(form, direction)
     expected = conj(inner(v, direction)) * dx if dual else inner(direction, v) * dx
 
-    actual = restructure_base_form(expression, complex_mode=True)
+    actual = restructure_base_form(expression)
     assert actual == expected
     assert actual.arguments() == (v,)
     assert _optimal_assembly_cost(actual) == (0, 1)
-    assert restructure_base_form(actual, complex_mode=True) == actual
+    assert restructure_base_form(actual) == actual
 
 
 # --- Operator argument slots ---
@@ -932,13 +929,13 @@ def test_restructure_action_of_composition(V1, adjoint, max_rank):
         applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
         expected = inner(applied, v) * dx
 
-    actual = restructure_base_form(expression, complex_mode=True, max_composed_rank=max_rank)
+    actual = restructure_base_form(expression, max_composed_rank=max_rank)
     assert actual == expected
     assert actual.arguments() == expression.arguments()
     if isinstance(actual, Form):
         # One Form, which compiles the operators in its integrand.
         assert _optimal_assembly_cost(actual) == (0, 1)
-    assert restructure_base_form(actual, complex_mode=True, max_composed_rank=max_rank) == actual
+    assert restructure_base_form(actual, max_composed_rank=max_rank) == actual
 
 
 def test_restructure_hessian_action_composition(V1):
