@@ -1631,6 +1631,22 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         _, o1, o2, o3 = o.ufl_operands
         return CoordinateDerivative(o0, o1, o2, o3)
 
+    @process.register(Derivative)
+    @DAGTraverser.postorder_only_children([0])
+    def _(self, o: Expr, df: Expr) -> Expr:
+        """Differentiate a derivative in another variable, such as a time derivative.
+
+        The Gateaux derivative commutes with it: D_w[v](Dt(f)) = Dt(D_w[v](f)).
+        """
+        if isinstance(o, VariableDerivative):
+            raise ValueError(
+                f"Unhandled derivative type {o._ufl_class_.__name__}, "
+                "nested differentiation has failed."
+            )
+        if isinstance(df, Zero):
+            return self.independent_operator(o)
+        return o._ufl_expr_reconstruct_(df, *o.ufl_operands[1:])
+
     @process.register(BaseFormOperator)
     def _(self, o: BaseFormOperator) -> Expr:
         """Differentiate a base_form_operator."""

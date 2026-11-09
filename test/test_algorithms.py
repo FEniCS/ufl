@@ -224,6 +224,19 @@ def test_replace_foreign_derivative(domain, space):
     expected = (inner(g.dx(0), test.dx(0)) + inner(test.dx(0), g.dx(0))) * dx + inner(Dg, test) * dx
     assert result == expected
 
+    # differentiate through a ForeignDerivative independent of f
+    trial = TrialFunction(space)
+    form = derivative(Dg * f**2 * test * dx, f, trial)
+    result = replace(form, {f: 3 * g})
+    expected = 2 * trial * (3 * g) * Dg * test * dx
+    assert result == expected
+
+    # differentiate through a ForeignDerivative of f
+    form = derivative(ForeignDerivative(f**2) * dx, f)
+    result = replace(form, {f: g})
+    expected = ForeignDerivative(2 * test * g) * dx
+    assert result == expected
+
 
 def test_replace_mixed_element(domain, element):
     element = MixedElement([element, element])
