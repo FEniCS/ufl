@@ -54,7 +54,9 @@ class Interpolate(BaseFormOperator):
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            n = 1 if expr_arg_numbers == {0} else 0
+            # Take the lowest free number, so that an expression linear in
+            # several arguments stays representable.
+            n = min(set(range(len(expr_arg_numbers) + 1)) - expr_arg_numbers)
             v = Argument(v.dual(), n)
         elif not isinstance(v, BaseForm):
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")

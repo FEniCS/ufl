@@ -560,6 +560,25 @@ def test_derivative_with_gapped_coargument(V1, V2):
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
+def test_derivative_through_a_cofunction_dual_slot_in_an_integrand(V1, V2):
+    u = Coefficient(V1)
+    v = Argument(V1, 0)
+    c = Cofunction(V2.dual())
+
+    dF = expand_derivatives(derivative(Interpolate(u, c) * v * dx, c))
+
+    assert dF == Interpolate(u, Coargument(V2.dual(), 1)) * v * dx
+
+
+def test_derivative_of_a_form_independent_of_a_cofunction(V1, V2):
+    v = Argument(V1, 0)
+    c = Cofunction(V2.dual())
+
+    dF = expand_derivatives(derivative(Coefficient(V1) * v * dx, c))
+
+    assert dF == ZeroBaseForm((v, Coargument(V2.dual(), 1)))
+
+
 @pytest.mark.parametrize("max_rank", [1, 2])
 def test_action_adjoint(V1, V2, max_rank):
     # Set dual of V2
@@ -627,23 +646,27 @@ def test_differentiation(V1, V2, max_rank):
     F = Iu * v * dx
     Ihat = TrialFunction(Iu.ufl_function_space())
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # dF/du[uhat] = Action(dF/dIu, dIu/du[uhat])
+    assert dFdu == dIu * v * dx
+    # Restructured: dF/du[uhat] = Action(dF/dIu, dIu/du[uhat])
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     assert dFdIu == Ihat * v * dx
-    assert dFdu == Action(dFdIu, dIu)
+    assert restructure_base_form(dFdu) == Action(dFdIu, dIu)
 
     # -- Differentiate: u * I(u, V2) * v * dx -- #
     F = u * Iu * v * dx
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # dF/du[uhat] = ∂F/∂u[uhat] + Action(∂F/∂Iu, dIu/du[uhat])
-    assert dFdu == uhat * Iu * v * dx + Action(Ihat * u * v * dx, dIu)
+    assert dFdu == (uhat * Iu + u * dIu) * v * dx
+    # Restructured: dF/du[uhat] = ∂F/∂u[uhat] + Action(∂F/∂Iu, dIu/du[uhat])
+    expected = uhat * Iu * v * dx + Action(Ihat * u * v * dx, dIu)
+    assert restructure_base_form(dFdu) == expected
 
     # -- Differentiate (wrt Iu): <Iu, v> + <grad(Iu), grad(v)> - <f, v>
     f = Coefficient(V1)
     F = inner(Iu, v) * dx + inner(grad(Iu), grad(v)) * dx - inner(f, v) * dx
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    assert renumber_indices(dFdu) == renumber_indices(Action(dFdIu, dIu))
+    restructured = restructure_base_form(dFdu, complex_mode=True)
+    assert renumber_indices(restructured) == renumber_indices(Action(dFdIu, dIu))
 
     # BaseFormOperators are treated as coefficients when a form is differentiated wrt them.
     # -> dFdIu <=> dFdw
@@ -703,9 +726,12 @@ def test_second_derivative(V1, V2, max_rank):
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
     d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
     d2Jdu2 = expand_derivatives(derivative(dJdu, u, v1))
-    vhat = Argument(V2.dual(), 1)
-    assert d2Jdu2 == Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert d2Jdu2 == 0.5 * (2 * Interpolate(v0, V2) * Interpolate(v1, V2)) * dx
     assert d2Jdu2.arguments() == (v0, v1)
+    # Restructured: d2J/du2 = Action(I^T, Action(d2J/dIu2, I))
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert restructure_base_form(d2Jdu2) == expected
 
     # -- Nested derivatives expand one at a time from the inside out -- #
     H = derivative(derivative(J, u), u)
@@ -749,12 +775,13 @@ def test_scaled_second_derivative(V1, V2):
     w0, w1 = TestFunction(V2), TrialFunction(V2)
     J = 0.5 * (Iu - f) ** 2 * dx
     d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
-    # d2J/du2[v0, v1] = I^T d2J/dIu2 I
-    vhat = Argument(V2.dual(), 1)
-    d2Jdu2 = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    H = expand_derivatives(2 * derivative(derivative(J, u), u))
+    assert H == 2 * (0.5 * (2 * Interpolate(v0, V2) * Interpolate(v1, V2))) * dx
 
-    H = derivative(derivative(J, u), u)
-    assert expand_derivatives(2 * H) == 2 * d2Jdu2
+    # Restructured: 2 d2J/du2[v0, v1] = I^T (2 d2J/dIu2) I
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(2 * d2JdIu2, Interpolate(v1, V2)))
+    assert restructure_base_form(H) == expected
 
 
 def test_dual_slot_derivative_with_coefficient_direction(V1, V2):

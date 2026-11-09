@@ -11,9 +11,9 @@
 from functools import singledispatchmethod
 
 import ufl.classes
-from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.analysis import extract_type, has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.argument import Coargument
+from ufl.argument import Argument, Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
@@ -79,6 +79,13 @@ class Replacer(DAGTraverser):
         )
         if new_ops == o.ufl_operands and new_slots == o.argument_slots():
             return o
+        if isinstance(o, ufl.classes.Interpolate) and new_slots[0] == vstar:
+            _, expr = new_slots
+            numbers = {a.number() for a in extract_type(expr, Argument, True)}
+            if isinstance(vstar, Coargument) and vstar.number() in numbers:
+                # The Coargument is not mapped, so it is bound: it takes the lowest
+                # number that the new Arguments of expr leave free.
+                return o._ufl_expr_reconstruct_(expr, v=vstar.ufl_function_space().dual())
         return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
 
     @process.register(ufl.classes.CoefficientDerivative)

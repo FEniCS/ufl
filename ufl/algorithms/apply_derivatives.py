@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import warnings
 from functools import singledispatchmethod
-from math import inf, pi
+from math import pi
 
 import numpy as np
 
@@ -1689,10 +1689,17 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def _(self, i_op: Interpolate, dw: Expr) -> Expr:
         """Differentiate an interpolate."""
         di_op = self._process_coefficient(i_op)
-        if di_op != 0 or dw == 0:
+        if di_op != 0:
             return di_op
-        # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
-        return i_op._ufl_expr_reconstruct_(dw)
+        if dw != 0:
+            # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
+            vstar, _ = i_op.argument_slots()
+            if isinstance(vstar, Coargument):
+                # Rebuild on the target space, so that v* takes a number that v leaves free.
+                di_op = i_op._ufl_expr_reconstruct_(dw, v=vstar.ufl_function_space().dual())
+            else:
+                di_op = i_op._ufl_expr_reconstruct_(dw)
+        return di_op + self._dual_slot_derivative(i_op)
 
     @process.register(ExternalOperator)
     @DAGTraverser.postorder
@@ -1725,7 +1732,15 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 continue
             dslots = (*slots[:i], dslot, *slots[i + 1 :])
             dN += N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *dslots))
-        return dN
+        return dN + self._dual_slot_derivative(N)
+
+    def _dual_slot_derivative(self, N: BaseFormOperator) -> Expr:
+        """Return N(u; Dv*), which N is linear in, if the dual slot v* is a variable."""
+        vstar, *slots = N.argument_slots()
+        dvstar = self._w2v.get(vstar)
+        if dvstar is None:
+            return Zero(N.ufl_shape)
+        return N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
 
     # -- Handlers for BaseForm objects -- #
 
@@ -1767,41 +1782,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return ZeroBaseForm(o.arguments() + self._direction_arguments)
 
 
-class PartialDerivativeRuleset(GateauxDerivativeRuleset):
-    """Apply the partial Gateaux derivative to an integrand.
-
-    Base form operators are held fixed, like coefficients, since the chain
-    rule through them gives a BaseForm, which an integrand cannot contain.
-    """
-
-    # Work around singledispatchmethod inheritance issue;
-    # see https://bugs.python.org/issue36457.
-    @singledispatchmethod
-    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
-        """Process ``o``.
-
-        Args:
-            o: `Expr` or `BaseForm` to be processed.
-
-        Returns:
-            Processed object.
-
-        """
-        return super().process(o)
-
-    @process.register(BaseFormOperator)
-    def _(self, o: BaseFormOperator) -> Expr:
-        """Differentiate a base_form_operator."""
-        return self._process_coefficient(o)
-
-
 class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseForm.
 
     Implements rules for the Gateaux derivative D_w[v](B) where B is a
-    BaseForm whose coefficient derivatives have been expanded. The integrands of B
-    are differentiated with the PartialDerivativeRuleset, and the other
-    expressions in B with the GateauxDerivativeRuleset.
+    BaseForm whose coefficient derivatives have been expanded. The integrands and the
+    other expressions in B are differentiated with the GateauxDerivativeRuleset.
     """
 
     def __init__(
@@ -1828,9 +1814,6 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         self._expression_rules = GateauxDerivativeRuleset(
             coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
-        self._integrand_rules = PartialDerivativeRuleset(
-            coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
-        )
 
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
@@ -1854,60 +1837,10 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
 
     @process.register(Form)
     def _(self, o: Form) -> BaseForm:
-        """Differentiate a form with the chain rule through its base form operators.
-
-        D_w[F] = ∂F/∂w + Σ_N ∂F/∂N[D_w[N]], where each ∂F/∂N[D_w[N]] is
-        the contraction of ∂F/∂N[Nhat] and D_w[N](u; vhat) over a new argument
-        Nhat for N and a new coargument vhat in the dual slot of N.
-        """
-        dform = map_integrands(self._integrand_rules, o)
+        """Differentiate a form integrand by integrand."""
+        dform = map_integrands(self._expression_rules, o)
         if dform.empty():
-            dform = ZeroBaseForm(o.arguments() + self._direction_arguments)
-
-        # The Action lists the arguments of its left operand first,
-        # so the operand with the lowest-numbered arguments goes on the left.
-        numbers = [a.number() for a in o.arguments()]
-        direction_numbers = [a.number() for a in self._direction_arguments]
-        direction_first = min(direction_numbers, default=inf) < min(numbers, default=inf)
-        for N in o.base_form_operators():
-            if N in self._w2v or N in self._cd:
-                # The integrand rules differentiate N as a coefficient.
-                continue
-            # Add the chain-rule contribution for this N. The partial derivative
-            # dform_dN follows occurrences of N through outer operators, while
-            # holding N's own operands and slots fixed; dN differentiates N.
-            vstar, *slots = N.argument_slots()
-            primal_argument, *_ = vstar.arguments()
-            inline = any(extract_arguments(slot) for slot in slots)
-            if inline:
-                # An Action would contract an Argument in a primal slot of dN instead of
-                # vhat, so dN takes the place of Nhat. vhat is bound in dN.
-                number = 1 + max(numbers + direction_numbers)
-                Nhat = primal_argument.reconstruct(number=number)
-                vhat = vstar.reconstruct(number=number)
-            elif direction_first:
-                Nhat = primal_argument.reconstruct(number=0)
-                vhat = vstar.reconstruct(number=1 + max(direction_numbers))
-            else:
-                Nhat = primal_argument.reconstruct(number=1 + max(numbers, default=-1))
-                vhat = vstar.reconstruct(number=0)
-
-            partial_rules = PartialDerivativeRuleset(
-                ExprList(N), ExprList(Nhat), ExprMapping(), preserve_types=self._preserved_types
-            )
-            dform_dN = map_integrands(partial_rules, o)
-            if dform_dN.empty():
-                # F depends on N only through another base form operator.
-                continue
-            dN = self._expression_rules(
-                N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
-            )
-            if isinstance(dN, Zero):
-                continue
-            if inline:
-                dform += replace(dform_dN, {Nhat: dN})
-            else:
-                dform += Action(dN, dform_dN) if direction_first else Action(dform_dN, dN)
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)
         return dform
 
     @process.register(FormSum)
@@ -1981,11 +1914,15 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
                 # derivative with respect to w in the direction v is F[v].
                 return replace(vstar, {contracted: v})
         arguments = N.arguments() + self._direction_arguments
-        dvstar = self(_number_contracted_argument(N, vstar, arguments))
-        if isinstance(dvstar, ZeroBaseForm):
-            dual_term = ZeroBaseForm(arguments)
-        else:
-            dual_term = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+        dual_term: Expr | BaseForm = ZeroBaseForm(arguments)
+        if not isinstance(vstar, Coargument | Cofunction):
+            # The expression rules differentiate a Coargument or a Cofunction in the
+            # dual slot, but a Form in the dual slot needs the BaseForm rules.
+            dvstar = self(_number_contracted_argument(N, vstar, arguments))
+            if not isinstance(dvstar, ZeroBaseForm):
+                dual_term = N._ufl_expr_reconstruct_(
+                    *N.ufl_operands, argument_slots=(dvstar, *slots)
+                )
         return self._expression_rules(N) + dual_term
 
 

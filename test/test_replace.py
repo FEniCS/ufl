@@ -38,7 +38,7 @@ from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative, Div
+from ufl.differentiation import Div
 from ufl.form import Form
 
 
@@ -288,13 +288,13 @@ def test_replace_base_form_operator(V1):
 
 
 @pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])
-def test_replace_base_form_derivative(V1, replacement):
+def test_replace_form_derivative(V1, replacement):
     u = Coefficient(V1)
     w = Coefficient(V1)
     v = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
     dJ = derivative(N * u * v * dx, u)
-    assert isinstance(dJ, BaseFormDerivative)
+    assert isinstance(dJ, Form)
 
     replacements = {
         "coefficient": w,
@@ -317,16 +317,14 @@ def test_replace_base_form_derivative_aliasing(V1):
     assert replace(dJ, {u: w}) == replace(expand_derivatives(dJ), {u: w})
 
 
-def test_replace_base_form_derivative_preserves_spatial_derivatives(V1):
+def test_replace_form_derivative_spatial(V1):
     u = Coefficient(V1)
     w = Coefficient(V1)
     v = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
     dJ = derivative(N * div(grad(u)) * v * dx, u)
-
-    forms = [c for c in replace(dJ, {u: w}).components() if isinstance(c, Form)]
-    assert forms
-    assert all(has_exact_type(form, Div) for form in forms)
+    assert isinstance(dJ, Form)
+    assert has_exact_type(replace(dJ, {u: w}), Div)
 
 
 def test_replace_leaves_coargument_of_operand_bound(V1):
