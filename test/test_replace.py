@@ -12,6 +12,7 @@ from ufl import (
     Mesh,
     TestFunction,
     TrialFunction,
+    as_tensor,
     as_vector,
     derivative,
     det,
@@ -20,6 +21,7 @@ from ufl import (
     ds,
     dx,
     grad,
+    indices,
     inner,
     ln,
     replace,
@@ -145,20 +147,22 @@ def test_replace_derivative_of_variable_derivative_of_div():
 
 def test_replace_derivative_of_variable_derivative_of_grad():
     domain = Mesh(LagrangeElement(triangle, 1, (2,)))
-    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
-    c = Coefficient(V)
-    d = Coefficient(V)
-    q = TestFunction(V)
-    dc = TrialFunction(V)
+    V = FunctionSpace(domain, LagrangeElement(triangle, 2, (2,)))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    du = TrialFunction(V)
 
-    def jacobian(c):
-        x = variable(c)
-        return derivative(diff(grad(x**2)[0], x) * q * dx, c, dc)
+    F = variable(grad(u))
+    psi = inner(F, F) ** 2
+    i, j, k = indices(3)
+    # d/dF grad(psi) = grad(dpsi/dF), with the gradient index placed before those of F
+    expected = as_tensor(grad(diff(psi, F))[i, j, k], (k, i, j))
 
-    result = replace(jacobian(c), {c: d})
+    def jacobian(e):
+        return replace(derivative(inner(e, grad(grad(v))) * dx, u, du), {u: w})
 
-    expected = expand_derivatives(jacobian(d))
-    assert expand_derivatives(result).signature() == expected.signature()
+    assert jacobian(diff(grad(psi), F)).signature() == jacobian(expected).signature()
 
 
 def test_replace_keeps_arguments_of_a_vanishing_derivative():
@@ -206,6 +210,13 @@ def test_replace_foreign_derivative():
     form = derivative(ForeignDerivative(f**2) * dx, f)
     result = replace(form, {f: g})
     expected = ForeignDerivative(2 * test * g) * dx
+    assert result == expected
+
+    # differentiate through a variable derivative of a ForeignDerivative
+    x = variable(f)
+    form = derivative(diff(ForeignDerivative(x**2), x) * dx, f)
+    result = replace(form, {f: g})
+    expected = ForeignDerivative(2.0 * test) * dx
     assert result == expected
 
 

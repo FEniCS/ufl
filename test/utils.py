@@ -255,7 +255,7 @@ class MixedElement(FiniteElement):
 
 @ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class ForeignDerivative(Derivative):
-    """Represent a derivative supplied by another package, such as irksome.TimeDerivative."""
+    """Represent a derivative type that UFL has no rules for."""
 
     __slots__ = ()
 

@@ -1228,15 +1228,51 @@ class VariableRuleset(GenericDerivativeRuleset):
             return df
 
     @process.register(Grad)
-    def _(self, o: Expr) -> Expr:
+    @DAGTraverser.postorder
+    def _(self, o: Expr, df: Expr) -> Expr:
         """Differentiate a grad.
 
-        Variable derivative of a gradient of a terminal must be 0.
+        The variable derivative commutes with the spatial gradient:
+        d/dv grad(f) = grad(df/dv), with the gradient index placed before those of v.
         """
-        # Check that o is a "differential terminal"
-        if not isinstance(o.ufl_operands[0], Grad | Terminal):
-            raise ValueError("Expecting only grads applied to a terminal.")
-        return self.independent_terminal(o)
+        if isinstance(df, Zero):
+            return self.independent_operator(o)
+        if not self._var_shape:
+            return Grad(df)
+        ii = indices(len(o.ufl_shape) - 1)
+        jj = indices(len(self._var_shape))
+        (k,) = indices(1)
+        return as_tensor(Grad(df)[ii + jj + (k,)], ii + (k,) + jj)
+
+    @process.register(CompoundDerivative)
+    def _(self, o: Expr) -> Expr:
+        """Raise error."""
+        raise ValueError(
+            f"{o._ufl_class_.__name__} must be lowered to grads before variable differentiation."
+        )
+
+    @process.register(Derivative)
+    def _(self, o: Expr) -> Expr:
+        """Differentiate a derivative of its single operand in another variable.
+
+        Such a derivative is linear in its operand, so the derivative with respect to
+        a scalar variable commutes with it: d/dv L(f) = L(df/dv).
+        """
+        if len(o.ufl_operands) != 1:
+            raise ValueError(
+                f"Unhandled derivative type {o._ufl_class_.__name__}, "
+                "nested differentiation has failed."
+            )
+        if self._var_shape:
+            raise ValueError(
+                f"Cannot differentiate {o._ufl_class_.__name__} "
+                "with respect to a non-scalar variable."
+            )
+        (f,) = o.ufl_operands
+        df = self(f)
+        if isinstance(df, Zero):
+            return self.independent_operator(o)
+        return o._ufl_expr_reconstruct_(df)
 
     # --- Rules for values or derivatives in reference frame
 
@@ -1636,8 +1672,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def _(self, o: Expr, df: Expr) -> Expr:
         """Differentiate a derivative of its single operand in another variable.
 
-        Such a derivative, for example a time derivative, is linear in its operand,
-        so the Gateaux derivative commutes with it: D_w[v](Dt(f)) = Dt(D_w[v](f)).
+        Such a derivative is linear in its operand, so the Gateaux derivative
+        commutes with it: D_w[v](L(f)) = L(D_w[v](f)).
         """
         if isinstance(df, Zero):
             return self.independent_operator(o)
@@ -2049,14 +2085,11 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def _(self, o: Expr) -> Expr | BaseForm:
         """Apply to a variable_derivative.
 
-        The variable rules differentiate grads of terminals only, so the operand is
-        lowered and its derivatives are expanded fully, even those preserved elsewhere.
+        The operand is lowered, so that compound derivatives such as div are
+        expressed with grads, which the variable rules differentiate.
         """
         f, op = o.ufl_operands
-        if self._preserved_types:
-            f = apply_derivatives(apply_algebra_lowering(f))
-        else:
-            f = self(f)
+        f = self(apply_algebra_lowering(f))
         key = (VariableRuleset, op)
         dag_traverser = self._dag_traverser_cache.setdefault(key, VariableRuleset(op))
         return dag_traverser(f)  # type: ignore
