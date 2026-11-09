@@ -15,13 +15,11 @@ symbolic reasoning about the spaces in which finite elements lie.
 # Modified by Lizao Li 2015
 # Modified by Thomas Gibson 2017
 
-from functools import total_ordering
 from math import inf, isinf
 
 __all_classes__ = ["SobolevSpace", "DirectionalSobolevSpace"]
 
 
-@total_ordering
 class SobolevSpace:
     """Symbolic representation of a Sobolev space.
 
@@ -91,8 +89,19 @@ class SobolevSpace:
         """In common with intrinsic Python sets, < indicates "is a proper subset of"."""
         return other in self.parents
 
+    def __le__(self, other):
+        """Test for subset inclusion."""
+        return self == other or self < other
 
-@total_ordering
+    def __gt__(self, other):
+        """Test for proper superset inclusion."""
+        return other < self
+
+    def __ge__(self, other):
+        """Test for superset inclusion."""
+        return self == other or other < self
+
+
 class DirectionalSobolevSpace(SobolevSpace):
     """Directional Sobolev space.
 
@@ -150,7 +159,9 @@ class DirectionalSobolevSpace(SobolevSpace):
         if isinstance(other, DirectionalSobolevSpace):
             if self._spatial_indices != other._spatial_indices:
                 return False
-            return any(self._orders[i] > other._orders[i] for i in self._spatial_indices)
+            return all(self._orders[i] >= other._orders[i] for i in self._spatial_indices) and any(
+                self._orders[i] > other._orders[i] for i in self._spatial_indices
+            )
 
         if other in [HDiv, HCurl]:
             return all(self._orders[i] >= 1 for i in self._spatial_indices)
@@ -158,13 +169,42 @@ class DirectionalSobolevSpace(SobolevSpace):
             return all(self._orders[i] >= 2 for i in self._spatial_indices)
         elif other.name in ["HDivDiv", "HEin", "HCurlDiv"]:
             # Don't know how these spaces compare
-            return NotImplementedError(f"Don't know how to compare with {other.name}")
+            raise NotImplementedError(f"Don't know how to compare with {other.name}")
         else:
-            return any(self._orders[i] > other._order for i in self._spatial_indices)
+            return all(self._orders[i] >= other._order for i in self._spatial_indices) and any(
+                self._orders[i] > other._order for i in self._spatial_indices
+            )
 
     def __str__(self):
         """Format as a string."""
         return f"{self.name}({', '.join(map(str, self._orders))})"
+
+
+def smallest_common_superspace(*spaces):
+    """Return the unique smallest known space containing all given spaces."""
+    if not spaces:
+        raise ValueError("At least one Sobolev space is required.")
+    if all(isinstance(space, DirectionalSobolevSpace) for space in spaces):
+        if len({len(space._orders) for space in spaces}) != 1:
+            raise ValueError("Directional spaces must have the same dimension.")
+        return DirectionalSobolevSpace(tuple(map(min, zip(*(s._orders for s in spaces)))))
+
+    # Directional spaces are unhashable; their known named superspaces are
+    # represented by their parents and by the isotropic orders they contain.
+    def superspaces(space):
+        if isinstance(space, DirectionalSobolevSpace):
+            return {
+                s
+                for s in (L2, HDiv, HCurl, H1, HGradCurl, H1Div, H1Curl, H2, H3, HInf)
+                if space == s or space < s
+            }
+        return {space} | set(space.parents)
+
+    common = set.intersection(*map(superspaces, spaces))
+    for space in common.copy():
+        common -= set(space.parents)
+    (space,) = common
+    return space
 
 
 L2 = SobolevSpace("L2")

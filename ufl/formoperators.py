@@ -47,7 +47,7 @@ from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
 from ufl.pullback import AbstractPullback, IdentityPullback, MixedPullback
-from ufl.sobolevspace import SobolevSpace
+from ufl.sobolevspace import SobolevSpace, smallest_common_superspace
 from ufl.sorting import sorted_expr
 from ufl.split_functions import split
 from ufl.tensors import ListTensor, as_tensor
@@ -86,7 +86,7 @@ class _MixedElement(AbstractFiniteElement):
     @property
     def sobolev_space(self) -> SobolevSpace:
         """Return the underlying Sobolev space."""
-        return max(e.sobolev_space for e in self._sub_elements)
+        return smallest_common_superspace(*(e.sobolev_space for e in self._sub_elements))
 
     @property
     def pullback(self) -> AbstractPullback:

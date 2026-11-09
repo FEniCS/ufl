@@ -236,3 +236,33 @@ def test_exterior_derivative_l2():
         element = FiniteElement("DG", tetrahedron, 0, shape, identity_pullback, L2)
         u = Coefficient(FunctionSpace(mesh, element))
         assert exterior_derivative(u) == zero(shape)
+
+
+def test_incomparable_spaces():
+    for a, b in [(HDiv, HCurl), (HCurl, HDiv), (H1dx, H1dy), (H1dy, H1dx)]:
+        assert not a < b
+        assert not a <= b
+        assert not a > b
+        assert not a >= b
+    assert not DirectionalSobolevSpace((2, 0)) < H1
+
+
+def test_mixed_incomparable_spaces():
+    from utils import MixedElement
+
+    rt = FiniteElement("Raviart-Thomas", triangle, 1, (2,), contravariant_piola, HDiv)
+    n1curl = FiniteElement("N1curl", triangle, 1, (2,), covariant_piola, HCurl)
+    for elements in ([rt, n1curl], [n1curl, rt]):
+        mixed = MixedElement(elements)
+        assert mixed.sobolev_space == L2
+        assert mixed not in HDiv
+        assert mixed not in HCurl
+
+
+def test_unknown_directional_comparison():
+    import pytest
+
+    from ufl import HEin
+
+    with pytest.raises(NotImplementedError):
+        DirectionalSobolevSpace((1, 1)) < HEin
