@@ -11,7 +11,7 @@ from ufl.pullback import (
     SymmetricPullback,
     identity_pullback,
 )
-from ufl.sobolevspace import H1, SobolevSpace
+from ufl.sobolevspace import H1, SobolevSpace, smallest_common_superspace
 
 
 class FiniteElement(AbstractFiniteElement):
@@ -196,7 +196,7 @@ class SymmetricElement(FiniteElement):
         for e in sub_elements:
             if e.cell != cell:
                 raise ValueError("All sub-elements must be defined on the same cell")
-        sobolev_space = max(e.sobolev_space for e in sub_elements)
+        sobolev_space = smallest_common_superspace(*(e.sobolev_space for e in sub_elements))
 
         super().__init__(
             "Symmetric element",
@@ -238,7 +238,7 @@ class MixedElement(FiniteElement):
             pullback = IdentityPullback()
         else:
             pullback = MixedPullback(self)
-        sobolev_space = max(e.sobolev_space for e in sub_elements)
+        sobolev_space = smallest_common_superspace(*(e.sobolev_space for e in sub_elements))
 
         super().__init__(
             "Mixed element",
