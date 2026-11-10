@@ -196,6 +196,8 @@ def action(form, coefficient=None, derivatives_expanded=None):
     """
     if isinstance(form, BaseForm) and not form.arguments():
         raise ValueError("Cannot take the action of a form without arguments.")
+    if isinstance(coefficient, BaseForm) and not coefficient.arguments():
+        raise ValueError("Cannot take the action on a 0-form, which has no arguments.")
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )

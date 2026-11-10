@@ -318,6 +318,14 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Add."""
         return self._parent_type.__radd__(self, other)
 
+    def __sub__(self, other):
+        """Subtract."""
+        return self._parent_type.__sub__(self, other)
+
+    def __rsub__(self, other):
+        """Subtract."""
+        return self._parent_type.__rsub__(self, other)
+
     def __mul__(self, other):
         """Multiply."""
         return self._parent_type.__mul__(self, other)
