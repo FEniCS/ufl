@@ -12,7 +12,7 @@ from itertools import chain
 
 from ufl.argument import Coargument
 from ufl.core.ufl_type import ufl_type
-from ufl.form import BaseForm, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, ZeroBaseForm
 
 # --- The Adjoint class represents the adjoint of a numerical object that
 #     needs to be computed at assembly time ---
@@ -25,6 +25,9 @@ class Adjoint(BaseForm):
     Adjoint objects will result when the adjoint of an assembled object
     (e.g. a Matrix) is taken. This delays the evaluation of the adjoint until
     assembly occurs.
+
+    The operand is a 2-form or a row: a rank-one BaseForm whose Argument is not
+    numbered 0, such as ``Action(x, A)``, which is ``x^H A``.
     """
 
     __slots__ = (
@@ -47,9 +50,6 @@ class Adjoint(BaseForm):
 
         if isinstance(form, Adjoint):
             return form._form
-        elif isinstance(form, FormSum):
-            # Adjoint distributes over sums
-            return FormSum(*((Adjoint(c), w) for c, w in zip(form.components(), form.weights())))
         elif isinstance(form, Coargument):
             # The adjoint of a coargument `c: V* -> V*` is the identity
             # matrix mapping from V to V (i.e. V x V* -> R).
@@ -68,8 +68,10 @@ class Adjoint(BaseForm):
         """Initialise."""
         BaseForm.__init__(self)
 
-        if len(form.arguments()) != 2:
-            raise ValueError("Can only take Adjoint of a 2-form.")
+        arguments = form.arguments()
+        is_row = len(arguments) == 1 and arguments[0].number() > 0
+        if len(arguments) != 2 and not is_row:
+            raise ValueError("Can only take Adjoint of a 2-form or a row.")
 
         self._form = form
         self.ufl_operands = (self._form,)
@@ -89,9 +91,7 @@ class Adjoint(BaseForm):
         """The arguments of adjoint are the reverse of the form arguments."""
         reversed_args = self._form.arguments()[::-1]
         # Canonical numbering for arguments that is consistent with other BaseForm objects.
-        self._arguments = tuple(
-            type(arg)(arg.ufl_function_space(), number=i) for i, arg in enumerate(reversed_args)
-        )
+        self._arguments = tuple(arg.reconstruct(number=i) for i, arg in enumerate(reversed_args))
         self._coefficients = self._form.coefficients()
 
     def _analyze_domains(self):
