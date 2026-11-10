@@ -43,10 +43,10 @@ class Interpolate(BaseFormOperator):
         expr = as_ufl(expr)
 
         if isinstance(expr, BaseForm):
-            expr_args = expr.arguments()
-            if not isinstance(expr_args[0], Coargument):
-                raise ValueError("Expecting the first argument to be primal.")
-            expr_args = expr_args[1:]
+            coarguments = [a for a in expr.arguments() if isinstance(a, Coargument)]
+            if len(coarguments) != 1:
+                raise ValueError("Expecting a primal expression to interpolate.")
+            expr_args = [a for a in expr.arguments() if not isinstance(a, Coargument)]
         else:
             expr_args = extract_arguments(expr)
         expr_arg_numbers = {arg.number() for arg in expr_args}
@@ -160,8 +160,10 @@ class Interpolate(BaseFormOperator):
         """Return the value shape in the interpolation target space."""
         return self._function_space.value_shape
 
-    def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
+    def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
+        if argument_slots is not None:
+            v, expr = argument_slots
         v = v or self.argument_slots()[0]
         return type(self)(expr, v, **add_kwargs)
 

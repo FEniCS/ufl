@@ -13,10 +13,9 @@ from functools import singledispatchmethod
 import ufl.classes
 from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
+from ufl.argument import Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
-from ufl.core.external_operator import ExternalOperator
-from ufl.core.interpolate import Interpolate
 from ufl.corealg.dag_traverser import DAGTraverser
 
 
@@ -60,29 +59,46 @@ class Replacer(DAGTraverser):
                 return o
             return o._ufl_expr_reconstruct_(*args)
 
-    @process.register(ufl.classes.ExternalOperator)
+    @process.register(ufl.classes.BaseFormOperator)
     def _(self, o):
-        """Replace an external_operator."""
-        o = self.mapping.get(o) or o
-        if isinstance(o, ExternalOperator):
-            new_ops = tuple(replace(op, self.mapping) for op in o.ufl_operands)
-            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
-            return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_args)
-        return o
+        """Replace a base form operator.
 
-    @process.register(ufl.classes.Interpolate)
-    def _(self, o):
-        """Replace an interpolate."""
-        o = self.mapping.get(o) or o
-        if isinstance(o, Interpolate):
-            new_args = tuple(replace(arg, self.mapping) for arg in o.argument_slots())
-            return o._ufl_expr_reconstruct_(*reversed(new_args))
-        return o
+        The Coargument of an operator in an operand or a primal slot of ``o`` pairs
+        with the output of that operator, so it is bound there. Only the dual slot of
+        ``o`` can hold a free Coargument.
+        """
+        if o in self.mapping:
+            return self.mapping[o]
+        primal_mapping = {k: v for k, v in self.mapping.items() if not isinstance(k, Coargument)}
+        vstar, *slots = o.argument_slots()
+        new_ops = tuple(replace(op, primal_mapping) for op in o.ufl_operands)
+        new_slots = (
+            replace(vstar, self.mapping),
+            *(replace(slot, primal_mapping) for slot in slots),
+        )
+        if new_ops == o.ufl_operands and new_slots == o.argument_slots():
+            return o
+        return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
 
     @process.register(ufl.classes.CoefficientDerivative)
     def _(self, o):
         """Replace a coefficient derivative."""
         raise ValueError("Derivatives should be applied before executing replace.")
+
+    @process.register(ufl.classes.BaseFormDerivative)
+    def _(self, o):
+        """Replace a base form derivative.
+
+        The replacement acts on the result of the derivative. If it acted on the
+        differentiated base form instead, then derivative(f(g), g) with g mapped to
+        an expression would differentiate with respect to that expression.
+        """
+        if o in self.mapping:
+            return self.mapping[o]
+        # Hack to avoid circular dependencies
+        from ufl.algorithms.ad import expand_coefficient_derivatives
+
+        return replace(expand_coefficient_derivatives(o), self.mapping)
 
 
 def replace(e, mapping):
@@ -108,8 +124,8 @@ def replace(e, mapping):
     # is not attractive), or make replace lazy too.
     if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
-        from ufl.algorithms.ad import expand_derivatives
+        from ufl.algorithms.ad import expand_coefficient_derivatives
 
-        e = expand_derivatives(e)
+        e = expand_coefficient_derivatives(e)
 
     return map_integrands(lambda expr: Replacer(mapping2)(expr), e)

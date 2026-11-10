@@ -32,6 +32,7 @@ from ufl.constantvalue import as_ufl, is_true_ufl_scalar
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import FixedIndex, MultiIndex
+from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
     BaseFormDerivative,
@@ -193,8 +194,7 @@ def action(form, coefficient=None, derivatives_expanded=None):
     When `action` is being called multiple times on the same form, expanding derivatives
     become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
-    form = as_form(form)
-    if not form.arguments():
+    if isinstance(form, BaseForm) and not form.arguments():
         raise ValueError("Cannot take the action of a form without arguments.")
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
@@ -272,6 +272,25 @@ def set_list_item(li, i, v):
     li[i[-1]] = v
 
 
+def default_direction_number(form: Expr | BaseForm) -> int:
+    """Return the number of the default direction of a derivative of ``form``.
+
+    The direction comes after the free arguments of ``form``. Every Action in
+    ``form`` contracts the lowest argument of its right operand, and the derivative
+    of that operand carries the direction, so the direction comes after that one too.
+    """
+    if isinstance(form, BaseForm):
+        numbers = [a.number() for a in form.arguments()]
+    else:
+        numbers = [a.number() for a in extract_arguments(form)]
+    for f in unique_pre_traversal(form):
+        if isinstance(f, Action):
+            _, right = f.ufl_operands
+            if isinstance(right, BaseForm):
+                numbers.append(right.arguments()[0].number())
+    return max(numbers, default=-1) + 1
+
+
 def _handle_derivative_arguments(form, coefficient, argument):
     """Handle derivative arguments."""
     # Wrap single coefficient in tuple for uniform treatment below
@@ -293,15 +312,14 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
         # Get existing arguments from form and position the new one
         # with the next argument number
-        if isinstance(form, Form):
+        if isinstance(form, BaseForm):
             form_arguments = form.arguments()
         else:
             # To handle derivative(expression), which is at least used
             # in tests. Remove?
             form_arguments = extract_arguments(form)
 
-        numbers = sorted(set(arg.number() for arg in form_arguments))
-        number = max(numbers + [-1]) + 1
+        number = default_direction_number(form)
 
         # Don't know what to do with parts, let the user sort it out
         # in that case
@@ -400,28 +418,10 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                 for component, w in zip(form.components(), form.weights())
             ]
         )
-    elif isinstance(form, Adjoint):
-        # Is `derivative(Adjoint(A), ...)` with A a 2-form even legal ?
-        # -> If yes, what's the right thing to do here ?
-        raise NotImplementedError("Adjoint derivative is not supported.")
     elif isinstance(form, Action):
-        # Push derivative through Action slots
-        left, right = form.ufl_operands
         # Eagerly simplify spatial derivatives when Action results in a scalar.
         if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
             return ZeroBaseForm(())
-
-        if len(left.arguments()) == 1:
-            dleft = derivative(left, coefficient, argument, coefficient_derivatives)
-            dright = derivative(right, coefficient, argument, coefficient_derivatives)
-            # Leibniz formula
-            return action(
-                adjoint(dleft, derivatives_expanded=True), right, derivatives_expanded=True
-            ) + action(left, dright, derivatives_expanded=True)
-        else:
-            raise NotImplementedError(
-                "Action derivative not supported when the left argument is not a 1-form."
-            )
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
     if coefficient_derivatives is None:
@@ -432,8 +432,11 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             cd += [as_ufl(k), as_ufl(coefficient_derivatives[k])]
         coefficient_derivatives = ExprMapping(*cd)
 
-    # Got a form? Apply derivatives to the integrands in turn.
-    if isinstance(form, Form):
+    # Got a form? Apply derivatives to the integrands in turn, unless the
+    # chain rule through base form operators requires the whole form.
+    if isinstance(form, Form) and (
+        isinstance(coefficient, SpatialCoordinate) or not form.base_form_operators()
+    ):
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):

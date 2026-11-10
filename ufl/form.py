@@ -283,6 +283,11 @@ class Form(BaseForm):
         "_terminal_numbering",
     )
 
+    # The integrals of a Form are mapped by map_integrands, not as operands.
+    # Thus a Form is a leaf of the DAG of a BaseForm that contains it.
+    ufl_operands = ()
+    _ufl_is_terminal_ = True
+
     def __init__(self, integrals: list[Integral]):
         """Initialise."""
         BaseForm.__init__(self)
@@ -921,6 +926,14 @@ class ZeroBaseForm(BaseForm):
     def empty(self):
         """Returns whether the ZeroBaseForm has no components, which is always true."""
         return True
+
+    def integrals(self):
+        """Return the integrals of the form. A ZeroBaseForm has none."""
+        return ()
+
+    def constants(self):
+        """Return the constants of the form. A ZeroBaseForm has none."""
+        return ()
 
     def signature(self):
         """Return a signature for use with JIT caches."""

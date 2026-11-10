@@ -44,6 +44,14 @@ def map_integrands(function, form, only_integral_type=None):
             map_integrands(function, component, only_integral_type)
             for component in form.components()
         ]
+        # A component that loses all its integrals vanishes. An empty Form has lost its
+        # arguments, so the zero takes them from the component before the map.
+        mapped_components = [
+            ZeroBaseForm(component.arguments())
+            if isinstance(mapped, Form) and mapped.empty()
+            else mapped
+            for mapped, component in zip(mapped_components, form.components())
+        ]
         nonzero_components = [
             (component, w)
             for component, w in zip(mapped_components, form.weights())

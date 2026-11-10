@@ -32,17 +32,37 @@ __all__ = ["BaseFormOperator"]
 def _split_dual_slot_arguments(dual_arg, slot_args):
     """Return the contracted argument and the free arguments of a dual slot.
 
-    An operator whose primal slots use number 0 numbers its output last, so it is
-    the left operand of an Action and contracts the lowest-numbered primal argument
-    of the slot. Otherwise the slot is the left operand and contracts its highest.
-    The other arguments stay free.
+    If both the primal slots and the slot use number 0, the output replaces Argument 0
+    of the slot, so the operator is the left operand of an Action. Otherwise the slot
+    is the left operand and contracts its highest-numbered primal argument. The other
+    arguments stay free.
     """
     arguments = dual_arg.arguments()
     form_arguments = [a for a in arguments if not isinstance(a, Coargument)]
     if not form_arguments:
         return None, arguments
-    contracted = form_arguments[0 if any(a.number() == 0 for a in slot_args) else -1]
+    zero_in_both = form_arguments[0].number() == 0 and any(a.number() == 0 for a in slot_args)
+    contracted = form_arguments[0 if zero_in_both else -1]
     return contracted, tuple(a for a in arguments if a != contracted)
+
+
+def _number_contracted_argument(N, A, others):
+    """Return ``A`` with its contracted argument numbered as a dual slot of ``N`` contracts it.
+
+    The contracted argument is bound in the dual slot, so its number is free. Number it
+    before differentiating ``A``, since the derivative can bind other arguments.
+    """
+    from ufl.algorithms.analysis import extract_type
+    from ufl.algorithms.replace import replace
+
+    vstar, *slots = N.argument_slots()
+    slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
+    contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
+    if any(a.number() == 0 for a in slot_args):
+        number = 0
+    else:
+        number = 1 + max((a.number() for a in others), default=-1)
+    return replace(A, {contracted: contracted.reconstruct(number=number)})
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -54,8 +74,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     which hold the directions of differentiation.
 
     With a Form ``A`` in the dual slot, ``N(u; A)`` is ``A`` composed with ``N``, which
-    is an Action: ``Action(N, A)`` if the primal slots of ``N`` contain the Argument
-    numbered 0, otherwise ``Action(A, N)``.
+    is an Action: ``Action(N, A)`` if the primal slots of ``N`` and ``A`` both contain
+    an Argument numbered 0, otherwise ``Action(A, N)``.
 
     For a 2-form ``A(v_0, v_1)``, with Arguments numbered 0 and 1:
 
@@ -104,8 +124,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                   contracts the output to the number ``<c, N(u)>``.
                 - A Form with an Argument on ``function_space``. The output
                   takes the place of that Argument, as in an Action. If the
-                  primal slots use number 0, that is the lowest-numbered
-                  Argument, as in ``Action(N(u), F)``. Otherwise it is the
+                  primal slots and the form both use number 0, that is Argument
+                  0, as in ``Action(N(u), F)``. Otherwise it is the
                   highest-numbered one, as in ``Action(F, N(u))``. The other
                   Arguments of the form stay free.
 
@@ -204,9 +224,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         from ufl.algorithms.analysis import extract_coefficients, extract_type
 
         dual_arg, *arguments = self.argument_slots()
-        # When a Coargument is used as the dual slot, its primal argument
-        # is contracted and only the Coargument remains free.
-
         slot_args = tuple(
             a for arg in arguments for a in extract_type(arg, Argument, base_form_op_as_expr=True)
         )
@@ -265,6 +282,17 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         r += ", ".join(repr(arg) for arg in self.argument_slots())
         r += f"; derivatives={self.derivatives!r})"
         return r
+
+    def _ufl_compute_hash_(self):
+        """Hash code for use in dicts."""
+        hashdata = (
+            self._ufl_typecode_,
+            tuple(hash(op) for op in self.ufl_operands),
+            tuple(hash(arg) for arg in self._argument_slots),
+            self.derivatives,
+            hash(self._function_space),
+        )
+        return hash(hashdata)
 
     def __eq__(self, other):
         """Check for equality."""
