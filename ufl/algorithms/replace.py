@@ -16,6 +16,7 @@ from ufl.algorithms.map_integrands import map_integrands
 from ufl.argument import Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import as_ufl
+from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 
 
@@ -32,7 +33,7 @@ class Replacer(DAGTraverser):
         # One can replace Coarguments by 1-Forms
         def get_shape(x):
             """Get the shape of an object."""
-            if isinstance(x, BaseForm):
+            if isinstance(x, BaseForm) and not isinstance(x, Expr):
                 arguments = x.arguments()
                 return arguments[0].ufl_shape if arguments else ()
             return x.ufl_shape
