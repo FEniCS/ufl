@@ -569,6 +569,11 @@ def test_multiple_external_operators(V1, V2):
     dFdu = expand_derivatives(derivative(inner(N5, v) * dx, u))
     assert restructure_base_form(dFdu) == expected
 
+    # dN1/du is in dN4/du and in the integrand, so it moves out once, for both terms.
+    dFdu = expand_derivatives(derivative((inner(N4, v) + inner(N1, v)) * dx, u))
+    expected = Action(dFdN + Action(dFdN, dN4dN1(v_hat)), dN1du) + Action(dFdN, dN4du_partial)
+    assert restructure_base_form(dFdu) == expected
+
 
 def test_adjoint_derivative(V1, V2):
     u = Coefficient(V1)

@@ -28,7 +28,7 @@ from ufl.core.base_form_operator import (
 )
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.corealg.traversal import unique_pre_traversal
+from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_pre_traversal
 from ufl.differentiation import (
     BaseFormDerivative,
     BaseFormOperatorDerivative,
@@ -190,46 +190,49 @@ class BaseFormRestructurer(DAGTraverser):
         ``F|N=0`` plus the contraction of ``N(u; vhat, w)`` with the partial derivative
         ``dF/dN[Nhat]``. The contraction is ``Action(N(u; vhat, w), dF/dN[Nhat])`` if ``N``
         carries the lowest argument, and otherwise ``Action(dF/dN[Nhat], N(u; vhat, w))``.
+        An operator moves out if it occurs outside all other operators. An operator that
+        occurs only inside another one moves out of ``F|N=0`` after that one.
         A Form with unexpanded derivatives is left unchanged.
         """
         if extract_type(o, CoefficientDerivative):
             return o
-        operators = o.base_form_operators()
-        nested: set[Expr] = set()
-        for N in operators:
-            for operand in (*N.ufl_operands, *N.argument_slots()):
-                nested.update(e for e in unique_pre_traversal(operand) if e is not N)
-        actions = []
-        for N in operators:
-            if N in nested or self.composable(N):
-                continue
-            vstar, *slots = N.argument_slots()
-            carried_arguments = [a for a in N.arguments() if a != vstar]
-            carried = [a.number() for a in carried_arguments]
-            others = [a.number() for a in o.arguments() if a.number() not in carried]
-            operator_first = min(carried) < min(others, default=inf)
-            if operator_first:
-                Nhat_number, vhat_number = 0, 1 + max(carried)
-            else:
-                Nhat_number, vhat_number = 1 + max(others, default=-1), 0
-            # Reconstruct, so that the arguments keep the class of those of N.
-            Nhat = carried_arguments[0].reconstruct(
-                function_space=vstar.ufl_function_space().dual(), number=Nhat_number
-            )
-            vhat = vstar.reconstruct(number=vhat_number)
-            dF = expand_coefficient_derivatives(derivative(o, N, Nhat))
-            if not isinstance(dF, Form) or dF.empty():
-                # N was in a term of an operator moved out before.
-                continue
-            dN = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
-            actions.append(Action(dN, dF) if operator_first else Action(dF, dN))
-            o = map_integrands(lambda e: replace(e, {N: Zero(N.ufl_shape)}), o)
-        if not actions:
+        cutoff_types = [issubclass(cls, BaseFormOperator) for cls in Expr._ufl_all_classes_]
+        # The traversal does not enter an operator, so it reaches only the outermost ones.
+        outermost = {
+            e
+            for itg in iter_expressions(o)
+            for e in cutoff_unique_post_traversal(itg, cutoff_types)
+        }
+        # Find the first operator that is outermost and does not compose with a Form.
+        N = next(
+            (op for op in o.base_form_operators() if op in outermost and not self.composable(op)),
+            None,
+        )
+        if N is None:
             return o
-        terms = [self(action) for action in actions]
-        if not o.empty():
-            terms.insert(0, o)
-        return sum(terms[1:], terms[0])
+        vstar, *slots = N.argument_slots()
+        carried_arguments = [a for a in N.arguments() if a != vstar]
+        carried = [a.number() for a in carried_arguments]
+        others = [a.number() for a in o.arguments() if a.number() not in carried]
+        operator_first = min(carried) < min(others, default=inf)
+        if operator_first:
+            Nhat_number, vhat_number = 0, 1 + max(carried)
+        else:
+            Nhat_number, vhat_number = 1 + max(others, default=-1), 0
+        # Reconstruct, so that the arguments keep the class of those of N.
+        Nhat = carried_arguments[0].reconstruct(
+            function_space=vstar.ufl_function_space().dual(), number=Nhat_number
+        )
+        vhat = vstar.reconstruct(number=vhat_number)
+        dF = expand_coefficient_derivatives(derivative(o, N, Nhat))
+        dN = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+        action = self(Action(dN, dF) if operator_first else Action(dF, dN))
+        # The other operators move out of F|N=0 and of dF/dN[Nhat] in turn. An operator
+        # that was nested only in N is now free to move out of F|N=0 too.
+        remainder = replace(o, {N: Zero(N.ufl_shape)})
+        if remainder.empty():
+            return action
+        return action + self(remainder)
 
     @process.register(Expr)
     def _(self, o: Expr) -> Expr:

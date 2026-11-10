@@ -15,7 +15,7 @@ from ufl.algorithms.analysis import has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.argument import Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import Zero, as_ufl
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
 
@@ -79,6 +79,9 @@ class Replacer(DAGTraverser):
         )
         if new_ops == o.ufl_operands and new_slots == o.argument_slots():
             return o
+        if any(isinstance(slot, Zero) for slot in new_slots[1:]):
+            # o is linear in its primal slots.
+            return Zero(o.ufl_shape)
         return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
 
     @process.register(ufl.classes.CoefficientDerivative)

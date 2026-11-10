@@ -792,6 +792,26 @@ def test_scaled_second_derivative(V1, V2):
     assert restructure_base_form(H) == expected
 
 
+def test_second_derivative_with_integral_without_interpolate(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0, v1 = TestFunction(V1), TrialFunction(V1)
+    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    J = 0.5 * (Iu - f) ** 2 * dx
+    R = 0.5 * inner(grad(u), grad(u)) * dx
+    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
+    d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
+    H = expand_derivatives(derivative(derivative(J + R, u), u))
+
+    # Moving out one Interpolate also removes the other, which leaves only R.
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    restructured_R, restructured_J = restructure_base_form(H).components()
+    assert renumber_indices(restructured_R) == renumber_indices(d2Rdu2)
+    assert restructured_J == expected
+
+
 def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     u = Coefficient(V1)
     du = Coefficient(V1)

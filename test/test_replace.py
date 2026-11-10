@@ -287,6 +287,20 @@ def test_replace_base_form_operator(V1):
     assert r == M * v + Iw * v
 
 
+@pytest.mark.parametrize("operator", ["interpolate", "external_operator"])
+def test_replace_primal_slot_by_zero(V1, operator):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    if operator == "interpolate":
+        N = Interpolate(w * v, V1)
+    else:
+        N = ExternalOperator(u, function_space=V1, argument_slots=(Coargument(V1.dual(), 1), w))
+
+    # The operator is linear in its primal slots.
+    assert replace(N, {w: Zero()}) == Zero()
+
+
 @pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])
 def test_replace_form_derivative(V1, replacement):
     u = Coefficient(V1)
