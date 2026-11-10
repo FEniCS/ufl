@@ -204,16 +204,19 @@ class BaseFormRestructurer(DAGTraverser):
             if N in nested or self.composable(N):
                 continue
             vstar, *slots = N.argument_slots()
-            carried = [a.number() for a in N.arguments() if a != vstar]
+            carried_arguments = [a for a in N.arguments() if a != vstar]
+            carried = [a.number() for a in carried_arguments]
             others = [a.number() for a in o.arguments() if a.number() not in carried]
             operator_first = min(carried) < min(others, default=inf)
             if operator_first:
                 Nhat_number, vhat_number = 0, 1 + max(carried)
             else:
                 Nhat_number, vhat_number = 1 + max(others, default=-1), 0
-            space = vstar.ufl_function_space()
-            Nhat = Argument(space.dual(), Nhat_number)
-            vhat = Coargument(space, vhat_number)
+            # Reconstruct, so that the arguments keep the class of those of N.
+            Nhat = carried_arguments[0].reconstruct(
+                function_space=vstar.ufl_function_space().dual(), number=Nhat_number
+            )
+            vhat = vstar.reconstruct(number=vhat_number)
             dF = expand_coefficient_derivatives(derivative(o, N, Nhat))
             if not isinstance(dF, Form) or dF.empty():
                 # N was in a term of an operator moved out before.

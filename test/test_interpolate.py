@@ -551,6 +551,14 @@ def test_derivative_direction_with_same_argument_number_raises(V1, V2, V3):
         dIu.arguments()
 
 
+def test_derivative_direction_with_coargument_number_raises(V1, V2):
+    u = Coefficient(V1)
+    dIu = derivative(Interpolate(u**2, V2), u, Argument(V1, 0))
+
+    with pytest.raises(ValueError, match=r"Same argument numbers in the operator"):
+        expand_derivatives(dIu)
+
+
 def test_derivative_with_gapped_coargument(V1, V2):
     u = Coefficient(V1)
     J = Interpolate(u, Argument(V2.dual(), 1)) * dx

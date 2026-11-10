@@ -1693,12 +1693,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             return di_op
         if dw != 0:
             # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
-            vstar, _ = i_op.argument_slots()
-            if isinstance(vstar, Coargument):
-                # Rebuild on the target space, so that v* takes a number that v leaves free.
-                di_op = i_op._ufl_expr_reconstruct_(dw, v=vstar.ufl_function_space().dual())
-            else:
-                di_op = i_op._ufl_expr_reconstruct_(dw)
+            di_op = i_op._ufl_expr_reconstruct_(dw)
         return di_op + self._dual_slot_derivative(i_op)
 
     @process.register(ExternalOperator)
@@ -1898,6 +1893,11 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         if dN_dN != 0:
             # Differentiation with respect to N itself.
             return dN_dN
+        free_numbers = {a.number() for a in N.arguments()}
+        if any(v.number() in free_numbers for v in self._direction_arguments):
+            # The arguments of N are free here, unlike those of an operator in an
+            # integrand, so they cannot be renumbered to make room for the direction.
+            raise ValueError("Same argument numbers in the operator and the derivative direction.")
         vstar, *slots = N.argument_slots()
         slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
         contracted, _ = _split_dual_slot_arguments(vstar, slot_arguments)

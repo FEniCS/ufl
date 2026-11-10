@@ -164,9 +164,18 @@ class Interpolate(BaseFormOperator):
 
     def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
+        from ufl.algorithms.analysis import extract_type
+
         if argument_slots is not None:
             v, expr = argument_slots
-        v = v or self.argument_slots()[0]
+        vstar = self.argument_slots()[0]
+        v = v or vstar
+        if v == vstar and isinstance(v, Coargument):
+            numbers = {a.number() for a in extract_type(expr, Argument, True)}
+            if v.number() in numbers:
+                # A Coargument that clashes with a new Argument of expr is bound,
+                # so it takes the lowest number that expr leaves free.
+                v = v.reconstruct(number=min(set(range(len(numbers) + 1)) - numbers))
         return type(self)(expr, v, **add_kwargs)
 
     def __repr__(self):
