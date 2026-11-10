@@ -233,6 +233,14 @@ class BaseFormRestructurer(DAGTraverser):
         """Traverse expressions in operator operands and argument slots."""
         return self.reuse_if_untouched(o)
 
+    @process.register(Sum)
+    def _(self, o: Sum) -> Expr | BaseForm:
+        """Return a FormSum if a term restructures into a BaseForm."""
+        terms = [self(t) for t in o.ufl_operands]
+        if all(isinstance(t, Expr) for t in terms):
+            return self.reuse_if_untouched(o)
+        return FormSum(*((t, 1) for t in terms))
+
     @process.register(FormSum)
     @DAGTraverser.postorder
     def _(self, o: FormSum, *components: BaseForm) -> BaseForm:

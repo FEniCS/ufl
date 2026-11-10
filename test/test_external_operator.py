@@ -560,6 +560,15 @@ def test_multiple_external_operators(V1, V2):
     expected = (inner(dN5du, v) + inner(dN1du, v) + inner(v_hat * N5 + u * dN5du, v)) * dx
     assert dFdu == apply_algebra_lowering(expected)
 
+    # dN5/dN4 acts on the sum dN4/du whole.
+    dN5dN4 = N5._ufl_expr_reconstruct_(
+        N4, u, derivatives=(1, 0), argument_slots=N5.arguments() + (v_hat,)
+    )
+    dN4du_sum = Action(dN4dN1(v_hat), dN1du) + dN4du_partial
+    expected = Action(dFdN, Action(dN5dN4, dN4du_sum)) + Action(dFdN, dN5du_partial)
+    dFdu = expand_derivatives(derivative(inner(N5, v) * dx, u))
+    assert restructure_base_form(dFdu) == expected
+
 
 def test_adjoint_derivative(V1, V2):
     u = Coefficient(V1)
