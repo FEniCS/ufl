@@ -211,6 +211,7 @@ class Coargument(BaseForm, BaseArgument):
 
     _primal = False
     _dual = True
+    _ufl_is_terminal_ = True
 
     def __new__(cls, *args, **kw):
         """Create a new Coargument."""
