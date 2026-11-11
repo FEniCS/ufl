@@ -136,7 +136,10 @@ class BaseFormRestructurer(DAGTraverser):
 
         left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
         right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
-        mapping = {a: a.reconstruct(number=i) for i, a in enumerate((*left_free, *right_free))}
+        # An Action keeps the numbers of its free arguments, which need not
+        # follow their positions, so renumber them in the order of their numbers.
+        free = sorted((*left_free, *right_free), key=lambda a: a.number())
+        mapping = {a: a.reconstruct(number=i) for i, a in enumerate(free)}
         used: defaultdict[Coargument, set[int]] = defaultdict(set)
         for operand in (left, right):
             for e in iter_expressions(operand):

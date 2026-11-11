@@ -268,6 +268,19 @@ def test_restructure_keeps_operator_with_contracted_value_in_integrand(V1, dual_
     assert restructure_base_form(form, max_composed_rank=0) == form
 
 
+@pytest.mark.parametrize("slot_number", [0, 1, 2])
+def test_restructure_operator_moved_out_composes_back(V1, slot_number):
+    arguments = [Argument(V1, i) for i in range(3)]
+    N = Interpolate(arguments.pop(slot_number), V1)
+    form = inner(N, arguments[0]) * arguments[1] * dx
+
+    restructured = restructure_base_form(form)
+    composed = restructure_base_form(restructured, max_composed_rank=3)
+
+    assert isinstance(restructured, Action)
+    assert composed.signature() == form.signature()
+
+
 def test_restructure_preserves_compound_gradient(V1):
     u = Coefficient(V1)
     h = Coefficient(V1)
