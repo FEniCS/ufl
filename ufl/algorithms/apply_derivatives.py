@@ -2025,6 +2025,15 @@ def apply_derivatives(expression):
         # Algebraic cancellation collapsed everything to a bare `0`: rebuild
         # a properly shaped `ZeroBaseForm` rather than an argument-less Form.
         dexpression_dvar = ZeroBaseForm(expression.arguments())
+    elif (
+        isinstance(expression, BaseForm)
+        and not expression.empty()
+        and isinstance(dexpression_dvar, Form)
+        and dexpression_dvar.empty()
+    ):
+        # Keep the arguments in a `ZeroBaseForm` when every integrand vanished,
+        # rather than return an argument-less Form.
+        dexpression_dvar = ZeroBaseForm(expression.arguments())
 
     # Get the recorded delayed operations
     pending_operations = dag_traverser.pending_operations
