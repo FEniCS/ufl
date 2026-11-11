@@ -21,7 +21,7 @@ from ufl import (
     nabla_grad,
     triangle,
 )
-from ufl.form import BaseForm
+from ufl.form import BaseForm, ZeroBaseForm
 
 
 @pytest.fixture
@@ -137,6 +137,15 @@ def test_form_domains():
 def test_form_empty(mass):
     assert not mass.empty()
     assert Form([]).empty()
+
+
+def test_zero_base_form_compiler_interface(mass):
+    zero = ZeroBaseForm(mass.arguments())
+    assert zero.empty()
+    assert zero.integrals() == ()
+    assert zero.constants() == ()
+    assert zero.terminal_numbering() == {}
+    assert zero._cache == {}
 
 
 def test_form_integrals(mass, boundary_load):
