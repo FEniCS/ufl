@@ -333,3 +333,13 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def __rmul__(self, other):
         """Multiply."""
         return self._parent_type.__rmul__(self, other)
+
+    def __truediv__(self, other):
+        """Divide."""
+        return self._parent_type.__truediv__(self, other)
+
+    def __rtruediv__(self, other):
+        """Divide by the operator, unless it is a form, which cannot divide."""
+        if self._parent_type is BaseForm:
+            return NotImplemented
+        return Operator.__rtruediv__(self, other)

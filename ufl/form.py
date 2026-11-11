@@ -235,6 +235,12 @@ class BaseForm(metaclass=UFLType):
             return action(self, coefficient)
         return NotImplemented
 
+    def __truediv__(self, scalar):
+        """Scale this form by ``1 / scalar``."""
+        if not is_scalar_constant_expression(scalar):
+            raise TypeError("A form can only be divided by a scalar constant.")
+        return self.__rmul__(1 / scalar)
+
     def __ne__(self, other):
         """Immediately evaluate the != operator (as opposed to the == operator)."""
         return not self.equals(other)
