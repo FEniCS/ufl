@@ -248,6 +248,26 @@ def test_restructure_leaves_preprocessing_to_form_compiler(V1):
     assert restructure_base_form(form) == form
 
 
+def test_restructure_keeps_operator_without_arguments_in_integrand(V1):
+    u = Coefficient(V1)
+    v = Argument(V1, 0)
+    form = inner(Interpolate(u, V1) ** 2, v) * dx
+
+    assert restructure_base_form(form, max_composed_rank=0) == form
+
+
+@pytest.mark.parametrize("dual_slot", ["cofunction", "form"])
+def test_restructure_keeps_operator_with_contracted_value_in_integrand(V1, dual_slot):
+    if dual_slot == "cofunction":
+        vstar = Cofunction(V1.dual())
+    else:
+        vstar = inner(Coefficient(V1), Argument(V1, 0)) * dx
+    v = Argument(V1, 0)
+    form = Interpolate(Argument(V1, 1), vstar) * v * dx
+
+    assert restructure_base_form(form, max_composed_rank=0) == form
+
+
 def test_restructure_preserves_compound_gradient(V1):
     u = Coefficient(V1)
     h = Coefficient(V1)
