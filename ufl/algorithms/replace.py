@@ -63,6 +63,17 @@ class Replacer(DAGTraverser):
                 return o
             return o._ufl_expr_reconstruct_(*args)
 
+    @process.register(ufl.classes.Sum)
+    @DAGTraverser.postorder
+    def _(self, o, *args):
+        """Replace the terms of a sum, which add as forms if they become forms."""
+        if o in self.mapping:
+            return self.mapping[o]
+        if all(new is old for new, old in zip(args, o.ufl_operands)):
+            return o
+        left, right = args
+        return left + right
+
     @process.register(ufl.classes.BaseFormOperator)
     def _(self, o):
         """Replace a base form operator.

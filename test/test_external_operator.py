@@ -231,6 +231,15 @@ def test_derivative_of_contracted_dual_slot(V1, V2):
     )
 
 
+def test_contracted_derivative_in_integrand(V1, V2):
+    u = Coefficient(V1)
+    N = ExternalOperator(u, function_space=V2, argument_slots=(Cofunction(V2.dual()),))
+
+    # The derivative of N is a form, which an integrand cannot contain.
+    with pytest.raises(ValueError, match="contracted"):
+        expand_derivatives(derivative(N**2 * dx, u))
+
+
 @pytest.mark.parametrize("max_rank", [1, 2])
 def test_differentiation_procedure_action(V1, V2, max_rank):
     s = Coefficient(V1)

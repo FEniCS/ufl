@@ -578,14 +578,46 @@ def test_derivative_with_gapped_coargument(V1, V2):
     assert dJdu.arguments() == (Argument(V1, 0),)
 
 
-def test_derivative_through_a_cofunction_dual_slot_in_an_integrand(V1, V2):
+@pytest.mark.parametrize("dual_slot", ["cofunction", "formsum"])
+def test_dual_slot_derivative_in_integrand(V1, V2, dual_slot):
     u = Coefficient(V1)
     v = Argument(V1, 0)
     c = Cofunction(V2.dual())
+    vstar = c if dual_slot == "cofunction" else 2 * c
+    F = Interpolate(u, vstar) * v * dx
 
-    dF = expand_derivatives(derivative(Interpolate(u, c) * v * dx, c))
+    # Interpolate(u, c) is a number in the integrand, and its derivative with
+    # respect to c is a form, which an integrand cannot hold.
+    with pytest.raises(ValueError, match="contracted"):
+        expand_derivatives(derivative(F, c))
 
-    assert dF == Interpolate(u, Coargument(V2.dual(), 1)) * v * dx
+
+@pytest.mark.parametrize("integrand", ["linear", "power", "exp", "operand"])
+def test_contracted_derivative_in_integrand(V1, V2, integrand):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, Cofunction(V2.dual()))
+    F = {
+        "linear": Iu * f * dx,
+        "power": Iu**2 * f * dx,
+        "exp": exp(Iu) * dx,
+        "operand": Interpolate(Iu * f, V2) * dx,
+    }[integrand]
+
+    # The derivative of Iu is a form, which an expression cannot contain.
+    with pytest.raises(ValueError, match="contracted"):
+        expand_derivatives(derivative(F, u))
+
+
+def test_contracted_derivative(V1, V2):
+    u = Coefficient(V1)
+    c = Cofunction(V2.dual())
+    uhat = Argument(V1, 0)
+
+    assert expand_derivatives(derivative(Interpolate(u, c), u, uhat)) == Interpolate(uhat, c)
+    assert expand_derivatives(derivative(Interpolate(u, c), c)) == Interpolate(
+        u, Coargument(V2.dual(), 0)
+    )
 
 
 def test_derivative_of_a_form_independent_of_a_cofunction(V1, V2):

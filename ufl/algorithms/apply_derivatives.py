@@ -1682,7 +1682,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     @process.register(BaseFormOperator)
     def _(self, o: BaseFormOperator) -> Expr:
         """Differentiate a base_form_operator."""
-        return self._process_coefficient(o)
+        do = self._process_coefficient(o)
+        if do != 0:
+            return do
+        if o._parent_type is BaseForm:
+            return self._contracted_operator_derivative(o)
+        return do
 
     @process.register(Interpolate)
     @DAGTraverser.postorder
@@ -1691,10 +1696,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         di_op = self._process_coefficient(i_op)
         if di_op != 0:
             return di_op
+        if i_op._parent_type is BaseForm:
+            return self._contracted_operator_derivative(i_op)
         if dw != 0:
             # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
             di_op = i_op._ufl_expr_reconstruct_(dw)
-        return di_op + self._dual_slot_derivative(i_op)
+        return di_op
 
     @process.register(ExternalOperator)
     @DAGTraverser.postorder
@@ -1703,6 +1710,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         dN = self._process_coefficient(N)
         if dN != 0:
             return dN
+        if N._parent_type is BaseForm:
+            return self._contracted_operator_derivative(N)
         for i, df in enumerate(dfs):
             if df == 0:
                 continue
@@ -1727,15 +1736,18 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 continue
             dslots = (*slots[:i], dslot, *slots[i + 1 :])
             dN += N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vstar, *dslots))
-        return dN + self._dual_slot_derivative(N)
+        return dN
 
-    def _dual_slot_derivative(self, N: BaseFormOperator) -> Expr:
-        """Return N(u; Dv*), which N is linear in, if the dual slot v* is a variable."""
-        vstar, *slots = N.argument_slots()
-        dvstar = self._w2v.get(vstar)
-        if dvstar is None:
-            return Zero(N.ufl_shape)
-        return N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+    def _contracted_operator_derivative(self, N: BaseFormOperator) -> Expr:
+        """Differentiate a contracted operator, which is a number in an expression.
+
+        The derivative is zero if no variable occurs in N. Otherwise it is a form,
+        which an expression cannot hold.
+        """
+        variables = (*extract_coefficients(N), *extract_type(N, BaseFormOperator))
+        if any(v in self._w2v or v in self._cd for v in variables):
+            raise ValueError("Cannot differentiate a contracted operator in an expression.")
+        return Zero(N.ufl_shape)
 
     # -- Handlers for BaseForm objects -- #
 
@@ -1913,17 +1925,21 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
                 # N(u; F) is F composed with w(u; v*), and F is linear, so the
                 # derivative with respect to w in the direction v is F[v].
                 return replace(vstar, {contracted: v})
+        # N(u; v*) is v*(N(u; vhat)) with a free output vhat, and it is linear in v*, so
+        # D[N(u; v*)] = v*(D[N(u; vhat)]) + N(u; Dv*). The expression rules give
+        # D[N(u; vhat)], since N(u; vhat) is an expression.
         arguments = N.arguments() + self._direction_arguments
-        dual_term = ZeroBaseForm(arguments)
-        if not isinstance(vstar, Coargument | Cofunction):
-            # The expression rules differentiate a Coargument or a Cofunction in the
-            # dual slot, but a Form in the dual slot needs the BaseForm rules.
-            dvstar = self(_number_contracted_argument(N, vstar, arguments))
-            if not isinstance(dvstar, ZeroBaseForm):
-                dual_term = N._ufl_expr_reconstruct_(
-                    *N.ufl_operands, argument_slots=(dvstar, *slots)
-                )
-        return self._expression_rules(N) + dual_term
+        number = 1 + max((a.number() for a in arguments), default=-1)
+        # Reconstruct an existing argument, so that vhat keeps its class. The arguments
+        # of v* include the argument that it contracts, which N does not report.
+        template, *_ = arguments + vstar.arguments()
+        vhat = template.reconstruct(function_space=N._function_space.dual(), number=number)
+        free = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+        dN = replace(self._expression_rules(free), {vhat: vstar})
+        dvstar = self(_number_contracted_argument(N, vstar, arguments))
+        if isinstance(dvstar, ZeroBaseForm):
+            return dN + ZeroBaseForm(arguments)
+        return dN + N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
 
 
 class DerivativeRuleDispatcher(DAGTraverser):

@@ -40,7 +40,7 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import Div
-from ufl.form import Form, ZeroBaseForm
+from ufl.form import Form, FormSum, ZeroBaseForm
 
 
 def _contains(expr, obj):
@@ -323,6 +323,20 @@ def test_replace_primal_slot_by_zero_in_form(V1, operator, dual_slot):
     # A contracted dual slot makes the operator a form, so it becomes a zero form
     # with the same arguments.
     assert replace(N, {w: Zero()}) == ZeroBaseForm(arguments)
+
+
+def test_replace_dual_slot_in_sum(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    vstar = Coargument(V1.dual(), 0)
+    c = Cofunction(V1.dual())
+    N = ExternalOperator(u, function_space=V1, argument_slots=(vstar,))
+    M = ExternalOperator(w, function_space=V1, argument_slots=(vstar,))
+
+    # The contracted operators are forms, so their sum is a FormSum.
+    r = replace(N + M, {vstar: c})
+    assert isinstance(r, FormSum)
+    assert set(r.components()) == {replace(N, {vstar: c}), replace(M, {vstar: c})}
 
 
 @pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])
