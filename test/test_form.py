@@ -5,6 +5,7 @@ from ufl import (
     Action,
     Coefficient,
     Cofunction,
+    Constant,
     Form,
     FormSum,
     FunctionSpace,
@@ -206,3 +207,16 @@ def test_formsum(mass):
     assert df.weights()[0] == 9
 
     assert FormSum((mass, 1)) is mass
+
+
+def test_form_divided_by_constant_scales(mass):
+    V = mass.arguments()[0].ufl_function_space()
+    c = Constant(V.ufl_domain())
+    cofunction = Cofunction(V.dual())
+    for form in (mass, mass + cofunction, cofunction, Action(mass, Coefficient(V))):
+        assert form / 2 == 0.5 * form
+        assert form / c == (1 / c) * form
+        with pytest.raises(TypeError):
+            form / Coefficient(V)
+        with pytest.raises(TypeError):
+            2 / form

@@ -45,7 +45,7 @@ from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.checks import is_scalar_constant_expression
-from ufl.classes import Product, ReferenceGrad, ReferenceValue, Sum
+from ufl.classes import Division, Product, ReferenceGrad, ReferenceValue, Sum
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
@@ -159,6 +159,7 @@ def test_external_operator_follows_dual_slot(V1, V2):
 
     free = ExternalOperator(u, function_space=V2, argument_slots=(coargument, v))
     assert isinstance(-free, Product)
+    assert isinstance(free / 2, Division)
 
     for contracted in (
         ExternalOperator(u, function_space=V2, argument_slots=(cofunction,)),
@@ -167,6 +168,11 @@ def test_external_operator_follows_dual_slot(V1, V2):
         assert isinstance(-contracted, FormSum)
         assert isinstance(contracted + contracted, FormSum)
         assert isinstance(contracted - contracted, FormSum)
+        assert contracted / 2 == 0.5 * contracted
+        with pytest.raises(TypeError):
+            contracted / u
+        with pytest.raises(TypeError):
+            2 / contracted
 
 
 @pytest.mark.parametrize("operand", ["coefficient", "test_function"])
@@ -242,11 +248,15 @@ def test_operator_of_constants_is_constant_only_in_a_real_space(domain_2d, V1, V
 
 
 def test_form_acts_on_operator_of_constants(domain_2d, V1, V2):
+    real_space = FunctionSpace(
+        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
+    )
     c = Constant(domain_2d)
-    linear = inner(1, TestFunction(V1)) * dx
-    for operator in (Interpolate(c, V1), ExternalOperator(c, function_space=V1)):
-        assert linear * operator == action(linear, operator)
-        assert (linear * operator).arguments() == ()
+    for space in (V1, real_space):
+        linear = inner(1, TestFunction(space)) * dx
+        for operator in (Interpolate(c, space), ExternalOperator(c, function_space=space)):
+            assert linear * operator == action(linear, operator)
+            assert (linear * operator).arguments() == ()
 
 
 @pytest.mark.parametrize("operand", ["coefficient", "constant"])

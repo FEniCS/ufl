@@ -224,13 +224,22 @@ class BaseForm(metaclass=UFLType):
 
     def __mul__(self, coefficient):
         """Scale this form by a number, or take its action on the given coefficient."""
-        if not isinstance(coefficient, FormArgument) and is_scalar_constant_expression(coefficient):
+        # A Coefficient or a base form operator is a function to act on, even in a
+        # real space.
+        is_function = isinstance(coefficient, FormArgument | BaseForm)
+        if not is_function and is_scalar_constant_expression(coefficient):
             return self.__rmul__(coefficient)
         if isinstance(coefficient, Expr) and self.arguments():
             from ufl.formoperators import action
 
             return action(self, coefficient)
         return NotImplemented
+
+    def __truediv__(self, scalar):
+        """Scale this form by ``1 / scalar``."""
+        if not is_scalar_constant_expression(scalar):
+            raise TypeError("A form can only be divided by a scalar constant.")
+        return self.__rmul__(1 / scalar)
 
     def __ne__(self, other):
         """Immediately evaluate the != operator (as opposed to the == operator)."""
