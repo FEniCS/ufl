@@ -8,16 +8,19 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from collections import OrderedDict
 from functools import singledispatchmethod
 
 import ufl.classes
-from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.analysis import extract_type, has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.argument import Coargument
+from ufl.argument import Argument, Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
 from ufl.constantvalue import Zero, as_ufl
+from ufl.core.base_form_operator import _split_dual_slot_arguments
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.form import ZeroBaseForm
 
 
 class Replacer(DAGTraverser):
@@ -79,10 +82,19 @@ class Replacer(DAGTraverser):
         )
         if new_ops == o.ufl_operands and new_slots == o.argument_slots():
             return o
-        if any(isinstance(slot, Zero) for slot in new_slots[1:]):
-            # o is linear in its primal slots.
+        new = o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
+        if not any(isinstance(slot, Zero) for slot in new_slots[1:]):
+            return new
+        # o is linear in its primal slots.
+        if new._parent_type is not BaseForm:
             return Zero(o.ufl_shape)
-        return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
+        # The dual slot contracts o into a form, which keeps the Arguments of the
+        # slots that became zero.
+        mapped = (primal_mapping.get(a, a) for s in slots for a in extract_type(s, Argument, True))
+        slot_arguments = [a for a in mapped if isinstance(a, Argument)]
+        _, dual_arguments = _split_dual_slot_arguments(new_slots[0], slot_arguments)
+        arguments = OrderedDict.fromkeys((*dual_arguments, *slot_arguments))
+        return ZeroBaseForm(tuple(sorted(arguments, key=lambda a: a.number())))
 
     @process.register(ufl.classes.CoefficientDerivative)
     def _(self, o):

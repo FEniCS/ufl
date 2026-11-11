@@ -3,6 +3,7 @@ from utils import ForeignDerivative, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
+    Argument,
     Coargument,
     Coefficient,
     Cofunction,
@@ -39,7 +40,7 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
 from ufl.differentiation import Div
-from ufl.form import Form
+from ufl.form import Form, ZeroBaseForm
 
 
 def _contains(expr, obj):
@@ -299,6 +300,29 @@ def test_replace_primal_slot_by_zero(V1, operator):
 
     # The operator is linear in its primal slots.
     assert replace(N, {w: Zero()}) == Zero()
+
+
+@pytest.mark.parametrize("dual_slot", ["cofunction", "form"])
+@pytest.mark.parametrize("operator", ["interpolate", "external_operator"])
+def test_replace_primal_slot_by_zero_in_form(V1, operator, dual_slot):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    if dual_slot == "cofunction":
+        vstar = Cofunction(V1.dual())
+        arguments = (v,)
+    else:
+        vstar = inner(TrialFunction(V1), TestFunction(V1)) * dx
+        v1 = Argument(V1, 1)
+        arguments = (v, v1)
+    if operator == "interpolate":
+        N = Interpolate(w * v, vstar)
+    else:
+        N = ExternalOperator(u, function_space=V1, argument_slots=(vstar, w * v))
+
+    # A contracted dual slot makes the operator a form, so it becomes a zero form
+    # with the same arguments.
+    assert replace(N, {w: Zero()}) == ZeroBaseForm(arguments)
 
 
 @pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])
