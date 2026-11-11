@@ -1914,7 +1914,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
                 # derivative with respect to w in the direction v is F[v].
                 return replace(vstar, {contracted: v})
         arguments = N.arguments() + self._direction_arguments
-        dual_term: Expr | BaseForm = ZeroBaseForm(arguments)
+        dual_term = ZeroBaseForm(arguments)
         if not isinstance(vstar, Coargument | Cofunction):
             # The expression rules differentiate a Coargument or a Cofunction in the
             # dual slot, but a Form in the dual slot needs the BaseForm rules.
