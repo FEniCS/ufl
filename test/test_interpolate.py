@@ -242,11 +242,15 @@ def test_operator_of_constants_is_constant_only_in_a_real_space(domain_2d, V1, V
 
 
 def test_form_acts_on_operator_of_constants(domain_2d, V1, V2):
+    real_space = FunctionSpace(
+        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
+    )
     c = Constant(domain_2d)
-    linear = inner(1, TestFunction(V1)) * dx
-    for operator in (Interpolate(c, V1), ExternalOperator(c, function_space=V1)):
-        assert linear * operator == action(linear, operator)
-        assert (linear * operator).arguments() == ()
+    for space in (V1, real_space):
+        linear = inner(1, TestFunction(space)) * dx
+        for operator in (Interpolate(c, space), ExternalOperator(c, function_space=space)):
+            assert linear * operator == action(linear, operator)
+            assert (linear * operator).arguments() == ()
 
 
 @pytest.mark.parametrize("operand", ["coefficient", "constant"])
