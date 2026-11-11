@@ -886,6 +886,10 @@ class ZeroBaseForm(BaseForm):
 
     __slots__ = (
         "_arguments",
+        # --- Dict that external frameworks can place framework-specific
+        #     data in to be carried with the form
+        #     Never use this internally in ufl!
+        "_cache",
         "_coefficients",
         "_domains",
         "_hash",
@@ -904,6 +908,7 @@ class ZeroBaseForm(BaseForm):
         self._hash = None
         self._signature = None
         self._domains = None
+        self._cache: dict[typing.Any, typing.Any] = {}
         self.form = None
 
     def _ufl_expr_reconstruct_(self, *operands):
@@ -937,6 +942,10 @@ class ZeroBaseForm(BaseForm):
     def integrals(self):
         """Return the integrals of the form. A ZeroBaseForm has none."""
         return ()
+
+    def terminal_numbering(self):
+        """Return an empty numbering, since a ZeroBaseForm has no terminals to number."""
+        return {}
 
     def constants(self):
         """Return the constants of the form. A ZeroBaseForm has none."""
