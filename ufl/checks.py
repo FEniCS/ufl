@@ -10,7 +10,7 @@
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import FormArgument
-from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.corealg.traversal import cutoff_unique_post_traversal, traverse_unique_terminals
 from ufl.geometry import GeometricQuantity
 from ufl.sobolevspace import H1
 
@@ -49,13 +49,8 @@ def is_scalar_constant_expression(expr):
 
     # TODO: This does not consider gradients of coefficients, so false
     # negatives are possible.
-    stack = [expr]
-    visited = set()
-    while stack:
-        e = stack.pop()
-        if e in visited:
-            continue
-        visited.add(e)
+    cutoff_types = [issubclass(cls, BaseFormOperator) for cls in Expr._ufl_all_classes_]
+    for e in cutoff_unique_post_traversal(expr, cutoff_types):
         if isinstance(e, FormArgument | BaseFormOperator):
             # Arguments, Coefficients and base form operators all take values in
             # their function space, so accept only globally constant spaces.
@@ -71,8 +66,6 @@ def is_scalar_constant_expression(expr):
             # Reject all geometric quantities, they all vary over
             # cells
             return False
-        else:
-            stack.extend(e.ufl_operands)
 
     # All nodes passed constant check
     return True
