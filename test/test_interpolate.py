@@ -597,6 +597,15 @@ def test_derivative_of_a_form_independent_of_a_cofunction(V1, V2):
     assert dF == ZeroBaseForm((v, Coargument(V2.dual(), 1)))
 
 
+def test_derivative_of_a_form_sum_by_a_cofunction(V1, V2):
+    u = Coefficient(V1)
+    c = Cofunction(V2.dual())
+
+    dF = expand_derivatives(derivative(Interpolate(u, c) + u * dx, c))
+
+    assert dF == Interpolate(u, Coargument(V2.dual(), 0))
+
+
 @pytest.mark.parametrize("max_rank", [1, 2])
 def test_action_adjoint(V1, V2, max_rank):
     # Set dual of V2
