@@ -15,7 +15,6 @@ from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
 from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
-from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
 from ufl.finiteelement import AbstractFiniteElement
@@ -160,39 +159,6 @@ class Interpolate(BaseFormOperator):
     def ufl_shape(self):
         """Return the value shape in the interpolation target space."""
         return self._function_space.value_shape
-
-    def _value_parent_type(self):
-        """Return the type whose arithmetic matches the interpolation's value.
-
-        An interpolation takes its value in the target space, which is the
-        space ``ufl_shape`` reports. Scaling and negation follow that space, so
-        that an interpolation of a test function stays an expression and can be
-        combined with one inside an integrand. ``_parent_type`` instead follows
-        ``ufl_function_space()``, the adjoint's source dual, and still drives
-        addition, where a sum of adjoint interpolations must stay a form.
-
-        A dual slot that contracts the value leaves a form in any free arguments,
-        which can be combined with other forms.
-        """
-        dual_slot_arguments = self.argument_slots()[0].arguments()
-        if self.arguments() and not any(isinstance(a, Coargument) for a in dual_slot_arguments):
-            return BaseForm
-        function_space = self._function_space
-        if function_space is None or not is_dual(function_space):
-            return Operator
-        return BaseForm
-
-    def __neg__(self):
-        """Negate the interpolation result."""
-        return self._value_parent_type().__rmul__(self, -1)
-
-    def __mul__(self, other):
-        """Multiply, agreeing with negation on which space the value is in."""
-        return self._value_parent_type().__mul__(self, other)
-
-    def __rmul__(self, other):
-        """Multiply, agreeing with negation on which space the value is in."""
-        return self._value_parent_type().__rmul__(self, other)
 
     def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""

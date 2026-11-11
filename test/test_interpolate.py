@@ -13,6 +13,7 @@ from ufl import (
     Coargument,
     Coefficient,
     Cofunction,
+    Constant,
     FunctionSpace,
     Mesh,
     SpatialCoordinate,
@@ -43,11 +44,13 @@ from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
-from ufl.classes import Product, ReferenceGrad, ReferenceValue
+from ufl.checks import is_scalar_constant_expression
+from ufl.classes import Division, Product, ReferenceGrad, ReferenceValue, Sum
+from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1
+from ufl.sobolevspace import H1, HInf
 
 
 @pytest.fixture
@@ -135,7 +138,7 @@ def test_shape_and_negation(domain_2d, V1, V2):
         assert not isinstance(-interpolation, FormSum)
 
     assert isinstance(-Interpolate(Coefficient(V1), V2), Product)
-    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
+    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), FormSum)
 
 
 def test_negation_of_contracted_interpolation_with_arguments(V1, V2):
@@ -146,6 +149,125 @@ def test_negation_of_contracted_interpolation_with_arguments(V1, V2):
         assert isinstance(scaled, FormSum)
         assert scaled.arguments() == (v,)
     assert isinstance(inner(1, v) * dx - interpolation, FormSum)
+
+
+def test_external_operator_follows_dual_slot(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    cofunction = Cofunction(V2.dual())
+    coargument = Coargument(V2.dual(), 1)
+
+    free = ExternalOperator(u, function_space=V2, argument_slots=(coargument, v))
+    assert isinstance(-free, Product)
+    assert isinstance(free / 2, Division)
+
+    for contracted in (
+        ExternalOperator(u, function_space=V2, argument_slots=(cofunction,)),
+        ExternalOperator(u, function_space=V2, argument_slots=(cofunction, v)),
+    ):
+        assert isinstance(-contracted, FormSum)
+        assert isinstance(contracted + contracted, FormSum)
+        assert isinstance(contracted - contracted, FormSum)
+        assert contracted / 2 == 0.5 * contracted
+        with pytest.raises(TypeError):
+            contracted / u
+        with pytest.raises(TypeError):
+            2 / contracted
+
+
+@pytest.mark.parametrize("operand", ["coefficient", "test_function"])
+def test_difference_of_contracted_interpolations_is_a_form_sum(V1, V2, operand):
+    expr = Coefficient(V1) if operand == "coefficient" else TestFunction(V1)
+    interpolation = Interpolate(expr, Cofunction(V2.dual()))
+    linear = inner(1, TestFunction(V1)) * dx if operand == "test_function" else None
+
+    difference = interpolation - interpolation
+    assert isinstance(difference, FormSum)
+    assert difference.arguments() == interpolation.arguments()
+    assert difference.weights() == [1, -1]
+    if linear is not None:
+        for difference in (interpolation - linear, linear - interpolation):
+            assert isinstance(difference, FormSum)
+            assert difference.arguments() == interpolation.arguments()
+
+
+def test_zero_form_has_nothing_to_act_on(V1, V2):
+    u = Coefficient(V1)
+    zero_form = Interpolate(u, Cofunction(V2.dual()))
+    assert isinstance(zero_form * u, Product)
+    assert isinstance(u * zero_form, Product)
+
+    with pytest.raises(TypeError):
+        (u * dx) * u
+    with pytest.raises(ValueError, match="without arguments"):
+        action(u * dx, u)
+    with pytest.raises(ValueError, match="without arguments"):
+        action(zero_form, u)
+
+
+def test_replace_zero_form(V1, V2):
+    u = Coefficient(V1)
+    zero_form = Interpolate(u, Cofunction(V2.dual()))
+    form = zero_form * u * dx
+    assert replace(form, {zero_form: 2.0}) == 2.0 * u * dx
+
+
+def test_form_multiplied_by_number_scales(domain_2d, V1, V2):
+    v = TestFunction(V1)
+    u = TrialFunction(V1)
+    linear = inner(Coefficient(V1), v) * dx
+    constant = Constant(domain_2d)
+
+    assert linear * 2 == 2 * linear
+    assert linear * constant == constant * linear
+    assert (inner(u, v) * dx * 2).arguments() == (v, u)
+
+    interpolation = Interpolate(v, Cofunction(V2.dual()))
+    assert interpolation * 2 == 2 * interpolation
+
+
+def test_form_acts_on_real_coefficient(domain_2d, V1):
+    real_space = FunctionSpace(
+        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
+    )
+    v = TestFunction(V1)
+    form = inner(TrialFunction(real_space), v) * dx
+    assert (form * Coefficient(real_space)).arguments() == (v,)
+
+
+def test_operator_of_constants_is_constant_only_in_a_real_space(domain_2d, V1, V2):
+    real_space = FunctionSpace(
+        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
+    )
+    c = Constant(domain_2d)
+    for space in (V2, real_space):
+        operators = (Interpolate(c, space), ExternalOperator(c, function_space=space))
+        for operator in operators:
+            assert is_scalar_constant_expression(operator) == (space is real_space)
+            assert is_scalar_constant_expression(2 * operator) == (space is real_space)
+
+
+def test_form_acts_on_operator_of_constants(domain_2d, V1, V2):
+    real_space = FunctionSpace(
+        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
+    )
+    c = Constant(domain_2d)
+    for space in (V1, real_space):
+        linear = inner(1, TestFunction(space)) * dx
+        for operator in (Interpolate(c, space), ExternalOperator(c, function_space=space)):
+            assert linear * operator == action(linear, operator)
+            assert (linear * operator).arguments() == ()
+
+
+@pytest.mark.parametrize("operand", ["coefficient", "constant"])
+def test_form_times_zero_form_raises(domain_2d, V1, V2, operand):
+    expr = Coefficient(V1) if operand == "coefficient" else Constant(domain_2d)
+    zero_form = Interpolate(expr, Cofunction(V2.dual()))
+    linear = inner(1, TestFunction(V1)) * dx
+    with pytest.raises(ValueError, match="0-form"):
+        linear * zero_form
+    with pytest.raises(TypeError):
+        zero_form * linear
 
 
 def test_negation_of_interpolation_with_scaled_coargument(V1, V2):
@@ -159,8 +281,8 @@ def test_negation_of_interpolation_with_scaled_coargument(V1, V2):
 def test_scaling_agrees_with_negation(domain_2d, V1, V2):
     """Scaling an interpolation must agree with negating it.
 
-    Both follow the target space, the one that ``ufl_shape`` reports, so that an
-    interpolation of a test function stays an expression. Firedrake's fml is
+    Both follow the dual slot, so that an interpolation of a test function stays
+    an expression. Firedrake's fml is
     what notices a disagreement: it builds ``form - label(form)`` and compares
     the result against ``-form``.
     """
@@ -179,17 +301,17 @@ def test_scaling_agrees_with_negation(domain_2d, V1, V2):
         # Scaling preserves the value shape, which a FormSum would not have.
         assert (2 * interpolation).ufl_shape == target_space.value_shape
 
-    for interpolation in (
-        Interpolate(Coefficient(V1), V2),
-        Interpolate(Coefficient(V1), Cofunction(V2.dual())),
-    ):
-        assert isinstance(-1 * interpolation, Product)
-        assert type(-interpolation) is type(-1 * interpolation)
+    interpolation = Interpolate(Coefficient(V1), V2)
+    assert isinstance(-1 * interpolation, Product)
+    assert type(-interpolation) is type(-1 * interpolation)
 
-    # Addition still follows ufl_function_space(), so that a sum of adjoint
-    # interpolations stays a form -- see test_interpolate_expr.
+    interpolation = Interpolate(Coefficient(V1), Cofunction(V2.dual()))
+    assert isinstance(-1 * interpolation, FormSum)
+    assert type(-interpolation) is type(-1 * interpolation)
+
+    # The output of an adjoint interpolation is free, so its sum stays an expression.
     adjoint_interpolation = Interpolate(test, target_space)
-    assert isinstance(adjoint_interpolation + adjoint_interpolation, FormSum)
+    assert isinstance(adjoint_interpolation + adjoint_interpolation, Sum)
 
 
 def test_form_compiler_signature(V1, V2, V3):

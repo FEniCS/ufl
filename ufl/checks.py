@@ -10,7 +10,7 @@
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import FormArgument
-from ufl.corealg.traversal import traverse_unique_terminals
+from ufl.corealg.traversal import cutoff_unique_post_traversal, traverse_unique_terminals
 from ufl.geometry import GeometricQuantity
 from ufl.sobolevspace import H1
 
@@ -42,21 +42,30 @@ def is_scalar_constant_expression(expr):
     """Check if an expression is a globally constant scalar expression."""
     if is_python_scalar(expr):
         return True
-    if expr.ufl_shape:
+    if not isinstance(expr, Expr) or expr.ufl_shape:
         return False
+
+    from ufl.core.base_form_operator import BaseFormOperator  # Avoid circular import
 
     # TODO: This does not consider gradients of coefficients, so false
     # negatives are possible.
-    for e in traverse_unique_terminals(expr):
-        # Return False if any single terminal is not constant
-        if isinstance(e, FormArgument):
-            # Accept only globally constant Arguments and Coefficients
-            if e.ufl_element().embedded_superdegree > 0 or e.ufl_element() not in H1:
+    cutoff_types = [issubclass(cls, BaseFormOperator) for cls in Expr._ufl_all_classes_]
+    for e in cutoff_unique_post_traversal(expr, cutoff_types):
+        if isinstance(e, FormArgument | BaseFormOperator):
+            # Arguments, Coefficients and base form operators all take values in
+            # their function space, so accept only globally constant spaces.
+            # The operands of a base form operator do not matter, and an
+            # operator without a function space is a 0-form, not an expression.
+            space = e.ufl_function_space()
+            if space is None:
+                return False
+            element = space.ufl_element()
+            if element.embedded_superdegree > 0 or element not in H1:
                 return False
         elif isinstance(e, GeometricQuantity):
             # Reject all geometric quantities, they all vary over
             # cells
             return False
 
-    # All terminals passed constant check
+    # All nodes passed constant check
     return True
