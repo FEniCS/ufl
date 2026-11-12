@@ -782,6 +782,10 @@ class FormSum(BaseForm):
         """Get weights."""
         return self._weights
 
+    def _ufl_expr_reconstruct_(self, *operands):
+        """Return a new FormSum with new components and the same weights."""
+        return FormSum(*zip(operands, self._weights))
+
     def _sum_variational_components(self):
         """Sum variational components."""
         var_forms = None
