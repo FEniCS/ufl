@@ -1571,8 +1571,10 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             wval: Expr
             # -- Analyse differentiation variable coefficient -- #
 
-            # Can differentiate a Form wrt a BaseFormOperator
-            if isinstance(w, FormArgument | BaseFormOperator):
+            # Can differentiate a Form wrt a BaseFormOperator.
+            # A Cofunction is never the operand of a gradient, so the
+            # `w == o` check below skips it.
+            if isinstance(w, FormArgument | BaseFormOperator | Cofunction):
                 if not w == o:
                     continue
                 wshape = w.ufl_shape
