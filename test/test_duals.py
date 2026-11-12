@@ -502,6 +502,28 @@ def test_cofunction_derivative_domains():
     assert extract_domains(dFdc) == (domain,)
 
 
+def test_form_sum_coargument_argument_order():
+    # A Coargument in V* is the identity map V* x V -> R.
+    # It has one argument in V* and one in V, with the same number.
+    # In a FormSum, the Argument in V comes last for every hash order.
+    # An Action can then contract it with a Coefficient in V.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    for degree in range(1, 9):
+        V = FunctionSpace(domain, LagrangeElement(triangle, degree))
+        dc = Coargument(V.dual(), 0)
+        assert FormSum((dc, -1)).arguments() == (dc, Argument(V, 0))
+
+        # The derivative of -c(w) with respect to the Cofunction c,
+        # in the direction dc, is the 1-form -dc(w) on V*.
+        u = Coefficient(V)
+        w = Coefficient(V)
+        v = TestFunction(V)
+        c = Cofunction(V.dual())
+        F = inner(u, v) * dx - c
+        dF = expand_derivatives(derivative(Action(F, w), c, dc))
+        assert dF.arguments() == (dc,)
+
+
 def test_zero_base_form_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
