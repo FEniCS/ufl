@@ -93,6 +93,11 @@ def _assembly_cost(root):
         assert node_rank <= 2, f"Cannot assemble rank-{node_rank} {type(node).__name__}"
         if isinstance(node, (Coefficient, Cofunction, Matrix, ZeroBaseForm)):
             return
+        if isinstance(node, (BaseFormOperator, Form)):
+            # Check that the arguments are numbered from zero, since the form compiler indexes
+            # them by number.
+            numbers = [a.number() for a in node.arguments()]
+            assert numbers == list(range(node_rank)), f"Arguments numbered {numbers}"
         if isinstance(node, BaseFormOperator):
             for value in (*node.ufl_operands, *node.argument_slots()):
                 symbolic(value)
@@ -782,7 +787,7 @@ def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4, max_rank):
 
     restructured = restructure_base_form(N, max_composed_rank=max_rank)
     if max_rank == 1:
-        row = Action(f * inner(Argument(V2, 2), TestFunction(V1)) * dx, Interpolate(u, V2))
+        row = Action(f * inner(Argument(V2, 1), TestFunction(V1)) * dx, Interpolate(u, V2))
         expected = Action(Interpolate(w, Argument(V1.dual(), 1)), row)
     else:
         expected = f * inner(Interpolate(u, V2), Interpolate(w, V1)) * dx
@@ -805,6 +810,21 @@ def test_restructure_nested_adjoint_interpolate(V1, V2, V3, max_rank):
         expected = inner(f, Interpolate(Interpolate(w, V1), V2)) * dx
     assert restructured == expected
     assert restructured.arguments() == N.arguments()
+
+
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_pullback_of_action(V1, V2, max_rank):
+    # Pull back the Action J through two interpolations, then check that each Form and
+    # operator that is assembled on its own is numbered from zero.
+    v = TestFunction(V1)
+    u = TrialFunction(V1)
+    M = inner(TrialFunction(V2), v) * dx
+    J = Action(M, Interpolate(u, V2))
+    pullback = Interpolate(u, Interpolate(v, J))
+
+    restructured = restructure_base_form(pullback, max_composed_rank=max_rank)
+    assert restructured.arguments() == J.arguments()
+    _assembly_cost(restructured)
 
 
 def test_restructure_keeps_operand_arguments(V1, V2):

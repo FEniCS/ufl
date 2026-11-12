@@ -332,8 +332,11 @@ class BaseFormRestructurer(DAGTraverser):
             # A base form operator is linear in its dual slot, so N(u; A) splits into
             # Action(N(u; vhat), A) if the primal slots use number 0, and otherwise
             # into Action(A, N(u; vhat)). Each contracts the contracted argument of A.
-            A = _number_contracted_argument(o, vstar, o.arguments())
+            # Number that argument after the free arguments of A, so that A, which is
+            # assembled on its own, is numbered from zero.
             slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
+            _, free = _split_dual_slot_arguments(vstar, slot_arguments)
+            A = _number_contracted_argument(o, vstar, free)
             contracted, _ = _split_dual_slot_arguments(A, slot_arguments)
             slot_numbers = [a.number() for a in slot_arguments]
             operator_first = 0 in slot_numbers
