@@ -511,6 +511,24 @@ def test_form_sum_coargument_argument_order():
         assert dF.arguments() == (dc,)
 
 
+def test_cofunction_mixed_derivative():
+    # The residual F = a(u; v) - c is affine in the Cofunction c.
+    # Thus its mixed second derivative by c and u is zero.
+    # This is also true when a contains a derivative of u.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    du = Coefficient(V)
+    v = TestFunction(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    F = u * u.dx(0) * v.dx(0) * dx - c
+    dFdc = derivative(Action(F, w), c, dc)
+    assert expand_derivatives(dFdc).arguments() == (dc,)
+    assert isinstance(expand_derivatives(derivative(dFdc, u, du)), ZeroBaseForm)
+
+
 def test_zero_base_form_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
