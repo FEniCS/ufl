@@ -58,6 +58,9 @@ def _number_contracted_argument(N, A, others):
     vstar, *slots = N.argument_slots()
     slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
     contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
+    if contracted is None:
+        # A Coargument or a Cofunction in the dual slot contracts no argument of A.
+        return A
     if any(a.number() == 0 for a in slot_args):
         number = 0
     else:

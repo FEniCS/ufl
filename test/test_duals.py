@@ -22,6 +22,7 @@ from ufl import (
     adjoint,
     derivative,
     dx,
+    grad,
     inner,
     interval,
     tetrahedron,
@@ -487,6 +488,72 @@ def test_action_derivative():
     dAt = Action(derivative(Action(c, u), c), t)
     assert dAt.arguments() == ()
     assert expand_derivatives(dAt) == Action(u, t)
+
+
+def test_form_sum_coargument_argument_order():
+    # A Coargument in V* is the identity map V* x V -> R.
+    # It has one argument in V* and one in V, with the same number.
+    # In a FormSum, the Argument in V comes last for every hash order.
+    # An Action can then contract it with a Coefficient in V.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    for degree in range(1, 9):
+        V = FunctionSpace(domain, LagrangeElement(triangle, degree))
+        dc = Coargument(V.dual(), 0)
+        assert dc.arguments() == (dc, Argument(V, 0))
+        assert FormSum((dc, -1)).arguments() == dc.arguments()
+
+        # The derivative of -c(w) with respect to the Cofunction c,
+        # in the direction dc, is the 1-form -dc(w) on V*.
+        u = Coefficient(V)
+        w = Coefficient(V)
+        v = TestFunction(V)
+        c = Cofunction(V.dual())
+        F = inner(u, v) * dx - c
+        dF = expand_derivatives(derivative(Action(F, w), c, dc))
+        assert dF.arguments() == (dc,)
+
+
+def test_cofunction_mixed_derivative():
+    # The residual F = a(u; v) - c is affine in the Cofunction c.
+    # Thus its mixed second derivative by c and u is zero.
+    # This is also true when a contains a derivative of u.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    du = Coefficient(V)
+    v = TestFunction(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    F = u * u.dx(0) * v.dx(0) * dx - c
+    dFdc = derivative(Action(F, w), c, dc)
+    assert expand_derivatives(dFdc).arguments() == (dc,)
+    d2F = expand_derivatives(derivative(dFdc, u, du))
+    assert isinstance(d2F, ZeroBaseForm)
+    assert d2F.arguments() == (dc,)
+
+
+def test_form_sum_reconstruct():
+    # A traversal that changes a component of a FormSum keeps its weight.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    a = inner(grad(u), grad(v)) * dx
+    b = inner(u, v) * dx
+    F = FormSum((a, 2), (c, -3))
+    assert F._ufl_expr_reconstruct_(*F.ufl_operands) == F
+    _, cw = F.weights()
+    G = F._ufl_expr_reconstruct_(b, c)
+    assert G.components() == [b, c]
+    assert G.weights()[1] == cw
+
+    # Algebra lowering replaces the inner product in the Form component.
+    dF = expand_derivatives(derivative(Action(a - c, w), c, dc))
+    assert dF.arguments() == (dc,)
 
 
 def test_zero_base_form_mult():

@@ -3,6 +3,7 @@ from utils import ForeignDerivative, LagrangeElement, MixedElement
 
 from ufl import (
     Action,
+    Argument,
     Coargument,
     Coefficient,
     Cofunction,
@@ -38,8 +39,8 @@ from ufl.constantvalue import Zero
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative, Div
-from ufl.form import Form
+from ufl.differentiation import Div
+from ufl.form import Form, FormSum, ZeroBaseForm
 
 
 def _contains(expr, obj):
@@ -287,14 +288,65 @@ def test_replace_base_form_operator(V1):
     assert r == M * v + Iw * v
 
 
+@pytest.mark.parametrize("operator", ["interpolate", "external_operator"])
+def test_replace_primal_slot_by_zero(V1, operator):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    if operator == "interpolate":
+        N = Interpolate(w * v, V1)
+    else:
+        N = ExternalOperator(u, function_space=V1, argument_slots=(Coargument(V1.dual(), 1), w))
+
+    # The operator is linear in its primal slots.
+    assert replace(N, {w: Zero()}) == Zero()
+
+
+@pytest.mark.parametrize("dual_slot", ["cofunction", "form"])
+@pytest.mark.parametrize("operator", ["interpolate", "external_operator"])
+def test_replace_primal_slot_by_zero_in_form(V1, operator, dual_slot):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    v = TestFunction(V1)
+    if dual_slot == "cofunction":
+        vstar = Cofunction(V1.dual())
+        arguments = (v,)
+    else:
+        vstar = inner(TrialFunction(V1), TestFunction(V1)) * dx
+        v1 = Argument(V1, 1)
+        arguments = (v, v1)
+    if operator == "interpolate":
+        N = Interpolate(w * v, vstar)
+    else:
+        N = ExternalOperator(u, function_space=V1, argument_slots=(vstar, w * v))
+
+    # A contracted dual slot makes the operator a form, so it becomes a zero form
+    # with the same arguments.
+    assert replace(N, {w: Zero()}) == ZeroBaseForm(arguments)
+
+
+def test_replace_dual_slot_in_sum(V1):
+    u = Coefficient(V1)
+    w = Coefficient(V1)
+    vstar = Coargument(V1.dual(), 0)
+    c = Cofunction(V1.dual())
+    N = ExternalOperator(u, function_space=V1, argument_slots=(vstar,))
+    M = ExternalOperator(w, function_space=V1, argument_slots=(vstar,))
+
+    # The contracted operators are forms, so their sum is a FormSum.
+    r = replace(N + M, {vstar: c})
+    assert isinstance(r, FormSum)
+    assert set(r.components()) == {replace(N, {vstar: c}), replace(M, {vstar: c})}
+
+
 @pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])
-def test_replace_base_form_derivative(V1, replacement):
+def test_replace_form_derivative(V1, replacement):
     u = Coefficient(V1)
     w = Coefficient(V1)
     v = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
     dJ = derivative(N * u * v * dx, u)
-    assert isinstance(dJ, BaseFormDerivative)
+    assert isinstance(dJ, Form)
 
     replacements = {
         "coefficient": w,
@@ -317,16 +369,14 @@ def test_replace_base_form_derivative_aliasing(V1):
     assert replace(dJ, {u: w}) == replace(expand_derivatives(dJ), {u: w})
 
 
-def test_replace_base_form_derivative_preserves_spatial_derivatives(V1):
+def test_replace_form_derivative_spatial(V1):
     u = Coefficient(V1)
     w = Coefficient(V1)
     v = TestFunction(V1)
     N = ExternalOperator(u, function_space=V1)
     dJ = derivative(N * div(grad(u)) * v * dx, u)
-
-    forms = [c for c in replace(dJ, {u: w}).components() if isinstance(c, Form)]
-    assert forms
-    assert all(has_exact_type(form, Div) for form in forms)
+    assert isinstance(dJ, Form)
+    assert has_exact_type(replace(dJ, {u: w}), Div)
 
 
 def test_replace_leaves_coargument_of_operand_bound(V1):

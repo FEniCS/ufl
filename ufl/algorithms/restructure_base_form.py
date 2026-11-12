@@ -9,18 +9,18 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import singledispatchmethod
+from math import inf
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
 from ufl.algebra import Conj, Sum
 from ufl.algorithms.ad import expand_coefficient_derivatives
 from ufl.algorithms.analysis import extract_type
-from ufl.algorithms.comparison_checker import do_comparison_check
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace import replace
 from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument, Coargument
+from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import (
     BaseFormOperator,
     _number_contracted_argument,
@@ -28,8 +28,12 @@ from ufl.core.base_form_operator import (
 )
 from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
-from ufl.corealg.traversal import unique_pre_traversal
-from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative
+from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_pre_traversal
+from ufl.differentiation import (
+    BaseFormDerivative,
+    BaseFormOperatorDerivative,
+    CoefficientDerivative,
+)
 from ufl.duals import is_primal
 from ufl.form import BaseForm, Form, FormSum
 from ufl.formoperators import default_direction_number, derivative
@@ -83,7 +87,8 @@ class BaseFormRestructurer(DAGTraverser):
     above one and ``w_i`` is an Argument numbered ``i``. An operator with one rank-two
     primal slot ``B`` is split first. A Form and an expression compose only if each operator
     in the expression has rank at most ``max_composed_rank``. Otherwise a rank-one Form
-    stays in the dual slot of the operator, and the Action of a Form of higher rank is kept.
+    stays in the dual slot of the operator, the Action of a Form of higher rank is kept,
+    and an operator in the integrand of a Form moves out into an Action.
 
     ============================  ===============================================
     Expression                    Result
@@ -131,7 +136,10 @@ class BaseFormRestructurer(DAGTraverser):
 
         left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
         right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
-        mapping = {a: a.reconstruct(number=i) for i, a in enumerate((*left_free, *right_free))}
+        # An Action keeps the numbers of its free arguments, which need not
+        # follow their positions, so renumber them in the order of their numbers.
+        free = sorted((*left_free, *right_free), key=lambda a: a.number())
+        mapping = {a: a.reconstruct(number=i) for i, a in enumerate(free)}
         used: defaultdict[Coargument, set[int]] = defaultdict(set)
         for operand in (left, right):
             for e in iter_expressions(operand):
@@ -174,13 +182,85 @@ class BaseFormRestructurer(DAGTraverser):
 
     @process.register(BaseForm)
     def _(self, o: BaseForm) -> BaseForm:
-        """Leave Forms and terminal BaseForms unchanged."""
+        """Leave terminal BaseForms unchanged."""
         return o
+
+    @process.register(Form)
+    def _(self, o: Form) -> BaseForm:
+        """Move an operator that does not compose with a Form out of its integrand.
+
+        Take the first operator ``N(u; v*, w)`` that occurs outside all other operators, and
+        split ``F`` into ``replace(F, {N: 0}) + Action(dF/dN[Nhat], N(u; vhat, w))``. Put
+        ``N`` on the left of the Action instead if its primal slots use the lowest argument
+        number. Then restructure both terms again, to move out the other operators.
+
+        The split is exact because ``F`` is linear in an operator with an Argument in a
+        primal slot. The Action puts ``N`` back in the place of the Argument ``Nhat``.
+
+        Return ``F`` unchanged if its integrands contain unexpanded derivatives, since the
+        operators to move out appear only after ``restructure_base_form`` expands them.
+        """
+        if extract_type(o, CoefficientDerivative):
+            return o
+        cutoff_types = [issubclass(cls, BaseFormOperator) for cls in Expr._ufl_all_classes_]
+        # Collect the outermost operators, with a traversal that stops at each operator.
+        outermost = {
+            e
+            for itg in iter_expressions(o)
+            for e in cutoff_unique_post_traversal(itg, cutoff_types)
+        }
+        # Find the first operator to move out. Skip one with a Cofunction or a Form in its dual
+        # slot, since no function space then holds an Argument for it. Skip one without slot
+        # arguments, since the Form need not be linear in it.
+        N = next(
+            (
+                op
+                for op in o.base_form_operators()
+                if op in outermost
+                and not self.composable(op)
+                and isinstance(op.argument_slots()[0], Coargument)
+                and len(op.arguments()) > 1
+            ),
+            None,
+        )
+        if N is None:
+            return o
+        vstar, *slots = N.argument_slots()
+        slot_arguments = [a for a in N.arguments() if a != vstar]
+        slot_numbers = [a.number() for a in slot_arguments]
+        other_numbers = [a.number() for a in o.arguments() if a.number() not in slot_numbers]
+        operator_first = min(slot_numbers) < min(other_numbers, default=inf)
+        if operator_first:
+            Nhat_number, vhat_number = 0, 1 + max(slot_numbers)
+        else:
+            Nhat_number, vhat_number = 1 + max(other_numbers, default=-1), 0
+        # Reconstruct, so that the arguments keep the class of those of N.
+        Nhat = slot_arguments[0].reconstruct(
+            function_space=vstar.ufl_function_space().dual(), number=Nhat_number
+        )
+        vhat = vstar.reconstruct(number=vhat_number)
+        dF = expand_coefficient_derivatives(derivative(o, N, Nhat))
+        dN = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
+        action = self(Action(dN, dF) if operator_first else Action(dF, dN))
+        # Restructure the remainder and dF/dN[Nhat], to move out the other operators,
+        # including those that occurred only inside N.
+        remainder = replace(o, {N: Zero(N.ufl_shape)})
+        if remainder.empty():
+            return action
+        return action + self(remainder)
 
     @process.register(Expr)
     def _(self, o: Expr) -> Expr:
         """Traverse expressions in operator operands and argument slots."""
         return self.reuse_if_untouched(o)
+
+    @process.register(Sum)
+    def _(self, o: Sum) -> Expr | BaseForm:
+        """Return a FormSum if a term restructures into a BaseForm."""
+        terms = [self(t) for t in o.ufl_operands]
+        if all(isinstance(t, Expr) for t in terms):
+            return self.reuse_if_untouched(o)
+        return FormSum(*((t, 1) for t in terms))
 
     @process.register(FormSum)
     @DAGTraverser.postorder
@@ -252,8 +332,11 @@ class BaseFormRestructurer(DAGTraverser):
             # A base form operator is linear in its dual slot, so N(u; A) splits into
             # Action(N(u; vhat), A) if the primal slots use number 0, and otherwise
             # into Action(A, N(u; vhat)). Each contracts the contracted argument of A.
-            A = _number_contracted_argument(o, vstar, o.arguments())
+            # Number that argument after the free arguments of A, so that A, which is
+            # assembled on its own, is numbered from zero.
             slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
+            _, free = _split_dual_slot_arguments(vstar, slot_arguments)
+            A = _number_contracted_argument(o, vstar, free)
             contracted, _ = _split_dual_slot_arguments(A, slot_arguments)
             slot_numbers = [a.number() for a in slot_arguments]
             operator_first = 0 in slot_numbers
@@ -367,35 +450,26 @@ class BaseFormRestructurer(DAGTraverser):
         return Action(left, right)
 
 
-def restructure_base_form(
-    form: Expr | BaseForm, complex_mode: bool = False, max_composed_rank: int = 1
-) -> Expr | BaseForm:
+def restructure_base_form(form: Expr | BaseForm, max_composed_rank: int = 1) -> Expr | BaseForm:
     """Expand coefficient derivatives and restructure a BaseForm for independent assembly.
 
     Leave Forms without base form operators unchanged for the form compiler.
-    Preserve spatial derivatives, split compositions in argument slots into
+    Preserve spatial derivatives, move operators of rank above ``max_composed_rank``
+    out of integrands into Actions, split compositions in argument slots into
     Actions, associate rank-one contractions first, compose Forms and operators
     with Action operands, and distribute over the remaining expression Sums.
 
     Args:
         form: The expression or BaseForm to restructure.
-        complex_mode: Whether to preserve complex expressions when preprocessing a Form.
         max_composed_rank: The highest rank of an operator that composes with a Form.
             A rank-one Form stays in the dual slot of an operator of higher rank.
 
     Returns:
         The restructured BaseForm.
     """
+    if isinstance(form, Form) and not form.base_form_operators():
+        return form
     restructurer = BaseFormRestructurer(max_composed_rank)
-    if isinstance(form, Form):
-        if not form.base_form_operators():
-            return form
-        if complex_mode:
-            form = do_comparison_check(form)
-        form = expand_coefficient_derivatives(form)
-        if not complex_mode:
-            form = remove_complex_nodes(form)
-        return restructurer(form)
     # Restructure before expanding derivatives too, so that each derivative
     # numbers its direction after the free arguments of its restructured operand.
     return restructurer(expand_coefficient_derivatives(restructurer(form)))

@@ -93,6 +93,11 @@ def _assembly_cost(root):
         assert node_rank <= 2, f"Cannot assemble rank-{node_rank} {type(node).__name__}"
         if isinstance(node, (Coefficient, Cofunction, Matrix, ZeroBaseForm)):
             return
+        if isinstance(node, (BaseFormOperator, Form)):
+            # Check that the arguments are numbered from zero, since the form compiler indexes
+            # them by number.
+            numbers = [a.number() for a in node.arguments()]
+            assert numbers == list(range(node_rank)), f"Arguments numbered {numbers}"
         if isinstance(node, BaseFormOperator):
             for value in (*node.ufl_operands, *node.argument_slots()):
                 symbolic(value)
@@ -240,15 +245,45 @@ def test_restructure_ordinary_form(V1):
     assert restructure_base_form(form) is form
 
 
-@pytest.mark.parametrize("complex_mode", [False, True])
-def test_restructure_preprocesses_forms_with_operators(V1, complex_mode):
+def test_restructure_leaves_preprocessing_to_form_compiler(V1):
     u = Coefficient(V1)
     v = Argument(V1, 0)
-    operator = Interpolate(u, V1)
-    form = inner(operator, v) * dx
-    expected = (conj(v) if complex_mode else v) * operator * dx
+    form = inner(Interpolate(u, V1), v) * dx
 
-    assert restructure_base_form(form, complex_mode=complex_mode) == expected
+    assert restructure_base_form(form) == form
+
+
+def test_restructure_keeps_operator_without_arguments_in_integrand(V1):
+    u = Coefficient(V1)
+    v = Argument(V1, 0)
+    form = inner(Interpolate(u, V1) ** 2, v) * dx
+
+    assert restructure_base_form(form, max_composed_rank=0) == form
+
+
+@pytest.mark.parametrize("dual_slot", ["cofunction", "form"])
+def test_restructure_keeps_operator_with_contracted_value_in_integrand(V1, dual_slot):
+    if dual_slot == "cofunction":
+        vstar = Cofunction(V1.dual())
+    else:
+        vstar = inner(Coefficient(V1), Argument(V1, 0)) * dx
+    v = Argument(V1, 0)
+    form = Interpolate(Argument(V1, 1), vstar) * v * dx
+
+    assert restructure_base_form(form, max_composed_rank=0) == form
+
+
+@pytest.mark.parametrize("slot_number", [0, 1, 2])
+def test_restructure_operator_moved_out_composes_back(V1, slot_number):
+    arguments = [Argument(V1, i) for i in range(3)]
+    N = Interpolate(arguments.pop(slot_number), V1)
+    form = inner(N, arguments[0]) * arguments[1] * dx
+
+    restructured = restructure_base_form(form)
+    composed = restructure_base_form(restructured, max_composed_rank=3)
+
+    assert isinstance(restructured, Action)
+    assert composed.signature() == form.signature()
 
 
 def test_restructure_preserves_compound_gradient(V1):
@@ -609,11 +644,11 @@ def test_restructure_bilinear_form_complex_direction(V1, dual):
     expression = Action(direction, form) if dual else Action(form, direction)
     expected = conj(inner(v, direction)) * dx if dual else inner(direction, v) * dx
 
-    actual = restructure_base_form(expression, complex_mode=True)
+    actual = restructure_base_form(expression)
     assert actual == expected
     assert actual.arguments() == (v,)
     assert _optimal_assembly_cost(actual) == (0, 1)
-    assert restructure_base_form(actual, complex_mode=True) == actual
+    assert restructure_base_form(actual) == actual
 
 
 # --- Operator argument slots ---
@@ -752,7 +787,7 @@ def test_restructure_nested_interpolate_dual_slot(V1, V2, V3, V4, max_rank):
 
     restructured = restructure_base_form(N, max_composed_rank=max_rank)
     if max_rank == 1:
-        row = Action(f * inner(Argument(V2, 2), TestFunction(V1)) * dx, Interpolate(u, V2))
+        row = Action(f * inner(Argument(V2, 1), TestFunction(V1)) * dx, Interpolate(u, V2))
         expected = Action(Interpolate(w, Argument(V1.dual(), 1)), row)
     else:
         expected = f * inner(Interpolate(u, V2), Interpolate(w, V1)) * dx
@@ -775,6 +810,21 @@ def test_restructure_nested_adjoint_interpolate(V1, V2, V3, max_rank):
         expected = inner(f, Interpolate(Interpolate(w, V1), V2)) * dx
     assert restructured == expected
     assert restructured.arguments() == N.arguments()
+
+
+@pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_pullback_of_action(V1, V2, max_rank):
+    # Pull back the Action J through two interpolations, then check that each Form and
+    # operator that is assembled on its own is numbered from zero.
+    v = TestFunction(V1)
+    u = TrialFunction(V1)
+    M = inner(TrialFunction(V2), v) * dx
+    J = Action(M, Interpolate(u, V2))
+    pullback = Interpolate(u, Interpolate(v, J))
+
+    restructured = restructure_base_form(pullback, max_composed_rank=max_rank)
+    assert restructured.arguments() == J.arguments()
+    _assembly_cost(restructured)
 
 
 def test_restructure_keeps_operand_arguments(V1, V2):
@@ -932,13 +982,13 @@ def test_restructure_action_of_composition(V1, adjoint, max_rank):
         applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
         expected = inner(applied, v) * dx
 
-    actual = restructure_base_form(expression, complex_mode=True, max_composed_rank=max_rank)
+    actual = restructure_base_form(expression, max_composed_rank=max_rank)
     assert actual == expected
     assert actual.arguments() == expression.arguments()
     if isinstance(actual, Form):
         # One Form, which compiles the operators in its integrand.
         assert _optimal_assembly_cost(actual) == (0, 1)
-    assert restructure_base_form(actual, complex_mode=True, max_composed_rank=max_rank) == actual
+    assert restructure_base_form(actual, max_composed_rank=max_rank) == actual
 
 
 def test_restructure_hessian_action_composition(V1):
