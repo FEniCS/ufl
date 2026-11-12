@@ -372,6 +372,10 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
         for domain in joined_domains:
             unrolled_joined_domains.update(domain.meshes)
         joined_domains = unrolled_joined_domains
+    else:
+        # Drop each mesh contained in a MeshSequence, so that the result expands to the same meshes.
+        for domain in [d for d in joined_domains if isinstance(d, MeshSequence)]:
+            joined_domains.difference_update(domain.meshes)
 
     if not joined_domains:
         return set()
