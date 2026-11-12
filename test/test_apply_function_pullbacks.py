@@ -12,6 +12,7 @@ from ufl import (
     TrialFunction,
     as_tensor,
     as_vector,
+    derivative,
     dx,
     grad,
     indices,
@@ -657,6 +658,25 @@ def test_apply_interpolate_pullbacks_in_a_form():
     assert operand.ufl_shape == element.reference_value_shape
     # The lowered form still goes through the rest of the pipeline.
     compute_form_data(form, do_apply_function_pullbacks=True, do_apply_geometry_lowering=True)
+
+
+def test_apply_interpolate_pullbacks_after_derivatives():
+    cell = triangle
+    domain = Mesh(LagrangeElement(cell, 1, (2,)))
+    element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
+    V = FunctionSpace(domain, element)
+    W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
+    f = Coefficient(W)
+    u = Coefficient(V)
+    v = TestFunction(V)
+
+    F = inner(u, v) * dx - inner(Interpolate(f, V), v) * dx
+    J = derivative(F, u)
+    fd = compute_form_data(J, do_apply_function_pullbacks=True, do_apply_geometry_lowering=True)
+    # The interpolation does not depend on u, so it drops out of the Jacobian.
+    (integral,) = fd.preprocessed_form.integrals()
+    assert not extract_type(integral.integrand(), Interpolate)
+    assert len(fd.preprocessed_form.arguments()) == 2
 
 
 def test_apply_interpolate_pullbacks_reuses_untouched_expressions():

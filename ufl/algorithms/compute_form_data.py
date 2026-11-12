@@ -142,15 +142,15 @@ def compute_form_data(
     # See 'reduced_coefficients' below.
     original_form = form
 
-    # Evaluate interpolations on the reference cell of their target element.
-    # This happens before any other lowering, so that the operand a form
-    # compiler sees is the one the target element dual-evaluates.
-    if do_apply_function_pullbacks:
-        form = apply_interpolate_pullbacks(form)
-
     # --- Pass form integrands through some symbolic manipulation
 
     form = preprocess_form(form, complex_mode)
+
+    # Evaluate interpolations on the reference cell of their target element.
+    # Apply the derivatives first, since the derivative rules cannot
+    # differentiate the ReferenceValue that the pullbacks introduce.
+    if do_apply_function_pullbacks:
+        form = apply_interpolate_pullbacks(form)
 
     # --- Group form integrals
     # TODO: Refactor this, it's rather opaque what this does
