@@ -22,6 +22,7 @@ from ufl import (
     adjoint,
     derivative,
     dx,
+    grad,
     inner,
     interval,
     tetrahedron,
@@ -540,6 +541,29 @@ def test_cofunction_mixed_derivative():
     dFdc = derivative(Action(F, w), c, dc)
     assert expand_derivatives(dFdc).arguments() == (dc,)
     assert isinstance(expand_derivatives(derivative(dFdc, u, du)), ZeroBaseForm)
+
+
+def test_form_sum_reconstruct():
+    # A traversal that changes a component of a FormSum keeps its weight.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    a = inner(grad(u), grad(v)) * dx
+    b = inner(u, v) * dx
+    F = FormSum((a, 2), (c, -3))
+    assert F._ufl_expr_reconstruct_(*F.ufl_operands) == F
+    _, cw = F.weights()
+    G = F._ufl_expr_reconstruct_(b, c)
+    assert G.components() == [b, c]
+    assert G.weights()[1] == cw
+
+    # Algebra lowering replaces the inner product in the Form component.
+    dF = expand_derivatives(derivative(Action(a - c, w), c, dc))
+    assert dF.arguments() == (dc,)
 
 
 def test_zero_base_form_mult():
