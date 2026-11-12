@@ -499,7 +499,8 @@ def test_form_sum_coargument_argument_order():
     for degree in range(1, 9):
         V = FunctionSpace(domain, LagrangeElement(triangle, degree))
         dc = Coargument(V.dual(), 0)
-        assert FormSum((dc, -1)).arguments() == (dc, Argument(V, 0))
+        assert dc.arguments() == (dc, Argument(V, 0))
+        assert FormSum((dc, -1)).arguments() == dc.arguments()
 
         # The derivative of -c(w) with respect to the Cofunction c,
         # in the direction dc, is the 1-form -dc(w) on V*.
@@ -527,7 +528,9 @@ def test_cofunction_mixed_derivative():
     F = u * u.dx(0) * v.dx(0) * dx - c
     dFdc = derivative(Action(F, w), c, dc)
     assert expand_derivatives(dFdc).arguments() == (dc,)
-    assert isinstance(expand_derivatives(derivative(dFdc, u, du)), ZeroBaseForm)
+    d2F = expand_derivatives(derivative(dFdc, u, du))
+    assert isinstance(d2F, ZeroBaseForm)
+    assert d2F.arguments() == (dc,)
 
 
 def test_form_sum_reconstruct():

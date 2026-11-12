@@ -815,8 +815,8 @@ class FormSum(BaseForm):
             coefficients.extend(component.coefficients())
         # Define canonical numbering of arguments and coefficients.
         # A Coargument in V* brings an Argument in V with the same number, as
-        # the identity map V* x V -> R. The Coargument sorts first, so that the
-        # order does not depend on the hash of the set.
+        # the identity map V* x V -> R. The Coargument sorts first, as in its
+        # own arguments, so that the order does not depend on the hash of the set.
         self._arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), not x._dual)))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
