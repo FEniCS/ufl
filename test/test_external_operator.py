@@ -12,6 +12,7 @@ from ufl import (
     Coargument,
     Coefficient,
     Constant,
+    FormProduct,
     FunctionSpace,
     Mesh,
     TestFunction,
@@ -29,6 +30,7 @@ from ufl import (
     sin,
     triangle,
 )
+from ufl.algebra import Product
 from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
@@ -235,9 +237,10 @@ def test_contracted_derivative_in_integrand(V1, V2):
     u = Coefficient(V1)
     N = ExternalOperator(u, function_space=V2, argument_slots=(Cofunction(V2.dual()),))
 
-    # The derivative of N is a form, which an integrand cannot contain.
-    with pytest.raises(ValueError, match="contracted"):
-        expand_derivatives(derivative(N**2 * dx, u))
+    direction = Argument(V1, 0)
+    assert expand_derivatives(derivative(N**2 * dx, u)) == FormProduct(
+        Product(as_ufl(2), N) * dx, expand_derivatives(derivative(N, u, direction))
+    )
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])
@@ -775,16 +778,22 @@ def test_action_derivative_through_composition(V1):
     assert dA == Action(F, dNdM)
 
 
-def test_coefficient_derivatives(V1):
+@pytest.mark.parametrize("zero", [False, True])
+def test_coefficient_derivatives(V1, zero):
     u = Coefficient(V1)
-    g = Coefficient(V1)
+    g = as_ufl(0) if zero else Coefficient(V1)
     v = TestFunction(V1)
     uhat = TrialFunction(V1)
     N = ExternalOperator(u, function_space=V1)
 
     # The given derivative of N replaces the derivative of its operator.
     dF = derivative(N * v * dx, u, uhat, coefficient_derivatives={N: g})
-    assert expand_derivatives(dF) == g * uhat * v * dx
+    if zero:
+        actual = expand_derivatives(dF)
+        assert actual == 0
+        assert actual.arguments() == (v, uhat)
+    else:
+        assert expand_derivatives(dF) == g * uhat * v * dx
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])

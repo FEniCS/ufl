@@ -62,7 +62,7 @@ from ufl.classes import (
     Zero,
 )
 from ufl.conditional import BinaryCondition, Conditional, NotCondition
-from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
+from ufl.constantvalue import as_ufl, is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import (
     BaseFormOperator,
     _number_contracted_argument,
@@ -85,7 +85,7 @@ from ufl.differentiation import (
     VariableDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -1685,19 +1685,20 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
     def _(self, o: BaseFormOperator) -> Expr:
         """Differentiate a base_form_operator."""
         do = self._process_coefficient(o)
-        if do != 0:
+        if o in self._w2v or o in self._cd:
             return do
         if o._parent_type is BaseForm:
             return self._contracted_operator_derivative(o)
         return do
 
     @process.register(Interpolate)
-    @DAGTraverser.postorder
-    def _(self, i_op: Interpolate, dw: Expr) -> Expr:
+    def _(self, i_op: Interpolate) -> Expr:
         """Differentiate an interpolate."""
         di_op = self._process_coefficient(i_op)
-        if di_op != 0:
+        if i_op in self._w2v or i_op in self._cd:
             return di_op
+        (operand,) = i_op.ufl_operands
+        dw = self(operand)
         if i_op._parent_type is BaseForm:
             return self._contracted_operator_derivative(i_op)
         if dw != 0:
@@ -1706,12 +1707,12 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return di_op
 
     @process.register(ExternalOperator)
-    @DAGTraverser.postorder
-    def _(self, N: ExternalOperator, *dfs) -> Expr:
+    def _(self, N: ExternalOperator) -> Expr:
         """Differentiate an external_operator."""
         dN = self._process_coefficient(N)
-        if dN != 0:
+        if N in self._w2v or N in self._cd:
             return dN
+        dfs = tuple(self(operand) for operand in N.ufl_operands)
         if N._parent_type is BaseForm:
             return self._contracted_operator_derivative(N)
         for i, df in enumerate(dfs):
@@ -1808,6 +1809,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
         *,
+        derivative_dispatcher: DerivativeRuleDispatcher,
         preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
@@ -1823,6 +1825,13 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         self._expression_rules = GateauxDerivativeRuleset(
             coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
+        self._derivative_dispatcher = derivative_dispatcher
+        self._derivative_operands = coefficients, arguments, coefficient_derivatives
+
+    def _differentiate(self, o: Expr | BaseForm) -> Expr | BaseForm:
+        """Expand a nested derivative through the dispatcher."""
+        derivative_type = BaseFormDerivative if isinstance(o, BaseForm) else CoefficientDerivative
+        return self._derivative_dispatcher(derivative_type(o, *self._derivative_operands))
 
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
@@ -1855,7 +1864,21 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(FormSum)
     def _(self, o: FormSum) -> BaseForm:
         """Differentiate a form sum."""
-        return FormSum(*((self(c), w) for c, w in zip(o.components(), o.weights())))
+        return FormSum(*((self._differentiate(c), w) for c, w in zip(o.components(), o.weights())))
+
+    @process.register(FormProduct)
+    def _(self, o: FormProduct) -> BaseForm:
+        """Apply the product rule to independently assembled factors."""
+        factors = o.factors()
+        terms = []
+        for i, factor in enumerate(factors):
+            dfactor = self._differentiate(factor)
+            if dfactor == 0:
+                continue
+            terms.append((FormProduct(*factors[:i], dfactor, *factors[i + 1 :]), 1))
+        if not terms:
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)
+        return FormSum(*terms)
 
     @process.register(Adjoint)
     def _(self, o: Adjoint) -> BaseForm:
@@ -1866,7 +1889,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         differentiation variable can be differentiated.
         """
         (form,) = o.ufl_operands
-        if isinstance(self(form), ZeroBaseForm):
+        if isinstance(self._differentiate(form), ZeroBaseForm):
             return ZeroBaseForm(o.arguments() + self._direction_arguments)
         raise NotImplementedError("Cannot differentiate an Adjoint that depends on the variable.")
 
@@ -1894,7 +1917,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
                     return replace(e, mapping)
 
                 left_after_direction = map_integrands(shift_arguments, left)
-        return Action(self(left_after_direction), right) + Action(left, self(right))
+        return Action(self._differentiate(left_after_direction), right) + Action(
+            left, self._differentiate(right)
+        )
 
     @process.register(BaseFormOperator)
     def _(self, N: BaseFormOperator) -> Expr | BaseForm:
@@ -1904,8 +1929,10 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         D[N(u; v*)] = DN(u; v*) + N(u; Dv*).
         """
         dN_dN = self._process_coefficient(N)
-        if dN_dN != 0:
-            # Differentiation with respect to N itself.
+        if N in self._w2v or N in self._cd:
+            # An explicitly supplied zero direction holds N fixed too.
+            if dN_dN == 0:
+                return ZeroBaseForm(N.arguments() + self._direction_arguments)
             return dN_dN
         free_numbers = {a.number() for a in N.arguments()}
         if any(v.number() in free_numbers for v in self._direction_arguments):
@@ -1938,7 +1965,7 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         vhat = template.reconstruct(function_space=N._function_space.dual(), number=number)
         free = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
         dN = replace(self._expression_rules(free), {vhat: vstar})
-        dvstar = self(_number_contracted_argument(N, vstar, arguments))
+        dvstar = self._differentiate(_number_contracted_argument(N, vstar, arguments))
         if isinstance(dvstar, ZeroBaseForm):
             return dN + ZeroBaseForm(arguments)
         return dN + N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
@@ -2067,10 +2094,47 @@ class DerivativeRuleDispatcher(DAGTraverser):
     def _(self, o: BaseFormDerivative, f: BaseForm) -> Expr | BaseForm:
         """Apply to a base_form_derivative."""
         _, w, v, cd = o.ufl_operands
+        # Scalar operators are independent inputs to the surrounding form.
+        # Differentiate that form with them fixed, then add its chain-rule terms.
+        operators = tuple(
+            N
+            for N in sorted(extract_type(f, BaseFormOperator), key=lambda N: N.count())
+            if N != f and N._parent_type is BaseForm and N not in w.ufl_operands
+        )
+        if operators:
+            fixed = tuple(Zero(N.ufl_shape) for N in operators)
+            direct = self(BaseFormDerivative(f, ExprList(*w, *operators), ExprList(*v, *fixed), cd))
+            terms = [] if direct == 0 else [(direct, 1)]
+            for i, N in enumerate(operators):
+                partial = self(
+                    BaseFormDerivative(
+                        f,
+                        ExprList(*operators),
+                        ExprList(*fixed[:i], as_ufl(1), *fixed[i + 1 :]),
+                        ExprMapping(),
+                    )
+                )
+                if partial == 0:
+                    continue
+                dN = self(BaseFormDerivative(N, w, v, cd))
+                if dN == 0:
+                    continue
+                if isinstance(dN, BaseForm):
+                    term = FormProduct(partial, dN)
+                else:
+                    term = map_integrands(lambda e: Product(e, dN), partial)
+                terms.append((term, 1))
+            return FormSum(*terms) if terms else ZeroBaseForm(o.arguments())
         key = (BaseFormDerivativeRuleset, w, v, cd)
         dag_traverser = self._dag_traverser_cache.setdefault(
             key,
-            BaseFormDerivativeRuleset(w, v, cd, preserve_types=self._gateaux_preserve_types),  # type: ignore
+            BaseFormDerivativeRuleset(
+                w,  # type: ignore[arg-type]
+                v,  # type: ignore[arg-type]
+                cd,  # type: ignore[arg-type]
+                derivative_dispatcher=self,
+                preserve_types=self._gateaux_preserve_types,
+            ),
         )
         return dag_traverser(f)  # type: ignore
 

@@ -36,6 +36,7 @@ from ufl import (
     Coefficient,
     Cofunction,
     Form,
+    FormProduct,
     FormSum,
     FunctionSpace,
     Matrix,
@@ -1151,3 +1152,49 @@ def test_restructure_operator_sum_in_expression(V1):
     )
     expression = u * (operators[0] + operators[1])
     assert restructure_base_form(expression) == expression
+
+
+@pytest.mark.parametrize("side", ["left", "right"])
+def test_form_product_contraction(V1, V2, side):
+    f = Coefficient(V1)
+    g = Coefficient(V2)
+    L = inner(f, TestFunction(V1)) * dx
+    R = inner(g, TestFunction(V2)) * dx
+    product = FormProduct(L, R)
+    if side == "left":
+        actual = restructure_base_form(Action(product, g))
+        expected = FormProduct(L, inner(g, g) * dx)
+    else:
+        actual = restructure_base_form(Action(f, product))
+        expected = FormProduct(conj(inner(f, f)) * dx, R)
+    assert actual == expected
+    assert len(actual.arguments()) == 1
+    assert actual.arguments()[0].number() == 0
+
+
+def test_form_product_restructures_factors(V1, V2):
+    f = Coefficient(V1)
+    g = Coefficient(V2)
+    v = Argument(V1, 2)
+    w = Argument(V2, 4)
+    L = inner(f, v) * dx
+    R = inner(g, w) * dx
+    actual = restructure_base_form(FormProduct(L, 2 * R))
+    expected = FormProduct(inner(f, TestFunction(V1)) * dx, 2 * (inner(g, TestFunction(V2)) * dx))
+    assert actual == expected
+    assert [a.number() for a in actual.arguments()] == [0, 1]
+
+
+def test_form_product_distributes_over_form_sum(V1, V2):
+    L = TestFunction(V1) * dx
+    R = TestFunction(V2) * dx
+    c = Cofunction(V1.dual())
+    actual = restructure_base_form(FormProduct(L + c, R))
+    assert actual == FormProduct(L, R) + FormProduct(c, R)
+
+
+def test_form_product_zero_preserves_arguments(V1, V2):
+    L = TestFunction(V1) * dx
+    R = TestFunction(V2) * dx
+    product = FormProduct(L, ZeroBaseForm(R.arguments()))
+    assert restructure_base_form(product) == ZeroBaseForm(product.arguments())

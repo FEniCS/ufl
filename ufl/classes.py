@@ -88,7 +88,7 @@ from ufl.domain import AbstractDomain, Mesh, MeshView
 from ufl.equation import Equation
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.finiteelement import AbstractFiniteElement
-from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm
 from ufl.functionspace import (
     AbstractFunctionSpace,
     DualSpace,
@@ -321,6 +321,7 @@ __all__ = [
     "FloatValue",
     "Form",
     "FormArgument",
+    "FormProduct",
     "FormSum",
     "FunctionSpace",
     "GeometricCellQuantity",

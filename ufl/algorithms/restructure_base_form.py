@@ -35,7 +35,7 @@ from ufl.differentiation import (
     CoefficientDerivative,
 )
 from ufl.duals import is_primal
-from ufl.form import BaseForm, Form, FormSum
+from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm
 from ufl.formoperators import default_direction_number, derivative
 
 
@@ -271,6 +271,27 @@ class BaseFormRestructurer(DAGTraverser):
             return self.column_sum(components, o.weights())
         return FormSum(*zip(components, o.weights()))
 
+    @process.register(FormProduct)
+    @DAGTraverser.postorder
+    def _(self, o: FormProduct, *factors: BaseForm) -> BaseForm:
+        """Restructure factors independently and distribute over form sums."""
+        if any(factor.empty() for factor in factors):
+            return ZeroBaseForm(o.arguments())
+        for i, factor in enumerate(factors):
+            if isinstance(factor, FormSum):
+                return FormSum(
+                    *(
+                        (self(FormProduct(*factors[:i], term, *factors[i + 1 :])), weight)
+                        for term, weight in zip(factor.components(), factor.weights())
+                    )
+                )
+        # Each factor is assembled independently, with local argument numbers.
+        factors = tuple(
+            replace(factor, {a: a.reconstruct(number=i) for i, a in enumerate(factor.arguments())})
+            for factor in factors
+        )
+        return FormProduct(*factors)
+
     @process.register(BaseFormDerivative)
     @process.register(BaseFormOperatorDerivative)
     def _(self, o: BaseFormDerivative) -> BaseForm:
@@ -416,6 +437,18 @@ class BaseFormRestructurer(DAGTraverser):
             # x^H (c A + d B) = c x^H A + d x^H B
             rows = [Action(left, A) for A in right.components()]
             return self(FormSum(*zip(rows, right.weights())))
+
+        # A product contracts through its last or first non-scalar factor.
+        if isinstance(left, FormProduct) and right_is_rank_one:
+            factors = list(left.factors())
+            i = max(i for i, factor in enumerate(factors) if _rank(factor))
+            factors[i] = self(Action(factors[i], right))
+            return self(FormProduct(*factors))
+        if isinstance(right, FormProduct) and left_is_rank_one:
+            factors = list(right.factors())
+            i = next(i for i, factor in enumerate(factors) if _rank(factor))
+            factors[i] = self(Action(left, factors[i]))
+            return self(FormProduct(*factors))
 
         # An operator is linear in its argument slots. The dual slot takes any
         # rank-one BaseForm, while a primal slot takes only an expression.

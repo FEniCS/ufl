@@ -436,6 +436,12 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
+        if not isinstance(coefficient, SpatialCoordinate) and any(
+            N._parent_type is BaseForm for N in form.base_form_operators()
+        ):
+            # A scalar contracted operator differentiates into a form. Keep the
+            # integral around it so the chain rule can produce a FormProduct.
+            return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):
