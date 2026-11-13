@@ -778,16 +778,22 @@ def test_action_derivative_through_composition(V1):
     assert dA == Action(F, dNdM)
 
 
-def test_coefficient_derivatives(V1):
+@pytest.mark.parametrize("zero", [False, True])
+def test_coefficient_derivatives(V1, zero):
     u = Coefficient(V1)
-    g = Coefficient(V1)
+    g = as_ufl(0) if zero else Coefficient(V1)
     v = TestFunction(V1)
     uhat = TrialFunction(V1)
     N = ExternalOperator(u, function_space=V1)
 
     # The given derivative of N replaces the derivative of its operator.
     dF = derivative(N * v * dx, u, uhat, coefficient_derivatives={N: g})
-    assert expand_derivatives(dF) == g * uhat * v * dx
+    if zero:
+        actual = expand_derivatives(dF)
+        assert actual == 0
+        assert actual.arguments() == (v, uhat)
+    else:
+        assert expand_derivatives(dF) == g * uhat * v * dx
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])

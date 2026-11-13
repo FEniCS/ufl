@@ -831,16 +831,22 @@ def test_derivative_keeps_interpolate(V1, V2):
     assert apply_derivatives(Iu) is Iu
 
 
-def test_coefficient_derivatives(V1, V2):
+@pytest.mark.parametrize("zero", [False, True])
+def test_coefficient_derivatives(V1, V2, zero):
     u = Coefficient(V1)
-    g = Coefficient(V1)
+    g = as_ufl(0) if zero else Coefficient(V1)
     v = TestFunction(V1)
     uhat = TrialFunction(V1)
     Iu = Interpolate(u, V2)
 
     # The given derivative of Iu replaces the derivative of its operand.
     dF = derivative(Iu * v * dx, u, uhat, coefficient_derivatives={Iu: g})
-    assert expand_derivatives(dF) == g * uhat * v * dx
+    if zero:
+        actual = expand_derivatives(dF)
+        assert actual == 0
+        assert actual.arguments() == (v, uhat)
+    else:
+        assert expand_derivatives(dF) == g * uhat * v * dx
 
 
 def test_scaled_second_derivative(V1, V2):
@@ -1352,3 +1358,25 @@ def test_contracted_operator_second_derivative(V1, V2):
     actual = expand_derivatives(derivative(derivative(F, u, v), u, w))
     expected = FormProduct(v * dx, Interpolate(w, c)) + FormProduct(w * dx, Interpolate(v, c))
     assert actual == expected
+
+
+def test_contracted_operator_derivative_through_contracted_operand(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    c = Cofunction(V2.dual())
+    inner_operator = Interpolate(u, c)
+    outer_operator = Interpolate(inner_operator * f, c)
+    F = outer_operator * dx
+    direction = Argument(V1, 0)
+    expected = FormProduct(
+        as_ufl(1) * dx(domain=V1.ufl_domain()), Interpolate(f, c), Interpolate(direction, c)
+    )
+    actual = expand_derivatives(derivative(F, u, direction))
+    assert actual == expected
+    assert restructure_base_form(actual) == restructure_base_form(expected)
+
+
+def test_contracted_operator_zero_direction(V1, V2):
+    u = Coefficient(V1)
+    N = Interpolate(u, Cofunction(V2.dual()))
+    assert expand_derivatives(derivative(N * u * dx, N, as_ufl(0))) == 0
