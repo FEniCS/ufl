@@ -43,7 +43,7 @@ from ufl.differentiation import (
 )
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.finiteelement import AbstractFiniteElement
-from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm, as_form
+from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm, as_form
 from ufl.functionspace import FunctionSpace
 from ufl.geometry import SpatialCoordinate
 from ufl.indexed import Indexed
@@ -420,27 +420,6 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                 for component, w in zip(form.components(), form.weights())
             ]
         )
-    elif isinstance(form, FormProduct):
-        # Apply the product rule while reusing one derivative argument across all factors.
-        _, arguments = _handle_derivative_arguments(form, coefficient, argument)
-        derivative_argument = tuple(arguments)
-        product_terms = []
-        factors = form.factors()
-        for i, factor in enumerate(factors):
-            differentiated_factor = derivative(
-                factor, coefficient, derivative_argument, coefficient_derivatives
-            )
-            if differentiated_factor == 0 or isinstance(differentiated_factor, ZeroBaseForm):
-                continue
-            if isinstance(differentiated_factor, BaseForm) and differentiated_factor.empty():
-                continue
-            term_factors = list(factors)
-            term_factors[i] = differentiated_factor
-            product_terms.append((FormProduct(*term_factors), 1))
-
-        if not product_terms:
-            return ZeroBaseForm(form.arguments() + derivative_argument)
-        return FormSum(*product_terms)
     elif isinstance(form, Action):
         # Eagerly simplify spatial derivatives when Action results in a scalar.
         if not len(form.arguments()) and isinstance(coefficient, SpatialCoordinate):
@@ -457,6 +436,12 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
+        if not isinstance(coefficient, SpatialCoordinate) and any(
+            N._parent_type is BaseForm for N in form.base_form_operators()
+        ):
+            # A scalar contracted operator differentiates into a form. Keep the
+            # integral around it so the chain rule can produce a FormProduct.
+            return BaseFormDerivative(form, coefficients, arguments, coefficient_derivatives)
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):

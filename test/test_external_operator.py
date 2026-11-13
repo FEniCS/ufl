@@ -12,6 +12,7 @@ from ufl import (
     Coargument,
     Coefficient,
     Constant,
+    FormProduct,
     FunctionSpace,
     Mesh,
     TestFunction,
@@ -29,6 +30,7 @@ from ufl import (
     sin,
     triangle,
 )
+from ufl.algebra import Product
 from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
@@ -235,9 +237,10 @@ def test_contracted_derivative_in_integrand(V1, V2):
     u = Coefficient(V1)
     N = ExternalOperator(u, function_space=V2, argument_slots=(Cofunction(V2.dual()),))
 
-    # The derivative of N is a form, which an integrand cannot contain.
-    with pytest.raises(ValueError, match="contracted"):
-        expand_derivatives(derivative(N**2 * dx, u))
+    direction = Argument(V1, 0)
+    assert expand_derivatives(derivative(N**2 * dx, u)) == FormProduct(
+        Product(as_ufl(2), N) * dx, expand_derivatives(derivative(N, u, direction))
+    )
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])

@@ -62,7 +62,7 @@ from ufl.classes import (
     Zero,
 )
 from ufl.conditional import BinaryCondition, Conditional, NotCondition
-from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
+from ufl.constantvalue import as_ufl, is_true_ufl_scalar, is_ufl_scalar
 from ufl.core.base_form_operator import (
     BaseFormOperator,
     _number_contracted_argument,
@@ -85,7 +85,7 @@ from ufl.differentiation import (
     VariableDerivative,
 )
 from ufl.domain import MeshSequence, extract_unique_domain
-from ufl.form import BaseForm, Form, FormSum, ZeroBaseForm
+from ufl.form import BaseForm, Form, FormProduct, FormSum, ZeroBaseForm
 from ufl.mathfunctions import (
     Acos,
     Asin,
@@ -1789,6 +1789,17 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return ZeroBaseForm(o.arguments() + self._direction_arguments)
 
 
+class IntegrandDerivativeRuleset(GateauxDerivativeRuleset):
+    """Differentiate locally, holding contracted scalar operators independent.
+
+    BaseFormDerivativeRuleset accounts for their derivatives outside the integral.
+    """
+
+    def _contracted_operator_derivative(self, N: BaseFormOperator) -> Expr:
+        """Leave the form-valued chain-rule term to the containing Form."""
+        return Zero(N.ufl_shape)
+
+
 class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     """Apply AFD (Automatic Functional Differentiation) to BaseForm.
 
@@ -1821,6 +1832,9 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         self._expression_rules = GateauxDerivativeRuleset(
             coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
         )
+        self._integrand_rules = IntegrandDerivativeRuleset(
+            coefficients, arguments, coefficient_derivatives, preserve_types=preserve_types
+        )
 
     # Work around singledispatchmethod inheritance issue;
     # see https://bugs.python.org/issue36457.
@@ -1845,15 +1859,50 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
     @process.register(Form)
     def _(self, o: Form) -> BaseForm:
         """Differentiate a form integrand by integrand."""
-        dform = map_integrands(self._expression_rules, o)
-        if dform.empty():
+        direct = map_integrands(self._integrand_rules, o)
+        terms = [] if direct.empty() else [(direct, 1)]
+        for N in o.base_form_operators():
+            if N._parent_type is not BaseForm or N in self._w2v:
+                continue
+            partial = IntegrandDerivativeRuleset(
+                ExprList(N),
+                ExprList(as_ufl(1)),
+                ExprMapping(),
+                preserve_types=self._preserved_types,
+            )
+            dform = map_integrands(partial, o)
+            if dform.empty():
+                continue
+            dN = self(N)
+            if dN == 0:
+                continue
+            if isinstance(dN, BaseForm):
+                term = FormProduct(dform, dN)
+            else:
+                term = map_integrands(lambda e: Product(e, dN), dform)
+            terms.append((term, 1))
+        if not terms:
             return ZeroBaseForm(o.arguments() + self._direction_arguments)
-        return dform
+        return FormSum(*terms)
 
     @process.register(FormSum)
     def _(self, o: FormSum) -> BaseForm:
         """Differentiate a form sum."""
         return FormSum(*((self(c), w) for c, w in zip(o.components(), o.weights())))
+
+    @process.register(FormProduct)
+    def _(self, o: FormProduct) -> BaseForm:
+        """Apply the product rule to independently assembled factors."""
+        factors = o.factors()
+        terms = []
+        for i, factor in enumerate(factors):
+            dfactor = self(factor)
+            if dfactor == 0 or dfactor.empty():
+                continue
+            terms.append((FormProduct(*factors[:i], dfactor, *factors[i + 1 :]), 1))
+        if not terms:
+            return ZeroBaseForm(o.arguments() + self._direction_arguments)
+        return FormSum(*terms)
 
     @process.register(Adjoint)
     def _(self, o: Adjoint) -> BaseForm:

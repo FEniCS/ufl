@@ -774,12 +774,8 @@ class FormProduct(BaseForm):
         for factor in self._factors:
             factor_arguments = factor.arguments()
             arguments.extend(
-                type(argument)(
-                    argument.ufl_function_space(),
-                    argument.number() + cumulative_shift,
-                    argument.part(),
-                )
-                for argument in factor_arguments
+                argument.reconstruct(number=i + cumulative_shift)
+                for i, argument in enumerate(factor_arguments)
             )
             coefficients.extend(factor.coefficients())
             cumulative_shift += len(factor_arguments)

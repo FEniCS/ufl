@@ -14,6 +14,7 @@ from ufl import (
     Coefficient,
     Cofunction,
     Constant,
+    FormProduct,
     FunctionSpace,
     Mesh,
     SpatialCoordinate,
@@ -23,6 +24,7 @@ from ufl import (
     TrialFunctions,
     action,
     adjoint,
+    as_ufl,
     conj,
     derivative,
     dx,
@@ -587,10 +589,11 @@ def test_dual_slot_derivative_in_integrand(V1, V2, dual_slot):
     vstar = c if dual_slot == "cofunction" else 2 * c
     F = Interpolate(u, vstar) * v * dx
 
-    # Interpolate(u, c) is a number in the integrand, and its derivative with
-    # respect to c is a form, which an integrand cannot hold.
-    with pytest.raises(ValueError, match="contracted"):
-        expand_derivatives(derivative(F, c))
+    actual = expand_derivatives(derivative(F, c))
+    direction = Coargument(V2.dual(), 1)
+    slot = direction if dual_slot == "cofunction" else 2 * direction
+    expected = FormProduct(v * dx, Interpolate(u, slot))
+    assert actual == expected
 
 
 @pytest.mark.parametrize("integrand", ["linear", "power", "exp", "operand"])
@@ -605,9 +608,17 @@ def test_contracted_derivative_in_integrand(V1, V2, integrand):
         "operand": Interpolate(Iu * f, V2) * dx,
     }[integrand]
 
-    # The derivative of Iu is a form, which an expression cannot contain.
-    with pytest.raises(ValueError, match="contracted"):
-        expand_derivatives(derivative(F, u))
+    direction = Argument(V1, 0)
+    partial = {
+        "linear": f * dx,
+        "power": f * Product(as_ufl(2), Iu) * dx,
+        "exp": exp(Iu) * dx,
+        "operand": Interpolate(f, V2) * dx,
+    }[integrand]
+    expected = FormProduct(partial, Interpolate(direction, Iu.argument_slots()[0]))
+    actual = derivative(F, u)
+    assert expand_derivatives(actual) == expected
+    assert restructure_base_form(actual) == restructure_base_form(expected)
 
 
 def test_contracted_derivative(V1, V2):
@@ -1322,3 +1333,22 @@ def test_action_leaves_coargument_of_interpolate_operand_bound(V1, scale):
 
     assert restructured == Interpolate(operand, ustar)
     assert restructured.arguments() == ()
+
+
+def test_contracted_operator_partial_derivative(V1, V2):
+    u = Coefficient(V1)
+    N = Interpolate(u, Cofunction(V2.dual()))
+    F = N * u * dx
+    assert expand_derivatives(derivative(F, N, as_ufl(1))) == u * dx
+
+
+def test_contracted_operator_second_derivative(V1, V2):
+    u = Coefficient(V1)
+    c = Cofunction(V2.dual())
+    N = Interpolate(u, c)
+    v = Argument(V1, 0)
+    w = Argument(V1, 1)
+    F = N * u * dx
+    actual = expand_derivatives(derivative(derivative(F, u, v), u, w))
+    expected = FormProduct(v * dx, Interpolate(w, c)) + FormProduct(w * dx, Interpolate(v, c))
+    assert actual == expected

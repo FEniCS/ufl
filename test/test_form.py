@@ -28,6 +28,7 @@ from ufl import (
     replace,
     triangle,
 )
+from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.form import BaseForm
 
@@ -356,13 +357,13 @@ def test_form_product_derivative_product_rule(domain):
 
     L = f * v * dx
     product = FormProduct(L, L)
-    dproduct = derivative(product, f, direction)
+    dproduct = expand_derivatives(derivative(product, f, direction))
 
     assert isinstance(dproduct, FormSum)
     assert len(dproduct.components()) == 2
     assert all(isinstance(component, FormProduct) for component in dproduct.components())
 
-    dL = derivative(L, f, direction)
+    dL = expand_derivatives(derivative(L, f, direction))
     expected_first = FormProduct(dL, L)
     expected_second = FormProduct(L, dL)
     assert bool(dproduct.components()[0] == expected_first)
