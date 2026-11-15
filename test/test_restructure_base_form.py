@@ -951,40 +951,48 @@ def test_restructure_contracts_covector_first(V1, V2, max_rank):
 
 @pytest.mark.parametrize("max_rank", [1, 2])
 @pytest.mark.parametrize("adjoint", [False, True], ids=["jacobian", "adjoint"])
-def test_restructure_action_of_composition(V1, adjoint, max_rank):
+@pytest.mark.parametrize("inline", [False, True])
+def test_restructure_action_of_composition(V1, V2, V3, V4, adjoint, max_rank, inline):
     # Jacobian of F = inner(N(I(u)), v) * dx: dF/dN, dN/dI, dI/du.
-    w = Coefficient(V1)
-    vstar = Argument(V1.dual(), 0)
+    w = Coefficient(V4 if adjoint else V1)
+    vstar = Argument(V3.dual(), 0)
     v = Argument(V1, 0)
-    operand = Interpolate(Coefficient(V1), V1)
-    dFdN = inner(Argument(V1, 1), v) * dx
+    u = Coefficient(V1)
+    operand = Interpolate(u, V2)
+    dFdN = inner(Argument(V3, 1), TestFunction(V4)) * dx
     dNdI = ExternalOperator(
-        operand, function_space=V1, derivatives=(1,), argument_slots=(vstar, Argument(V1, 1))
+        operand, function_space=V3, derivatives=(1,), argument_slots=(vstar, Argument(V2, 1))
     )
-    dIdu = Interpolate(Argument(V1, 1), V1)
+    dIdu = Interpolate(Argument(V1, 1), V2)
     jacobian = Action(dFdN, Action(dNdI, dIdu))
+    if inline:
+        N = ExternalOperator(operand, function_space=V3)
+        jacobian = derivative(inner(N, TestFunction(V4)) * dx, u)
     if adjoint:
         expression = Action(Adjoint(jacobian), w)
         if max_rank == 1:
-            row = conj(TestFunction(V1) * conj(w)) * dx
-            slots = (row, v)
+            row = conj(TestFunction(V3) * conj(w)) * dx
+            slots = (row, TestFunction(V2))
             applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
             expected = Interpolate(v, applied)
         else:
             # dI/du*[dN/dI*(dF/dN*[w], v)], composed with dF/dN*
-            slots = (Coargument(V1.dual(), 1), Interpolate(v, V1))
+            # The inline operator keeps its bound output numbered 0. Composing
+            # the explicit Action renumbers it to 1, away from the free argument.
+            slots = (Coargument(V3.dual(), 0 if inline else 1), Interpolate(v, V2))
             applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
             expected = conj(conj(w) * applied) * dx
     else:
         expression = Action(jacobian, w)
         # dF/dN[dN/dI[dI/du[w]]]
-        slots = (vstar, Interpolate(w, V1))
+        slots = (vstar, Interpolate(w, V2))
         applied = dNdI._ufl_expr_reconstruct_(operand, derivatives=(1,), argument_slots=slots)
-        expected = inner(applied, v) * dx
+        expected = inner(applied, TestFunction(V4)) * dx
 
     actual = restructure_base_form(expression, max_composed_rank=max_rank)
     assert actual == expected
     assert actual.arguments() == expression.arguments()
+    _optimal_assembly_cost(actual)
     if isinstance(actual, Form):
         # One Form, which compiles the operators in its integrand.
         assert _optimal_assembly_cost(actual) == (0, 1)

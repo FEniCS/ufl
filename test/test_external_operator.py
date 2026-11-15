@@ -114,6 +114,29 @@ def test_properties(V1):
     assert str(e) == "∂e(w_0, w_1, 2 * w_2, w_3; v_1, v_0)/∂o1∂o3∂o4∂o4"
 
 
+@pytest.mark.parametrize("input_shape", [(), (2,), (2, 2)])
+@pytest.mark.parametrize("output_shape", [(), (2,), (2, 2)])
+def test_derivative_shape(domain_2d, input_shape, output_shape):
+    W = FunctionSpace(domain_2d, LagrangeElement(triangle, 2, input_shape))
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, output_shape))
+    u = Coefficient(W)
+    N = ExternalOperator(u, function_space=V)
+    vstar = Coargument(V.dual(), 0)
+    first, second = Argument(W, 1), Argument(W, 2)
+
+    jacobian = expand_derivatives(derivative(N, u))
+    expected = N._ufl_expr_reconstruct_(u, derivatives=(1,), argument_slots=(vstar, first))
+    assert jacobian == expected
+    assert jacobian.ufl_shape == output_shape
+    assert jacobian.arguments() == (vstar, first)
+
+    hessian = expand_derivatives(derivative(jacobian, u))
+    expected = N._ufl_expr_reconstruct_(u, derivatives=(2,), argument_slots=(vstar, first, second))
+    assert hessian == expected
+    assert hessian.ufl_shape == output_shape
+    assert hessian.arguments() == (vstar, first, second)
+
+
 def test_dual_slot_must_be_a_base_form(V1):
     u = Coefficient(V1)
 

@@ -250,11 +250,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     @property
     def ufl_shape(self):
-        """Return the UFL shape of the coefficient produced by the operator."""
-        if len(self.arguments()) == 0:
-            return ()
-        arg, *_ = self.arguments()
-        return arg._ufl_shape
+        """Return the value shape in the operator output space.
+
+        Applying a derivative to its directions leaves the output shape unchanged,
+        independently of the shapes and numbers of the slot arguments.
+        """
+        return self._function_space.value_shape
 
     def ufl_function_space(self):
         """Return the function space associated to the operator.

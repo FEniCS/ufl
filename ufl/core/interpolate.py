@@ -157,11 +157,6 @@ class Interpolate(BaseFormOperator):
         """Return the target finite element."""
         return self._function_space.ufl_element()
 
-    @property
-    def ufl_shape(self):
-        """Return the value shape in the interpolation target space."""
-        return self._function_space.value_shape
-
     def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
         from ufl.algorithms.analysis import extract_type

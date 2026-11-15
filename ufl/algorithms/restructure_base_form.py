@@ -89,6 +89,8 @@ class BaseFormRestructurer(DAGTraverser):
     in the expression has rank at most ``max_composed_rank``. Otherwise a rank-one Form
     stays in the dual slot of the operator, the Action of a Form of higher rank is kept,
     and an operator in the integrand of a Form moves out into an Action.
+    The primal-slot split shown below assumes that the Coargument of ``B`` is first.
+    If it is last, reverse the Action operands to contract the same output.
 
     ============================  ===============================================
     Expression                    Result
@@ -306,24 +308,27 @@ class BaseFormRestructurer(DAGTraverser):
         rank_two_slots = [i for i, slot in enumerate(slots) if _rank(slot) == 2]
         if len(rank_two_slots) == 1:
             # A base form operator is linear in its other argument slots, so for
-            # any linear map B: N(u; v*, B) -> Action(N(u; v*, uhat), B), where uhat
-            # is numbered after the other arguments of N so that the Action contracts
-            # it with the Coargument of B. An Action contracts one argument, so an
-            # operator with more than one such slot is not split.
+            # any linear map B: N(u; v*, B) splits into an Action that contracts
+            # uhat with the Coargument of B. Put B on the left if its Coargument
+            # is last, as after taking an adjoint. An Action contracts one argument,
+            # so an operator with more than one such slot is not split.
             (i,) = rank_two_slots
             B = slots[i]
             # The Coargument of B is contracted by the Action, so
             # only the other argument of B stays free.
             (vstar_B,) = (a for a in B.arguments() if isinstance(a, Coargument))
             (uhat_B,) = (a for a in B.arguments() if a != vstar_B)
-            others = (a for a in o.arguments() if a != uhat_B)
-            uhat_number = max((a.number() for a in others), default=-1) + 1
+            others = [a.number() for a in o.arguments() if a != uhat_B]
+            operator_first = B.arguments()[0] == vstar_B
+            uhat_number = (
+                max(others, default=-1) + 1 if operator_first else min(others, default=1) - 1
+            )
             space = vstar_B.ufl_function_space().dual()
             uhat = uhat_B.reconstruct(function_space=space, number=uhat_number)
             Nhat = o._ufl_expr_reconstruct_(
                 *o.ufl_operands, argument_slots=(vstar, *slots[:i], uhat, *slots[i + 1 :])
             )
-            return self(Action(Nhat, B))
+            return self(Action(Nhat, B) if operator_first else Action(B, Nhat))
 
         if isinstance(vstar, Coargument):
             return o
