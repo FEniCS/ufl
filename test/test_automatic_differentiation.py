@@ -12,7 +12,7 @@ Other tests check for mathematical correctness of diff and derivative.
 """
 
 import pytest
-from utils import FiniteElement, LagrangeElement
+from utils import FiniteElement, ForeignDerivative, LagrangeElement
 
 from ufl import (
     And,
@@ -38,6 +38,7 @@ from ufl import (
     Or,
     PermutationSymbol,
     SpatialCoordinate,
+    TestFunction,
     acos,
     as_matrix,
     as_tensor,
@@ -58,6 +59,8 @@ from ufl import (
     dev,
     diff,
     dot,
+    ds,
+    dx,
     eq,
     erf,
     exp,
@@ -84,7 +87,7 @@ from ufl import (
     triangle,
     variable,
 )
-from ufl.algorithms import expand_derivatives
+from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
@@ -714,3 +717,89 @@ def test_diff_grad_grad_jacobian(cell, gdim, order, lower_alg, lower_geo, apply_
 
     assert δF_u == 0
     assert δF_u.ufl_shape == (gdim, tdim, gdim, gdim)
+
+
+def test_coefficient_derivative_grad_coeff(self, d_expr):
+    """Coefficient differentiation commutes with repeated gradients."""
+    _d, collection = d_expr
+
+    u = collection.shared_objects.u
+    v = collection.shared_objects.v
+    w = collection.shared_objects.w
+    for f in (u, v, w):
+        test = TestFunction(f.ufl_function_space())
+
+        expected = grad(test)
+        before = derivative(grad(f), f)
+        after = expand_coefficient_derivatives(before)
+        self.assertEqualTotalShape(before, after)
+        assert after == expected
+
+        expected = grad(grad(test))
+        before = derivative(grad(grad(f)), f)
+        after = expand_coefficient_derivatives(before)
+        self.assertEqualTotalShape(before, after)
+        assert after == expected
+
+        expected = grad(grad(grad(test)))
+        before = derivative(grad(grad(grad(f))), f)
+        after = expand_coefficient_derivatives(before)
+        self.assertEqualTotalShape(before, after)
+        assert after == expected
+
+
+def test_coefficient_derivative_grad_coordinate(self):
+    """Gradients of spatial coordinates remain unexpanded."""
+    cell = triangle
+    gdim = cell.topological_dimension
+    geometry_degree = 1
+    domain = Mesh(LagrangeElement(cell, geometry_degree, (gdim,)))
+    x = SpatialCoordinate(domain)
+
+    expected = grad(x)
+    before = grad(x)
+    after = expand_coefficient_derivatives(before)
+    self.assertEqualTotalShape(before, after)
+    assert after == expected
+
+
+def test_coefficient_derivative_foreign_derivative(self):
+    """Derivatives supplied by other packages remain unexpanded."""
+    cell = triangle
+    gdim = cell.topological_dimension
+    geometry_degree = 1
+    domain = Mesh(LagrangeElement(cell, geometry_degree, (gdim,)))
+
+    x = SpatialCoordinate(domain)
+
+    expected = ForeignDerivative(x)
+    before = ForeignDerivative(x)
+    after = expand_coefficient_derivatives(before)
+    self.assertEqualTotalShape(before, after)
+    assert after == expected
+
+
+@pytest.mark.parametrize("order", [1, 2])
+def test_coefficient_derivative_preserves_compound_gradient(order):
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u, h, k = Coefficient(V), Coefficient(V), Coefficient(V)
+    expression = derivative(grad(u**2), u, h)
+    expected = grad(2 * h * u)
+    if order == 2:
+        expression = derivative(expression, u, k)
+        expected = grad(2 * h * k)
+
+    assert expand_coefficient_derivatives(expression) == expected
+
+
+def test_coefficient_derivative_preserves_shared_integrands():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u, h = Coefficient(V), Coefficient(V)
+    shared = derivative(inner(grad(u**2), grad(u**2)), u, h)
+    form = shared * dx + shared * ds
+
+    first, second = expand_coefficient_derivatives(form).integrals()
+
+    assert first.integrand() is second.integrand()

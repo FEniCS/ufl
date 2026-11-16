@@ -18,6 +18,8 @@ class DAGTraverser:
         compress: If True, ``result_cache`` will be used.
         visited_cache: cache of intermediate results; expr -> r = self.process(expr, ...).
         result_cache: cache of result objects for memory reuse, r -> r.
+        preserve_types: Types whose operators are preserved while their operands are transformed.
+            Subclasses of these types are also preserved.
 
     """
 
@@ -26,8 +28,11 @@ class DAGTraverser:
         compress: bool | None = True,
         visited_cache: dict[tuple, Expr | BaseForm] | None = None,
         result_cache: dict[Expr | BaseForm, Expr | BaseForm] | None = None,
+        *,
+        preserve_types: tuple[type, ...] = (),
     ) -> None:
         """Initialise."""
+        self._preserved_types = tuple(preserve_types)
         self._compress = compress
         self._visited_cache = {} if visited_cache is None else visited_cache
         self._result_cache = {} if result_cache is None else result_cache
@@ -49,7 +54,10 @@ class DAGTraverser:
         try:
             return self._visited_cache[cache_key]
         except KeyError:
-            result = self.process(node, **kwargs)
+            if self._preserved_types and isinstance(node, self._preserved_types):
+                result = self.reuse_if_untouched(node, **kwargs)
+            else:
+                result = self.process(node, **kwargs)
             # Optionally check if r is in result_cache, a memory optimization
             # to be able to keep representation of result compact
             if self._compress:
