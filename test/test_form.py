@@ -1,8 +1,9 @@
 import pytest
-from utils import LagrangeElement
+from utils import LagrangeElement, RealElement
 
 from ufl import (
     Action,
+    Coargument,
     Coefficient,
     Cofunction,
     Constant,
@@ -14,6 +15,7 @@ from ufl import (
     TestFunction,
     TrialFunction,
     action,
+    adjoint,
     derivative,
     dot,
     ds,
@@ -24,7 +26,7 @@ from ufl import (
     triangle,
 )
 from ufl.algorithms.restructure_base_form import restructure_base_form
-from ufl.form import BaseForm
+from ufl.form import BaseForm, ZeroBaseForm
 
 
 @pytest.fixture
@@ -220,3 +222,53 @@ def test_form_divided_by_constant_scales(mass):
             form / Coefficient(V)
         with pytest.raises(TypeError):
             2 / form
+
+
+def test_constant_scales_a_form_from_either_side(mass):
+    V = mass.arguments()[0].ufl_function_space()
+    c = Constant(V.ufl_domain())
+    u = Coefficient(V)
+    forms = (
+        mass,
+        u * TestFunction(V) * dx,
+        Cofunction(V.dual()),
+        Coargument(V.dual(), 0),
+        Action(mass, u),
+        adjoint(mass),
+        ZeroBaseForm(mass.arguments()),
+    )
+    for form in forms:
+        for scalar in (2, 0.5, c, 2 * c + 1):
+            assert form * scalar == scalar * form
+
+
+def test_form_acts_on_real_function_on_the_right(domain):
+    """A function in a Real space is constant, but on the right a form acts on it."""
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    R = FunctionSpace(domain, RealElement(triangle))
+    r, c = Coefficient(R), Constant(domain)
+    v = TestFunction(V)
+    A = inner(TrialFunction(R), v) * dx
+
+    assert (A @ r).arguments() == (v,)
+    with pytest.warns(DeprecationWarning, match="form @ f"):
+        assert A * r == A @ r
+    # A constant scales, also on the right
+    assert (A * c).arguments() == A.arguments()
+    # An expression of a Real function could be acted on or scale, so it raises
+    # on the right, and scales on the left.
+    for operand in (2 * r, r * r, c * r):
+        with pytest.raises(TypeError, match="multiply it from the left"):
+            A * operand
+        assert (operand * A).arguments() == A.arguments()
+
+
+def test_matmul_only_acts(mass):
+    V = mass.arguments()[0].ufl_function_space()
+    u, c = Coefficient(V), Constant(V.ufl_domain())
+    assert mass @ u == action(mass, u)
+    for operand in (2 * u, c):
+        with pytest.raises(TypeError, match="can only act on"):
+            mass @ operand
+    with pytest.raises(TypeError):
+        mass @ 2

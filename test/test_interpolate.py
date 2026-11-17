@@ -4,7 +4,7 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
-from utils import FiniteElement, LagrangeElement, MixedElement
+from utils import FiniteElement, LagrangeElement, MixedElement, RealElement
 
 from ufl import (
     Action,
@@ -51,7 +51,7 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
-from ufl.sobolevspace import H1, HInf
+from ufl.sobolevspace import H1
 
 
 @pytest.fixture
@@ -172,8 +172,25 @@ def test_external_operator_follows_dual_slot(V1, V2):
         assert contracted / 2 == 0.5 * contracted
         with pytest.raises(TypeError):
             contracted / u
+        if contracted.arguments():
+            with pytest.raises(TypeError):
+                2 / contracted
+        else:
+            assert isinstance(2 / contracted, Division)
+            assert (2 / contracted).ufl_operands == (2, contracted)
+
+
+@pytest.mark.parametrize("operand", ["coefficient", "test_function"])
+def test_number_divided_by_contracted_interpolation(V1, V2, operand):
+    expr = Coefficient(V1) if operand == "coefficient" else TestFunction(V1)
+    interpolation = Interpolate(expr, Cofunction(V2.dual()))
+
+    if interpolation.arguments():
         with pytest.raises(TypeError):
-            2 / contracted
+            2 / interpolation
+    else:
+        assert isinstance(2 / interpolation, Division)
+        assert (2 / interpolation).ufl_operands == (2, interpolation)
 
 
 @pytest.mark.parametrize("operand", ["coefficient", "test_function"])
@@ -228,18 +245,14 @@ def test_form_multiplied_by_number_scales(domain_2d, V1, V2):
 
 
 def test_form_acts_on_real_coefficient(domain_2d, V1):
-    real_space = FunctionSpace(
-        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
-    )
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
     v = TestFunction(V1)
     form = inner(TrialFunction(real_space), v) * dx
-    assert (form * Coefficient(real_space)).arguments() == (v,)
+    assert (form @ Coefficient(real_space)).arguments() == (v,)
 
 
 def test_operator_of_constants_is_constant_only_in_a_real_space(domain_2d, V1, V2):
-    real_space = FunctionSpace(
-        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
-    )
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
     c = Constant(domain_2d)
     for space in (V2, real_space):
         operators = (Interpolate(c, space), ExternalOperator(c, function_space=space))
@@ -249,15 +262,13 @@ def test_operator_of_constants_is_constant_only_in_a_real_space(domain_2d, V1, V
 
 
 def test_form_acts_on_operator_of_constants(domain_2d, V1, V2):
-    real_space = FunctionSpace(
-        domain_2d, FiniteElement("Real", triangle, 0, (), identity_pullback, HInf)
-    )
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
     c = Constant(domain_2d)
     for space in (V1, real_space):
         linear = inner(1, TestFunction(space)) * dx
         for operator in (Interpolate(c, space), ExternalOperator(c, function_space=space)):
-            assert linear * operator == action(linear, operator)
-            assert (linear * operator).arguments() == ()
+            assert linear @ operator == action(linear, operator)
+            assert (linear @ operator).arguments() == ()
 
 
 @pytest.mark.parametrize("operand", ["coefficient", "constant"])
@@ -266,7 +277,7 @@ def test_form_times_zero_form_raises(domain_2d, V1, V2, operand):
     zero_form = Interpolate(expr, Cofunction(V2.dual()))
     linear = inner(1, TestFunction(V1)) * dx
     with pytest.raises(ValueError, match="0-form"):
-        linear * zero_form
+        linear @ zero_form
     with pytest.raises(TypeError):
         zero_form * linear
 
@@ -283,9 +294,8 @@ def test_scaling_agrees_with_negation(domain_2d, V1, V2):
     """Scaling an interpolation must agree with negating it.
 
     Both follow the dual slot, so that an interpolation of a test function stays
-    an expression. Firedrake's fml is
-    what notices a disagreement: it builds ``form - label(form)`` and compares
-    the result against ``-form``.
+    an expression. Firedrake's fml is what notices a disagreement: it builds
+    ``form - label(form)`` and compares the result against ``-form``.
     """
     scalar_element = V1.ufl_element()
     vector_element = FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1)
@@ -1322,3 +1332,49 @@ def test_action_leaves_coargument_of_interpolate_operand_bound(V1, scale):
 
     assert restructured == Interpolate(operand, ustar)
     assert restructured.arguments() == ()
+
+
+def test_constant_scales_contracted_operator_from_either_side(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    c = Constant(domain_2d)
+    cofunction = Cofunction(V2.dual())
+    for operator in (Interpolate(u, cofunction), Interpolate(TestFunction(V1), cofunction)):
+        for scalar in (2, c, 2 * c):
+            assert isinstance(scalar * operator, FormSum)
+            assert scalar * operator == operator * scalar
+
+    # An operator with a free output is an expression on both sides
+    free = Interpolate(u, V2)
+    assert isinstance(c * free, Product)
+    assert isinstance(free * c, Product)
+
+
+def test_operator_in_a_dual_space_is_not_constant(domain_2d, V1, V2):
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    v = TestFunction(real_space)
+    linear = inner(Coefficient(V1), TestFunction(V1)) * dx
+    for operator in (
+        Interpolate(v, Cofunction(V2.dual())),  # a 1-form
+        Interpolate(v, V2),  # free output, linear in v
+    ):
+        assert operator.arguments()
+        assert not is_scalar_constant_expression(operator)
+        with pytest.raises(TypeError, match="scalar constant"):
+            linear / operator
+
+
+def test_operator_subclass_registered_later_is_checked_by_its_space(domain_2d, V2):
+    from ufl.core.ufl_type import ufl_type
+
+    c = Constant(domain_2d)
+    assert is_scalar_constant_expression(c)
+
+    @ufl_type()
+    class LateOperator(ExternalOperator):
+        """An operator type registered after the first constant check."""
+
+        _ufl_noslots_ = True
+
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    assert not is_scalar_constant_expression(LateOperator(c, function_space=V2))
+    assert is_scalar_constant_expression(LateOperator(c, function_space=real_space))

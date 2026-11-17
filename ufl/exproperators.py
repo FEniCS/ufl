@@ -15,12 +15,14 @@ Sum and its superclass Expr.
 import numbers
 
 from ufl.algebra import Abs, Division, Power, Product, Sum
+from ufl.checks import _is_scaling_constant
 from ufl.conditional import GE, GT, LE, LT
 from ufl.constantvalue import Zero, as_ufl
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, MultiIndex, indices
 from ufl.differentiation import Grad
 from ufl.exprequals import expr_equals
+from ufl.form import BaseForm
 from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
@@ -181,6 +183,9 @@ _valid_types = (Expr, numbers.Real, numbers.Integral, numbers.Complex)
 def _mul(self, o):
     """Multiply."""
     if not isinstance(o, _valid_types):
+        return NotImplemented
+    if isinstance(o, BaseForm) and o._parent_type is BaseForm and _is_scaling_constant(self):
+        # A constant scales an operator that is a form the same from either side.
         return NotImplemented
     o = as_ufl(o)
     return _mult(self, o)
