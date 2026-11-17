@@ -24,7 +24,7 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.cell import Cell, CellSequence
-from ufl.domain import extract_domains
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import H1, L2, HDiv
 
@@ -190,6 +190,13 @@ def test_mixed_function_space_with_mesh_sequence_extract_domains():
     expr = CellVolume(mesh1) * f[0]
     assert extract_domains(expr, expand_mesh_sequence=False) == (domain,)
     assert extract_domains(expr) == (mesh0, mesh1)
+
+    # A mesh outside the MeshSequence stays a separate domain.
+    mesh2 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=102)
+    expr = CellVolume(mesh2) * f[0]
+    assert set(extract_domains(expr, expand_mesh_sequence=False)) == {domain, mesh2}
+    with pytest.raises(ValueError, match="multiple domains"):
+        extract_unique_domain(expr, expand_mesh_sequence=False)
 
     # Repeat with every component on the same mesh.
     domain = MeshSequence([mesh0, mesh0])

@@ -247,7 +247,8 @@ class MeshSequence(AbstractDomain, UFLObject):
 
     def _ufl_sort_key_(self):
         """UFL sort key."""
-        return ("MeshSequence", tuple(m._ufl_sort_key_() for m in self._meshes))
+        typespecific = tuple(m._ufl_sort_key_() for m in self._meshes)
+        return (self.geometric_dimension, self.topological_dimension, "MeshSequence", typespecific)
 
     @property
     def meshes(self):
