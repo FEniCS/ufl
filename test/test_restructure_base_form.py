@@ -268,7 +268,7 @@ def test_restructure_keeps_operator_with_contracted_value_in_integrand(V1, dual_
     else:
         vstar = inner(Coefficient(V1), Argument(V1, 0)) * dx
     v = Argument(V1, 0)
-    form = Interpolate(Argument(V1, 1), vstar) * v * dx
+    form = v * Interpolate(Argument(V1, 1), vstar) * dx
 
     assert restructure_base_form(form, max_composed_rank=0) == form
 

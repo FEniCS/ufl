@@ -20,6 +20,7 @@ from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
 from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument, Coargument
+from ufl.checks import _base_form_operator_types
 from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import (
     BaseFormOperator,
@@ -204,7 +205,7 @@ class BaseFormRestructurer(DAGTraverser):
         """
         if extract_type(o, CoefficientDerivative):
             return o
-        cutoff_types = [issubclass(cls, BaseFormOperator) for cls in Expr._ufl_all_classes_]
+        cutoff_types = _base_form_operator_types(len(Expr._ufl_all_classes_))
         # Collect the outermost operators, with a traversal that stops at each operator.
         outermost = {
             e
