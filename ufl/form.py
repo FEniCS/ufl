@@ -18,7 +18,7 @@ import warnings
 from collections import defaultdict
 from itertools import chain
 
-from ufl.checks import is_scalar_constant_expression
+from ufl.checks import _is_scaling_constant, is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
@@ -223,17 +223,38 @@ class BaseForm(metaclass=UFLType):
         return NotImplemented
 
     def __mul__(self, coefficient):
-        """Scale this form by a number, or take its action on the given coefficient."""
-        # A Coefficient or a base form operator is a function to act on, even in a
-        # real space.
-        is_function = isinstance(coefficient, FormArgument | BaseForm)
-        if not is_function and is_scalar_constant_expression(coefficient):
+        """Scale this form by a constant.
+
+        A constant is a number or a scalar expression of Constants, and it scales
+        the form from either side. Taking the action of a form on a function with
+        ``*`` is deprecated: use ``form @ f`` or ``action(form, f)`` instead.
+        """
+        if _is_scaling_constant(coefficient):
             return self.__rmul__(coefficient)
         if isinstance(coefficient, Expr) and self.arguments():
-            from ufl.formoperators import action
-
-            return action(self, coefficient)
+            if isinstance(coefficient, FormArgument | BaseForm):
+                warnings.warn(
+                    "Taking the action of a form with `form * f` is deprecated, "
+                    "use `form @ f` or `action(form, f)` instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            return BaseForm.__matmul__(self, coefficient)
         return NotImplemented
+
+    def __matmul__(self, coefficient):
+        """Take the action of this form on a function."""
+        if not isinstance(coefficient, Expr):
+            return NotImplemented
+        if not isinstance(coefficient, FormArgument | BaseForm):
+            raise TypeError(
+                "A form can only act on a Coefficient, an Argument or a base form operator, "
+                f"not on {ufl_err_str(coefficient)}. "
+                "To scale a form by a constant, multiply it from the left."
+            )
+        from ufl.formoperators import action
+
+        return action(self, coefficient)
 
     def __truediv__(self, scalar):
         """Scale this form by ``1 / scalar``."""
@@ -260,8 +281,6 @@ class BaseForm(metaclass=UFLType):
     def _ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
         return type(self)(*operands)
-
-    __matmul__ = __mul__
 
 
 @ufl_type()
