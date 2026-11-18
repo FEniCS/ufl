@@ -108,8 +108,8 @@ class Matrix(BaseForm, Counted):
         return self._hash
 
     def equals(self, other):
-        """Check equality."""
-        if type(other) is not Matrix:
+        """Compare the concrete type, count and function spaces."""
+        if type(other) is not type(self):
             return False
         if self is other:
             return True
