@@ -87,6 +87,9 @@ class SobolevSpace:
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper subset of"."""
+        if isinstance(other, DirectionalSobolevSpace):
+            # A space is in H^(k_1, ..., k_d) if it is in H^(k_i) in every direction i.
+            return self != other and all(self <= other[i] for i in other._spatial_indices)
         return other in self.parents
 
     def __le__(self, other):
@@ -95,11 +98,13 @@ class SobolevSpace:
 
     def __gt__(self, other):
         """Test for proper superset inclusion."""
-        return other < self
+        # Call __lt__ directly: `other < self` would dispatch back to the reflected
+        # __gt__ of a DirectionalSobolevSpace, a subclass, and recurse.
+        return type(other).__lt__(other, self)
 
     def __ge__(self, other):
         """Test for superset inclusion."""
-        return self == other or other < self
+        return self == other or self > other
 
 
 class DirectionalSobolevSpace(SobolevSpace):

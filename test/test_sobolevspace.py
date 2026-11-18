@@ -247,6 +247,15 @@ def test_incomparable_spaces():
     assert not DirectionalSobolevSpace((2, 0)) < H1
 
 
+def test_named_space_compared_with_directional_space():
+    assert H2 < DirectionalSobolevSpace((1, 1))
+    assert HDiv < DirectionalSobolevSpace((0, 0))
+    assert not L2 < DirectionalSobolevSpace((0, 0))
+    assert L2 <= DirectionalSobolevSpace((0, 0))
+    assert not HDiv < DirectionalSobolevSpace((1, 0))
+    assert DirectionalSobolevSpace((1, 1)) > H2
+
+
 def test_mixed_incomparable_spaces():
     from utils import MixedElement
 
