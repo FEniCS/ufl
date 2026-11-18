@@ -629,7 +629,8 @@ class Form(BaseForm):
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            domains_in_integrands.update(domain.meshes)
+            if domain is not None:
+                domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(
             join_domains(domains_in_extra_domain_integral_type_map | domains_in_integrands)
