@@ -80,15 +80,19 @@ class Replacer(DAGTraverser):
 
         The Coargument of an operator in an operand or a primal slot of ``o`` pairs
         with the output of that operator, so it is bound there. Only the dual slot of
-        ``o`` can hold a free Coargument.
+        ``o`` can hold a free Coargument. The dual slot binds its contracted Argument,
+        which is not replaced even if it equals an Argument of a primal slot.
         """
         if o in self.mapping:
             return self.mapping[o]
         primal_mapping = {k: v for k, v in self.mapping.items() if not isinstance(k, Coargument)}
         vstar, *slots = o.argument_slots()
+        slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
+        contracted, _ = _split_dual_slot_arguments(vstar, slot_arguments)
+        dual_mapping = {k: v for k, v in self.mapping.items() if k != contracted}
         new_ops = tuple(replace(op, primal_mapping) for op in o.ufl_operands)
         new_slots = (
-            replace(vstar, self.mapping),
+            replace(vstar, dual_mapping),
             *(replace(slot, primal_mapping) for slot in slots),
         )
         if new_ops == o.ufl_operands and new_slots == o.argument_slots():

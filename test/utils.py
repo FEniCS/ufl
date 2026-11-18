@@ -11,7 +11,7 @@ from ufl.pullback import (
     SymmetricPullback,
     identity_pullback,
 )
-from ufl.sobolevspace import H1, SobolevSpace
+from ufl.sobolevspace import H1, HInf, SobolevSpace
 
 
 class FiniteElement(AbstractFiniteElement):
@@ -168,6 +168,18 @@ class LagrangeElement(FiniteElement):
             identity_pullback,
             H1,
         )
+
+
+class RealElement(FiniteElement):
+    """A Real element: one global degree of freedom per component.
+
+    A function in it is constant in space, like a function in a space built from
+    ``basix.ufl.real_element``.
+    """
+
+    def __init__(self, cell: Cell, shape: tuple[int, ...] = ()):
+        """Initialise."""
+        super().__init__("Real", cell, 0, shape, identity_pullback, HInf)
 
 
 class SymmetricElement(FiniteElement):
