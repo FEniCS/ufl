@@ -53,7 +53,9 @@ class BaseFormRestructurer(DAGTraverser):
     ``A^H x``. The operands of an Action are restructured first, and the first rule that
     matches applies. An Action numbers its free arguments as its operands do, whereas a
     Form or operator composed with an operand numbers them from zero. Rank and function
-    spaces are preserved.
+    spaces are preserved. Association follows the ordered free arguments: contract into
+    the factor that supplies the argument consumed by the outer Action. The matrix identities
+    below assume that the free arguments follow the order of the factors.
 
     Here ``N`` is an operator, ``v*`` its Coargument and ``uhat`` an Argument in a primal
     slot, numbered as subscripted. ``x`` has rank one, ``L`` is a rank one BaseForm and
@@ -334,6 +336,13 @@ class BaseFormRestructurer(DAGTraverser):
         if isinstance(vstar, Coargument):
             return o
 
+        if not isinstance(vstar, Form) and _rank(vstar) == 1:
+            # This dual-slot form is assembled independently. Its sole argument is bound
+            # in the dual slot, so number it from zero even after splitting an adjoint.
+            A = _number_contracted_argument(o, vstar, ())
+            if A != vstar:
+                return self(o._ufl_expr_reconstruct_(*o.ufl_operands, argument_slots=(A, *slots)))
+
         if isinstance(vstar, Form) or len(vstar.arguments()) > 1:
             # A base form operator is linear in its dual slot, so N(u; A) splits into
             # Action(N(u; vhat), A) if the primal slots use number 0, and otherwise
@@ -401,16 +410,28 @@ class BaseFormRestructurer(DAGTraverser):
             # (A^H)^H x = A x
             return self(Action(right.form(), left))
         if left_is_rank_one and isinstance(right, Action) and _rank(right.left()) == 2:
-            # x^H (A B) = (x^H A) B
-            return self(Action(Action(left, right.left()), right.right()))
+            if right.arguments()[0] == right.left().arguments()[0]:
+                # x^H (A B) = (x^H A) B if A has the lowest free argument
+                # Action(x, Action(A, B)) = Action(Action(x, A), B)
+                return self(Action(Action(left, right.left()), right.right()))
+            if _rank(right.right()) == 2:
+                # x^H (A B) = A (B x) if B has the lowest free argument
+                # Action(x, Action(A, B)) = Action(A, Action(B, x))
+                return self(Action(right.left(), Action(right.right(), left)))
         if (
             right_is_rank_one
             and isinstance(left, Action)
             and _rank(left.left()) > 1
             and _rank(left.right()) == 2
         ):
-            # (A B) x = A (B x)
-            return self(Action(left.left(), Action(left.right(), right)))
+            if left.arguments()[-1] == left.right().arguments()[-1]:
+                # (A B) x = A (B x) if B has the highest free argument
+                # Action(Action(A, B), x) = Action(A, Action(B, x))
+                return self(Action(left.left(), Action(left.right(), right)))
+            if _rank(left.left()) == 2:
+                # (A B) x = (x^H A) B if A has the highest free argument
+                # Action(Action(A, B), x) = Action(Action(x, A), B)
+                return self(Action(Action(right, left.left()), left.right()))
 
         # Distribute over a FormSum only to avoid assembling a sum of rank above one.
         if isinstance(left, FormSum) and _rank(left) > 1 and right_is_rank_one:
@@ -429,7 +450,7 @@ class BaseFormRestructurer(DAGTraverser):
             contracts_dual_slot = right.argument_slots()[0] == right.arguments()[0]
             if isinstance(left, Expr) or contracts_dual_slot:
                 contracted, *free = right.arguments()
-                mapping = {a: a.reconstruct(number=a.number() - 1) for a in free}
+                mapping = {a: a.reconstruct(number=i) for i, a in enumerate(free)}
                 return self(replace(right, {contracted: left, **mapping}))
         if isinstance(left, BaseFormOperator) and right_is_rank_one:
             contracts_dual_slot = left.argument_slots()[0] == left.arguments()[-1]
