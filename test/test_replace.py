@@ -330,13 +330,19 @@ def test_replace_dual_slot_in_sum(V1):
     w = Coefficient(V1)
     vstar = Coargument(V1.dual(), 0)
     c = Cofunction(V1.dual())
-    N = ExternalOperator(u, function_space=V1, argument_slots=(vstar,))
-    M = ExternalOperator(w, function_space=V1, argument_slots=(vstar,))
+    v = Argument(V1, 1)
+    N = ExternalOperator(u, function_space=V1, argument_slots=(vstar, v))
+    M = ExternalOperator(w, function_space=V1, argument_slots=(vstar, v))
 
     # The contracted operators are forms, so their sum is a FormSum.
     r = replace(N + M, {vstar: c})
     assert isinstance(r, FormSum)
     assert set(r.components()) == {replace(N, {vstar: c}), replace(M, {vstar: c})}
+
+    # Without arguments, the contracted operators are numbers.
+    N = ExternalOperator(u, function_space=V1, argument_slots=(vstar,))
+    M = ExternalOperator(w, function_space=V1, argument_slots=(vstar,))
+    assert replace(N + M, {vstar: c}) == replace(N, {vstar: c}) + replace(M, {vstar: c})
 
 
 @pytest.mark.parametrize("replacement", ["coefficient", "expression", "operator"])

@@ -13,14 +13,14 @@ from math import inf
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.algebra import Conj, Sum
+from ufl.algebra import Conj, Division, Product, Sum
 from ufl.algorithms.ad import expand_coefficient_derivatives
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.replace import replace
 from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument, Coargument
-from ufl.checks import _base_form_operator_types
+from ufl.checks import _base_form_operator_types, _is_scaling_constant
 from ufl.constantvalue import Zero
 from ufl.core.base_form_operator import (
     BaseFormOperator,
@@ -254,18 +254,49 @@ class BaseFormRestructurer(DAGTraverser):
             return action
         return action + self(remainder)
 
+    def expression(self, o: Expr, *operands: Expr | BaseForm) -> Expr:
+        """Reconstruct ``o`` from its restructured operands, keeping its 0-form operators.
+
+        A 0-form operator is a number, which may restructure into a Form. Only a linear
+        combination of forms is a form, so any other expression keeps its operator.
+        """
+        kept = tuple(op if isinstance(op, Expr) else c for op, c in zip(operands, o.ufl_operands))
+        if kept == o.ufl_operands:
+            return o
+        return o._ufl_expr_reconstruct_(*kept)
+
     @process.register(Expr)
-    def _(self, o: Expr) -> Expr:
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operands: Expr | BaseForm) -> Expr:
         """Traverse expressions in operator operands and argument slots."""
-        return self.reuse_if_untouched(o)
+        return self.expression(o, *operands)
 
     @process.register(Sum)
-    def _(self, o: Sum) -> Expr | BaseForm:
-        """Return a FormSum if a term restructures into a BaseForm."""
-        terms = [self(t) for t in o.ufl_operands]
-        if all(isinstance(t, Expr) for t in terms):
-            return self.reuse_if_untouched(o)
-        return FormSum(*((t, 1) for t in terms))
+    @DAGTraverser.postorder
+    def _(self, o: Sum, a: Expr | BaseForm, b: Expr | BaseForm) -> Expr | BaseForm:
+        """Add two forms into a FormSum, such as two restructured 0-form operators."""
+        if isinstance(a, BaseForm) and isinstance(b, BaseForm):
+            if not (isinstance(a, Expr) and isinstance(b, Expr)):
+                return FormSum((a, 1), (b, 1))
+        return self.expression(o, a, b)
+
+    @process.register(Product)
+    @DAGTraverser.postorder
+    def _(self, o: Product, a: Expr | BaseForm, b: Expr | BaseForm) -> Expr | BaseForm:
+        """Scale a form by a constant into a FormSum."""
+        if not isinstance(a, Expr) and _is_scaling_constant(b):
+            return FormSum((a, b))
+        if not isinstance(b, Expr) and _is_scaling_constant(a):
+            return FormSum((b, a))
+        return self.expression(o, a, b)
+
+    @process.register(Division)
+    @DAGTraverser.postorder
+    def _(self, o: Division, a: Expr | BaseForm, b: Expr) -> Expr | BaseForm:
+        """Scale a form by the reciprocal of a constant into a FormSum."""
+        if not isinstance(a, Expr) and _is_scaling_constant(b):
+            return FormSum((a, 1 / b))
+        return self.expression(o, a, b)
 
     @process.register(FormSum)
     @DAGTraverser.postorder

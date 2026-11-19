@@ -650,7 +650,8 @@ class Form(BaseForm):
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            domains_in_integrands.update(domain.meshes)
+            if domain is not None:
+                domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(
             join_domains(domains_in_extra_domain_integral_type_map | domains_in_integrands)
@@ -827,16 +828,19 @@ class FormSum(BaseForm):
 
     def _analyze_form_arguments(self):
         """Return all ``Argument`` objects found in form."""
+        from ufl.argument import Coargument
+
         arguments = []
         coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
         # Define canonical numbering of arguments and coefficients.
-        # A Coargument in V* brings an Argument in V with the same number, as
-        # the identity map V* x V -> R. The Coargument sorts first, as in its
-        # own arguments, so that the order does not depend on the hash of the set.
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), not x._dual)))
+        # A Coargument in V* brings an Argument in V with the same number.
+        # The Coargument sorts first, as in its own arguments.
+        unique = set(arguments)
+        arguments = sorted(unique, key=lambda a: (a.number(), not isinstance(a, Coargument)))
+        self._arguments = tuple(arguments)
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
