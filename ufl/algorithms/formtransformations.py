@@ -223,7 +223,7 @@ class PartExtracter(Transformer):
         return (x, provides)
 
     def conditional(self, x):
-        """Extract parts from both branches of an argument-independent conditional."""
+        """Extract parts from both branches of a conditional whose condition has no Arguments."""
         condition, true_value, false_value = x.ufl_operands
         if _expr_has_terminal_types(condition, Argument):
             raise ValueError("Condition cannot depend on form arguments.")
