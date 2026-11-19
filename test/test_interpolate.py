@@ -56,7 +56,15 @@ from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.checks import is_scalar_constant_expression
-from ufl.classes import Division, Product, ReferenceGrad, ReferenceValue, Sum
+from ufl.classes import (
+    CoefficientDerivative,
+    Division,
+    Product,
+    ReferenceGrad,
+    ReferenceValue,
+    Sum,
+    VariableDerivative,
+)
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
@@ -1418,8 +1426,8 @@ def test_operator_subclass_registered_later_is_checked_by_its_space(domain_2d, V
 
 
 def _compute_form_data(form):
-    """Preprocess a form with the options that FFCx uses."""
-    return compute_form_data(
+    """Preprocess a form with FFCx options and check its structure."""
+    form_data = compute_form_data(
         form,
         do_apply_function_pullbacks=True,
         do_apply_integral_scaling=True,
@@ -1429,6 +1437,12 @@ def _compute_form_data(form):
         do_append_everywhere_integrals=False,
         complex_mode=False,
     )
+    preprocessed_form = form_data.preprocessed_form
+    assert isinstance(preprocessed_form, Form)
+    assert preprocessed_form.integrals()
+    assert preprocessed_form.arguments() == form.arguments()
+    assert not extract_type(preprocessed_form, (CoefficientDerivative, VariableDerivative))
+    return form_data
 
 
 def test_form_data_of_derivative_of_interpolated_coordinate(domain_2d):
