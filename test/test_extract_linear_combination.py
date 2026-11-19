@@ -162,7 +162,7 @@ def test_matrix_nonlinear_error(V):
         ValueError, match=r"Non-linear expression detected: product of two spatial functions."
     ):
         # Cannot multiply a matrix by a coefficient algebraically in this block
-        extract_linear_combination(A * u)
+        extract_linear_combination(A @ u)
 
 
 def test_vector_scalar_multiplication(V_vec, domain):

@@ -8,15 +8,19 @@
 #
 # Modified by Anders Logg, 2009-2010
 
+from collections import OrderedDict
 from functools import singledispatchmethod
 
 import ufl.classes
-from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.analysis import extract_type, has_exact_type
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.argument import Coargument
+from ufl.argument import Argument, Coargument
 from ufl.classes import BaseForm, CoefficientDerivative
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import Zero, as_ufl
+from ufl.core.base_form_operator import _split_dual_slot_arguments
+from ufl.core.expr import Expr
 from ufl.corealg.dag_traverser import DAGTraverser
+from ufl.form import ZeroBaseForm
 
 
 class Replacer(DAGTraverser):
@@ -32,8 +36,9 @@ class Replacer(DAGTraverser):
         # One can replace Coarguments by 1-Forms
         def get_shape(x):
             """Get the shape of an object."""
-            if isinstance(x, BaseForm):
-                return x.arguments()[0].ufl_shape
+            if isinstance(x, BaseForm) and not isinstance(x, Expr):
+                arguments = x.arguments()
+                return arguments[0].ufl_shape if arguments else ()
             return x.ufl_shape
 
         if not all(get_shape(k) == get_shape(v) for k, v in mapping.items()):
@@ -58,26 +63,53 @@ class Replacer(DAGTraverser):
                 return o
             return o._ufl_expr_reconstruct_(*args)
 
+    @process.register(ufl.classes.Sum)
+    @DAGTraverser.postorder
+    def _(self, o, *args):
+        """Replace the terms of a sum, which add as forms if they become forms."""
+        if o in self.mapping:
+            return self.mapping[o]
+        if all(new is old for new, old in zip(args, o.ufl_operands)):
+            return o
+        left, right = args
+        return left + right
+
     @process.register(ufl.classes.BaseFormOperator)
     def _(self, o):
         """Replace a base form operator.
 
         The Coargument of an operator in an operand or a primal slot of ``o`` pairs
         with the output of that operator, so it is bound there. Only the dual slot of
-        ``o`` can hold a free Coargument.
+        ``o`` can hold a free Coargument. The dual slot binds its contracted Argument,
+        which is not replaced even if it equals an Argument of a primal slot.
         """
         if o in self.mapping:
             return self.mapping[o]
         primal_mapping = {k: v for k, v in self.mapping.items() if not isinstance(k, Coargument)}
         vstar, *slots = o.argument_slots()
+        slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
+        contracted, _ = _split_dual_slot_arguments(vstar, slot_arguments)
+        dual_mapping = {k: v for k, v in self.mapping.items() if k != contracted}
         new_ops = tuple(replace(op, primal_mapping) for op in o.ufl_operands)
         new_slots = (
-            replace(vstar, self.mapping),
+            replace(vstar, dual_mapping),
             *(replace(slot, primal_mapping) for slot in slots),
         )
         if new_ops == o.ufl_operands and new_slots == o.argument_slots():
             return o
-        return o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
+        new = o._ufl_expr_reconstruct_(*new_ops, argument_slots=new_slots)
+        if not any(isinstance(slot, Zero) for slot in new_slots[1:]):
+            return new
+        # o is linear in its primal slots.
+        if not new._contracts_output:
+            return Zero(o.ufl_shape)
+        # The dual slot contracts o into a form, which keeps the Arguments of the
+        # slots that became zero.
+        mapped = (primal_mapping.get(a, a) for s in slots for a in extract_type(s, Argument, True))
+        slot_arguments = [a for a in mapped if isinstance(a, Argument)]
+        _, dual_arguments = _split_dual_slot_arguments(new_slots[0], slot_arguments)
+        arguments = OrderedDict.fromkeys((*dual_arguments, *slot_arguments))
+        return ZeroBaseForm(tuple(sorted(arguments, key=lambda a: a.number())))
 
     @process.register(ufl.classes.CoefficientDerivative)
     def _(self, o):
