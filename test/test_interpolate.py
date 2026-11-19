@@ -7,6 +7,7 @@ import pytest
 from utils import FiniteElement, LagrangeElement, MixedElement, RealElement
 
 from ufl import (
+    L2,
     Action,
     Adjoint,
     Argument,
@@ -15,6 +16,7 @@ from ufl import (
     Cofunction,
     Constant,
     FunctionSpace,
+    Identity,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -30,6 +32,8 @@ from ufl import (
     grad,
     inner,
     replace,
+    tetrahedron,
+    tr,
     triangle,
 )
 from ufl.algorithms.ad import expand_derivatives
@@ -47,14 +51,24 @@ from ufl.algorithms.apply_function_pullbacks import (
     apply_interpolate_pullbacks,
 )
 from ufl.algorithms.balancing import balance_modifiers
+from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.checks import is_scalar_constant_expression
-from ufl.classes import Division, Product, ReferenceGrad, ReferenceValue, Sum
+from ufl.classes import (
+    CoefficientDerivative,
+    Division,
+    Product,
+    ReferenceGrad,
+    ReferenceValue,
+    Sum,
+    VariableDerivative,
+)
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
+from ufl.geometry import Jacobian
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -1409,3 +1423,60 @@ def test_operator_subclass_registered_later_is_checked_by_its_space(domain_2d, V
     real_space = FunctionSpace(domain_2d, RealElement(triangle))
     assert not is_scalar_constant_expression(LateOperator(c, function_space=V2))
     assert is_scalar_constant_expression(LateOperator(c, function_space=real_space))
+
+
+def _compute_form_data(form):
+    """Preprocess a form with FFCx options and check its structure."""
+    form_data = compute_form_data(
+        form,
+        do_apply_function_pullbacks=True,
+        do_apply_integral_scaling=True,
+        do_apply_geometry_lowering=True,
+        preserve_geometry_types=(Jacobian,),
+        do_apply_restrictions=True,
+        do_append_everywhere_integrals=False,
+        complex_mode=False,
+    )
+    preprocessed_form = form_data.preprocessed_form
+    assert isinstance(preprocessed_form, Form)
+    assert preprocessed_form.integrals()
+    assert preprocessed_form.arguments() == form.arguments()
+    assert not extract_type(preprocessed_form, (CoefficientDerivative, VariableDerivative))
+    return form_data
+
+
+def test_form_data_of_derivative_of_interpolated_coordinate(domain_2d):
+    """A form compiler can process the derivative of an interpolated displaced coordinate."""
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    x1 = SpatialCoordinate(domain_2d) + u
+    I_x1 = Interpolate(x1, V)
+
+    _compute_form_data(x1[0] * dx)
+    _compute_form_data(I_x1[0] * dx)
+    _compute_form_data(derivative(x1, u)[0] * dx)
+    _compute_form_data(derivative(I_x1, u)[0] * dx)
+
+
+def test_form_data_of_derivative_of_interpolated_strain():
+    """A form compiler can process the derivative of an interpolated strain."""
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    V = FunctionSpace(domain, FiniteElement("DG", tetrahedron, 1, (3,), identity_pullback, L2))
+    T = FunctionSpace(domain, LagrangeElement(tetrahedron, 1, (3, 3)))
+    u = Coefficient(V)
+
+    x1 = SpatialCoordinate(domain) + u
+    F = grad(x1)
+    B = (F.T * F - Identity(3)) / 2
+    I_B = Interpolate(B, T)
+
+    def W(E):
+        """Strain energy density."""
+        return inner(E, E) + tr(E) ** 2 / 2
+
+    _compute_form_data(B[0, 0] * dx)
+    _compute_form_data(I_B[0, 0] * dx)
+    _compute_form_data(derivative(B, u)[0, 0] * dx)
+    _compute_form_data(derivative(I_B, u)[0, 0] * dx)
+    _compute_form_data(derivative(W(B) * dx, u))
+    _compute_form_data(derivative(W(I_B) * dx, u))
