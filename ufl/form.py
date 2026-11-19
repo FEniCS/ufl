@@ -814,12 +814,17 @@ class FormSum(BaseForm):
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
+
+        def argument_key(a):
+            """Sort by number, then a Coargument first, then by part, with no part first.
+
+            A Coargument in V* brings an Argument in V with the same number.
+            """
+            part = -1 if a.part() is None else a.part()
+            return a.number(), not isinstance(a, Coargument), part
+
         # Define canonical numbering of arguments and coefficients.
-        # A Coargument in V* brings an Argument in V with the same number.
-        # The Coargument sorts first.
-        unique = set(arguments)
-        arguments = sorted(unique, key=lambda a: (a.number(), not isinstance(a, Coargument)))
-        self._arguments = tuple(arguments)
+        self._arguments = tuple(sorted(set(arguments), key=argument_key))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
