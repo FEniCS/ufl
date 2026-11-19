@@ -22,7 +22,6 @@ from ufl.constantvalue import as_ufl
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
-from ufl.duals import is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace
 from ufl.utils.counted import Counted
@@ -93,6 +92,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     map from ``w_1`` to the dual of ``v_0``. With ``w_0``, it is a linear map from ``v_1``
     to the dual of ``w_0``. Interpolate has ``u == uhat``, so ``Interpolate(e, A)`` is
     ``N(e; A, e)``.
+
+    The arithmetic of the operator follows its value. With a free output, the operator
+    is a function, and it is an expression. If the dual slot contracts the output,
+    the operator is a form in its free arguments, which forms can add and constants
+    can scale. A 0-form operator ``I0`` is a number, so it is an expression, as in
+    ``I0 * u``, ``I0**2`` or ``I0 - 1``. Adding ``I0`` to a Form gives a ``FormSum``.
     """
 
     ufl_operands: tuple[Expr, ...]
@@ -303,8 +308,16 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     @property
     def _parent_type(self):
-        """Is this a primal or dual expression?"""
-        return Operator if is_primal(self.ufl_function_space()) else BaseForm
+        """Is this an expression or a form?
+
+        The operator is an expression if its dual slot leaves the output free, or if
+        it has no arguments and is a number. Otherwise the dual slot contracts the
+        output and leaves a form in the free arguments.
+        """
+        if not self.arguments():
+            return Operator
+        dual_slot_arguments = self.argument_slots()[0].arguments()
+        return Operator if any(isinstance(a, Coargument) for a in dual_slot_arguments) else BaseForm
 
     def __add__(self, other):
         """Add."""
@@ -314,6 +327,14 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Add."""
         return self._parent_type.__radd__(self, other)
 
+    def __sub__(self, other):
+        """Subtract."""
+        return self._parent_type.__sub__(self, other)
+
+    def __rsub__(self, other):
+        """Subtract."""
+        return self._parent_type.__rsub__(self, other)
+
     def __mul__(self, other):
         """Multiply."""
         return self._parent_type.__mul__(self, other)
@@ -321,3 +342,13 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     def __rmul__(self, other):
         """Multiply."""
         return self._parent_type.__rmul__(self, other)
+
+    def __truediv__(self, other):
+        """Divide."""
+        return self._parent_type.__truediv__(self, other)
+
+    def __rtruediv__(self, other):
+        """Divide by the operator, unless it is a form."""
+        if self._parent_type is BaseForm:
+            return NotImplemented
+        return Operator.__rtruediv__(self, other)

@@ -12,7 +12,7 @@ from functools import singledispatchmethod
 
 from ufl.action import Action
 from ufl.adjoint import Adjoint
-from ufl.algebra import Conj, Sum
+from ufl.algebra import Conj, Division, Product, Sum
 from ufl.algorithms.ad import expand_coefficient_derivatives
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.comparison_checker import do_comparison_check
@@ -21,6 +21,7 @@ from ufl.algorithms.remove_complex_nodes import remove_complex_nodes
 from ufl.algorithms.replace import replace
 from ufl.algorithms.traversal import iter_expressions
 from ufl.argument import Argument, Coargument
+from ufl.checks import _is_scaling_constant
 from ufl.core.base_form_operator import (
     BaseFormOperator,
     _number_contracted_argument,
@@ -81,9 +82,9 @@ class BaseFormRestructurer(DAGTraverser):
 
     The rules for operators follow, where ``B`` has rank two, ``A`` is a Form or has rank
     above one and ``w_i`` is an Argument numbered ``i``. An operator with one rank-two
-    primal slot ``B`` is split first. A Form and an operator compose only if the operator
-    has rank at most ``max_composed_rank``. Otherwise a rank-one Form stays in the dual
-    slot of the operator, and the Action of a Form of higher rank is kept.
+    primal slot ``B`` is split first. A Form and an expression compose only if each operator
+    in the expression has rank at most ``max_composed_rank``. Otherwise a rank-one Form
+    stays in the dual slot of the operator, and the Action of a Form of higher rank is kept.
 
     ============================  ===============================================
     Expression                    Result
@@ -106,9 +107,15 @@ class BaseFormRestructurer(DAGTraverser):
         super().__init__(**kwargs)
         self.max_composed_rank = max_composed_rank
 
-    def composable(self, operator: BaseFormOperator) -> bool:
-        """Return whether the operator may compose with a Form."""
-        return _rank(operator) <= self.max_composed_rank
+    def composable(self, operand: Expr | BaseForm) -> bool:
+        """Return whether an operand may compose with a Form.
+
+        An expression composes if each operator in it has rank at most ``max_composed_rank``.
+        """
+        if not isinstance(operand, Expr):
+            return True
+        operators = extract_type(operand, BaseFormOperator)
+        return all(_rank(N) <= self.max_composed_rank for N in operators)
 
     def compose(self, left: Expr | BaseForm, right: Expr | BaseForm) -> Expr | BaseForm:
         """Return ``left(right)`` if ``left`` is a Form, else ``right(left)``.
@@ -120,9 +127,8 @@ class BaseFormRestructurer(DAGTraverser):
         takes the lowest number its operator leaves free. The Action of an operator
         that is not composable is kept.
         """
-        for operand in (left, right):
-            if isinstance(operand, BaseFormOperator) and not self.composable(operand):
-                return Action(left, right)
+        if not (self.composable(left) and self.composable(right)):
+            return Action(left, right)
 
         left_free = left.arguments()[:-1] if isinstance(left, BaseForm) else ()
         right_free = right.arguments()[1:] if isinstance(right, BaseForm) else ()
@@ -172,10 +178,49 @@ class BaseFormRestructurer(DAGTraverser):
         """Leave Forms and terminal BaseForms unchanged."""
         return o
 
+    def expression(self, o: Expr, *operands: Expr | BaseForm) -> Expr:
+        """Reconstruct ``o`` from its restructured operands, keeping its 0-form operators.
+
+        A 0-form operator is a number, which may restructure into a Form. Only a linear
+        combination of forms is a form, so any other expression keeps its operator.
+        """
+        kept = tuple(op if isinstance(op, Expr) else c for op, c in zip(operands, o.ufl_operands))
+        if kept == o.ufl_operands:
+            return o
+        return o._ufl_expr_reconstruct_(*kept)
+
     @process.register(Expr)
-    def _(self, o: Expr) -> Expr:
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *operands: Expr | BaseForm) -> Expr:
         """Traverse expressions in operator operands and argument slots."""
-        return self.reuse_if_untouched(o)
+        return self.expression(o, *operands)
+
+    @process.register(Sum)
+    @DAGTraverser.postorder
+    def _(self, o: Sum, a: Expr | BaseForm, b: Expr | BaseForm) -> Expr | BaseForm:
+        """Add two forms into a FormSum, such as two restructured 0-form operators."""
+        if isinstance(a, BaseForm) and isinstance(b, BaseForm):
+            if not (isinstance(a, Expr) and isinstance(b, Expr)):
+                return FormSum((a, 1), (b, 1))
+        return self.expression(o, a, b)
+
+    @process.register(Product)
+    @DAGTraverser.postorder
+    def _(self, o: Product, a: Expr | BaseForm, b: Expr | BaseForm) -> Expr | BaseForm:
+        """Scale a form by a constant into a FormSum."""
+        if not isinstance(a, Expr) and _is_scaling_constant(b):
+            return FormSum((a, b))
+        if not isinstance(b, Expr) and _is_scaling_constant(a):
+            return FormSum((b, a))
+        return self.expression(o, a, b)
+
+    @process.register(Division)
+    @DAGTraverser.postorder
+    def _(self, o: Division, a: Expr | BaseForm, b: Expr) -> Expr | BaseForm:
+        """Scale a form by the reciprocal of a constant into a FormSum."""
+        if not isinstance(a, Expr) and _is_scaling_constant(b):
+            return FormSum((a, 1 / b))
+        return self.expression(o, a, b)
 
     @process.register(FormSum)
     @DAGTraverser.postorder
@@ -342,16 +387,16 @@ class BaseFormRestructurer(DAGTraverser):
             if isinstance(right, Expr) or contracts_dual_slot:
                 return self(replace(left, {left.arguments()[-1]: right}))
 
-        # A Form composes with an expression, or with an operator through its dual slot.
+        # A Form composes with a composable expression, or operator through its dual slot.
         if isinstance(left, Form) and isinstance(right, BaseFormOperator):
             if right.argument_slots()[0] == right.arguments()[0]:
                 return self.compose(left, right)
-        elif isinstance(left, Form) and isinstance(right, Expr):
+        elif isinstance(left, Form) and isinstance(right, Expr) and self.composable(right):
             return self.compose(left, right)
         if isinstance(right, Form) and isinstance(left, BaseFormOperator):
             if left.argument_slots()[0] == left.arguments()[-1]:
                 return self.compose(left, right)
-        elif isinstance(right, Form) and isinstance(left, Expr):
+        elif isinstance(right, Form) and isinstance(left, Expr) and self.composable(left):
             return self.compose(left, right)
 
         # An expression Sum cannot be assembled independently, unlike a FormSum.

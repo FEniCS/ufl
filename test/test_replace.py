@@ -11,6 +11,7 @@ from ufl import (
     Matrix,
     Mesh,
     TestFunction,
+    TestFunctions,
     TrialFunction,
     as_tensor,
     as_vector,
@@ -337,3 +338,15 @@ def test_replace_leaves_coargument_of_operand_bound(V1):
     (vstar,) = interpolation.arguments()
 
     assert replace(interpolation, {vstar: ustar}) == Interpolate(N, ustar)
+
+
+def test_replace_interpolate_of_mixed_component(V1):
+    # The Interpolate is scalar, although its argument has the shape of the mixed space.
+    element = MixedElement([LagrangeElement(triangle, 1), LagrangeElement(triangle, 2)])
+    Z = FunctionSpace(V1.ufl_domain(), element)
+    _, w = TestFunctions(Z)
+    u = Coefficient(V1)
+    c = Coefficient(V1)
+    form = Interpolate(w, V1) * u * dx
+
+    assert replace(form, {Interpolate(w, V1): c}) == c * u * dx

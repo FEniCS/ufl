@@ -425,6 +425,24 @@ def test_restructure_distributes_expression_sum(V1, sum_on_left):
     assert restructure_base_form(expression) == FormSum(*((c, 1) for c in expected))
 
 
+@pytest.mark.parametrize("sum_on_left", [False, True], ids=["right-sum", "left-sum"])
+def test_restructure_form_and_sum_of_operators_above_composition_rank(V1, sum_on_left):
+    u = Coefficient(V1)
+    dual_number, primal_number = (1, 0) if sum_on_left else (0, 1)
+    slots = (Coargument(V1.dual(), dual_number), Argument(V1, primal_number))
+    operators = tuple(
+        ExternalOperator(u, function_space=V1, derivatives=(n,), argument_slots=slots)
+        for n in (1, 2)
+    )
+    form = TestFunction(V1) * dx
+
+    def contract(operand):
+        return Action(operand, form) if sum_on_left else Action(form, operand)
+
+    expected = FormSum(*((restructure_base_form(contract(op)), 1) for op in operators))
+    assert restructure_base_form(contract(operators[0] + operators[1])) == expected
+
+
 def test_restructure_form_composes_expression_sum(V1):
     # Composition comes before distribution, so a Form composes with a Sum whole.
     a, b = Coefficient(V1), Coefficient(V1)
@@ -1072,3 +1090,29 @@ def test_action_derivative_direction_clash(V1, V3):
     F = Argument(V1, 0) * Argument(V1, 1) * u**2 * dx
     with pytest.raises(ValueError, match="same number"):
         expand_derivatives(derivative(Action(x, F), u, Argument(V3, 1)))
+
+
+def test_restructure_operator_sum_in_expression(V1):
+    u = Coefficient(V1)
+    slots = (Coargument(V1.dual(), 0), Argument(V1, 1))
+    operators = tuple(
+        ExternalOperator(u, function_space=V1, derivatives=(n,), argument_slots=slots)
+        for n in (1, 2)
+    )
+    expression = u * (operators[0] + operators[1])
+    assert restructure_base_form(expression) == expression
+
+
+def test_restructure_zero_form_operator_in_expression(V1, V2):
+    u = Coefficient(V1)
+    I0 = Interpolate(u, inner(u, TestFunction(V2)) * dx)
+    F0 = restructure_base_form(I0)
+    assert isinstance(F0, Form)
+
+    # A linear combination of 0-forms is a form
+    assert restructure_base_form(2 * I0) == 2 * F0
+    assert restructure_base_form(I0 / 2) == 0.5 * F0
+    assert restructure_base_form(I0 + I0 * 2) == 2 * F0 + F0
+    # A 0-form operator is a number in any other expression
+    assert restructure_base_form(I0 * I0) == I0 * I0
+    assert restructure_base_form(I0 * u) == I0 * u

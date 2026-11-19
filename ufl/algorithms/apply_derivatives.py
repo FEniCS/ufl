@@ -1988,7 +1988,13 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             dual_term = ZeroBaseForm(arguments)
         else:
             dual_term = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
-        return self._expression_rules(N) + dual_term
+        dN = self._expression_rules(N)
+        if isinstance(dN, Zero):
+            return dual_term
+        if isinstance(dual_term, ZeroBaseForm):
+            return dN
+        # The derivative of a form is a form, also for a 0-form operator, which is a number.
+        return FormSum((dN, 1), (dual_term, 1))
 
 
 class DerivativeRuleDispatcher(DAGTraverser):

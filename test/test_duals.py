@@ -588,7 +588,7 @@ def test_zero_base_form_mult():
 
     u = Coefficient(V)
 
-    Zu = Z * u
+    Zu = Z @ u
     assert Zu == action(Z, u)
     assert action(Zu, u) == ZeroBaseForm(())
 
