@@ -58,6 +58,9 @@ def _number_contracted_argument(N, A, others):
     vstar, *slots = N.argument_slots()
     slot_args = [a for slot in slots for a in extract_type(slot, Argument, True)]
     contracted, _ = _split_dual_slot_arguments(vstar, slot_args)
+    if contracted is None:
+        # A Coargument or a Cofunction in the dual slot contracts no argument of A.
+        return A
     if any(a.number() == 0 for a in slot_args):
         number = 0
     else:
@@ -253,11 +256,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     @property
     def ufl_shape(self):
-        """Return the UFL shape of the coefficient produced by the operator."""
-        if len(self.arguments()) == 0:
-            return ()
-        arg, *_ = self.arguments()
-        return arg._ufl_shape
+        """Return the value shape in the operator output space.
+
+        Applying a derivative to its directions leaves the output shape unchanged,
+        independently of the shapes and numbers of the slot arguments.
+        """
+        return self._function_space.value_shape
 
     def ufl_function_space(self):
         """Return the function space associated to the operator.
@@ -307,6 +311,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         raise NotImplementedError()
 
     @property
+    def _contracts_output(self) -> bool:
+        """Whether the dual slot contracts the output, instead of leaving it free."""
+        dual_slot_arguments = self.argument_slots()[0].arguments()
+        return not any(isinstance(a, Coargument) for a in dual_slot_arguments)
+
+    @property
     def _parent_type(self):
         """Is this an expression or a form?
 
@@ -314,10 +324,9 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         it has no arguments and is a number. Otherwise the dual slot contracts the
         output and leaves a form in the free arguments.
         """
-        if not self.arguments():
-            return Operator
-        dual_slot_arguments = self.argument_slots()[0].arguments()
-        return Operator if any(isinstance(a, Coargument) for a in dual_slot_arguments) else BaseForm
+        if self.arguments() and self._contracts_output:
+            return BaseForm
+        return Operator
 
     def __add__(self, other):
         """Add."""

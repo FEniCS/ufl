@@ -839,7 +839,8 @@ class FormSum(BaseForm):
         def argument_key(a):
             """Sort by number, then a Coargument first, then by part, with no part first.
 
-            A Coargument in V* brings an Argument in V with the same number.
+            A Coargument in V* brings an Argument in V with the same number, and it
+            sorts first, as in its own arguments.
             """
             part = -1 if a.part() is None else a.part()
             return a.number(), not isinstance(a, Coargument), part
