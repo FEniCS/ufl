@@ -14,8 +14,7 @@ from collections import defaultdict
 from ufl.argument import Argument, Coargument
 from ufl.coefficient import Cofunction
 from ufl.constantvalue import as_ufl
-from ufl.core.base_form_operator import BaseFormOperator
-from ufl.core.operator import Operator
+from ufl.core.base_form_operator import BaseFormOperator, _split_dual_slot_arguments
 from ufl.core.ufl_type import ufl_type
 from ufl.duals import is_dual
 from ufl.finiteelement import AbstractFiniteElement
@@ -44,10 +43,10 @@ class Interpolate(BaseFormOperator):
         expr = as_ufl(expr)
 
         if isinstance(expr, BaseForm):
-            expr_args = expr.arguments()
-            if not isinstance(expr_args[0], Coargument):
-                raise ValueError("Expecting the first argument to be primal.")
-            expr_args = expr_args[1:]
+            coarguments = [a for a in expr.arguments() if isinstance(a, Coargument)]
+            if len(coarguments) != 1:
+                raise ValueError("Expecting a primal expression to interpolate.")
+            expr_args = [a for a in expr.arguments() if not isinstance(a, Coargument)]
         else:
             expr_args = extract_arguments(expr)
         expr_arg_numbers = {arg.number() for arg in expr_args}
@@ -55,24 +54,23 @@ class Interpolate(BaseFormOperator):
         if isinstance(v, AbstractFunctionSpace):
             if is_dual(v):
                 raise ValueError("Expecting a primal function space.")
-            n = 1 if expr_arg_numbers == {0} else 0
+            # Take the lowest free number, so that an expression linear in
+            # several arguments stays representable.
+            n = min(set(range(len(expr_arg_numbers) + 1)) - expr_arg_numbers)
             v = Argument(v.dual(), n)
-            dual_arg_numbers = {n}
-        elif isinstance(v, BaseForm):
-            dual_arg_numbers = {arg.number() for arg in v.arguments() if is_dual(arg)}
-        else:
+        elif not isinstance(v, BaseForm):
             raise ValueError("Expecting the second argument to be FunctionSpace or BaseForm.")
+        contracted, free = _split_dual_slot_arguments(v, expr_args)
+        dual_arg_numbers = {arg.number() for arg in free}
 
         # Check valid argument numbering
         if expr_arg_numbers & dual_arg_numbers:
             raise ValueError("Same argument numbers in first and second operands to interpolate.")
-        if expr_arg_numbers | dual_arg_numbers not in [set(), {0}, {0, 1}]:
-            raise ValueError("Non-contiguous argument numbers in interpolate.")
 
         # Reversed order convention
         argument_slots = (v, expr)
         # Get the primal space (V** = V)
-        function_space = v.arguments()[0].ufl_function_space()
+        function_space = contracted.ufl_function_space()
         self._function_space = function_space
 
         # Set the operand as `expr` for DAG traversal purpose.
@@ -159,41 +157,20 @@ class Interpolate(BaseFormOperator):
         """Return the target finite element."""
         return self._function_space.ufl_element()
 
-    @property
-    def ufl_shape(self):
-        """Return the value shape in the interpolation target space."""
-        return self._function_space.value_shape
-
-    def _value_parent_type(self):
-        """Return the type whose arithmetic matches the interpolation's value.
-
-        An interpolation takes its value in the target space, which is the
-        space ``ufl_shape`` reports. Scaling and negation follow that space, so
-        that an interpolation of a test function stays an expression and can be
-        combined with one inside an integrand. ``_parent_type`` instead follows
-        ``ufl_function_space()``, the adjoint's source dual, and still drives
-        addition, where a sum of adjoint interpolations must stay a form.
-        """
-        function_space = self._function_space
-        if function_space is None or not is_dual(function_space):
-            return Operator
-        return BaseForm
-
-    def __neg__(self):
-        """Negate the interpolation result."""
-        return self._value_parent_type().__rmul__(self, -1)
-
-    def __mul__(self, other):
-        """Multiply, agreeing with negation on which space the value is in."""
-        return self._value_parent_type().__mul__(self, other)
-
-    def __rmul__(self, other):
-        """Multiply, agreeing with negation on which space the value is in."""
-        return self._value_parent_type().__rmul__(self, other)
-
-    def _ufl_expr_reconstruct_(self, expr, v=None, **add_kwargs):
+    def _ufl_expr_reconstruct_(self, expr, v=None, argument_slots=None, **add_kwargs):
         """Return a new object of the same type with new operands."""
-        v = v or self.argument_slots()[0]
+        from ufl.algorithms.analysis import extract_type
+
+        if argument_slots is not None:
+            v, expr = argument_slots
+        vstar = self.argument_slots()[0]
+        v = v or vstar
+        if v == vstar and isinstance(v, Coargument):
+            numbers = {a.number() for a in extract_type(expr, Argument, True)}
+            if v.number() in numbers:
+                # A Coargument that clashes with a new Argument of expr is bound,
+                # so it takes the lowest number that expr leaves free.
+                v = v.reconstruct(number=min(set(range(len(numbers) + 1)) - numbers))
         return type(self)(expr, v, **add_kwargs)
 
     def __repr__(self):
@@ -217,7 +194,7 @@ class Interpolate(BaseFormOperator):
         return (
             type(self) is type(other)
             and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
-            and self.ufl_function_space() == other.ufl_function_space()
+            and self._function_space == other._function_space
         )
 
 

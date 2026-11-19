@@ -15,8 +15,11 @@ from ufl import (
     cos,
     derivative,
     diff,
+    div,
+    dx,
     exp,
     grad,
+    inner,
     ln,
     sin,
     tan,
@@ -24,12 +27,15 @@ from ufl import (
     variable,
     zero,
 )
+from ufl.algorithms import compute_form_data
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import (
     GenericDerivativeRuleset,
     GradRuleset,
     apply_derivatives,
 )
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.form import ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import L2
 
@@ -85,6 +91,29 @@ def test_apply_derivatives_doesnt_change_expression_without_derivatives():
         # Note the use of "is" here instead of ==, this property
         # is important for efficiency and memory usage
         assert apply_derivatives(expr) is expr
+
+
+def test_vanishing_form_keeps_its_arguments():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    v = TestFunction(V)
+    x = SpatialCoordinate(domain)
+    form = inner(-div(grad(x[1])), v) * dx
+
+    assert apply_derivatives(apply_algebra_lowering(form)) == ZeroBaseForm((v,))
+
+    # The compiler pipeline keeps the rank of a form that vanishes while it runs.
+    form_data = compute_form_data(form)
+    assert form_data.rank == 1
+    assert len(form_data.integral_data) == 0
+
+
+def test_compute_form_data_of_zero_base_form():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    form_data = compute_form_data(ZeroBaseForm((TestFunction(V),)))
+    assert form_data.rank == 1
+    assert len(form_data.integral_data) == 0
 
 
 def test_literal_derivatives_are_zero():

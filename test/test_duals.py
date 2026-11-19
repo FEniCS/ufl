@@ -17,11 +17,13 @@ from ufl import (
     Mesh,
     MixedFunctionSpace,
     TestFunction,
+    TestFunctions,
     TrialFunction,
     action,
     adjoint,
     derivative,
     dx,
+    grad,
     inner,
     interval,
     tetrahedron,
@@ -29,8 +31,10 @@ from ufl import (
 )
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import extract_type
+from ufl.algorithms.restructure_base_form import restructure_base_form
 from ufl.constantvalue import Zero
 from ufl.differentiation import CoefficientDerivative
+from ufl.domain import extract_domains
 from ufl.duals import is_dual, is_primal
 from ufl.form import Form, ZeroBaseForm
 
@@ -225,6 +229,30 @@ def test_zero_base_form_reconstruct():
     assert f2._ufl_expr_reconstruct_(v, u) == ZeroBaseForm((v, u))
 
 
+def test_matrix_subclass_equality():
+    class AssembledMatrix(Matrix):
+        """An assembled operator supplied by another package."""
+
+    mesh = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(mesh, LagrangeElement(triangle, 1))
+    matrix = AssembledMatrix(V.dual(), V)
+    same = AssembledMatrix(V.dual(), V, count=matrix.count())
+    different = AssembledMatrix(V.dual(), V)
+    base = Matrix(V.dual(), V, count=matrix.count())
+
+    assert matrix == matrix
+    assert not (matrix != matrix)
+    assert matrix == same
+    assert same == matrix
+    assert hash(matrix) == hash(same)
+    assert len({matrix, same}) == 1
+    assert matrix != different
+    assert different != matrix
+    assert not matrix.equals(base)
+    assert not base.equals(matrix)
+    assert matrix != AssembledMatrix(V, V, count=matrix.count())
+
+
 def test_scalar_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
@@ -255,8 +283,10 @@ def test_adjoint():
     assert res
 
     res = adjoint(2 * a)
-    assert isinstance(res, FormSum)
-    assert isinstance(res.components()[0], Adjoint)
+    assert isinstance(res, Adjoint)
+    # Keep the matrix sum factored: distributing would add adjoint operations.
+    res = restructure_base_form(res)
+    assert res == Adjoint(2 * a)
 
     # Adjoint(Adjoint(.)) = Id
     assert adjoint(adj) == a
@@ -287,7 +317,7 @@ def test_action():
     assert repeat
     assert len(repeat.arguments()) < len(res.arguments())
 
-    res = action(2 * a, u)
+    res = restructure_base_form(action(2 * a, u))
     assert isinstance(res, FormSum)
     assert isinstance(res.components()[0], Action)
 
@@ -303,11 +333,11 @@ def test_action():
 
     b2 = Matrix(V, U.dual())
     ustar2 = Cofunction(U.dual())
-    # Check Action left-distributivity with FormSum
-    res = action(b, ustar + ustar2)
-    assert res == Action(b, ustar) + Action(b, ustar2)
-    # Check Action right-distributivity with FormSum
-    res = action(b + b2, ustar)
+    # Assemble the rank-one FormSum before taking its Action.
+    res = restructure_base_form(action(b, ustar + ustar2))
+    assert res == Action(b, ustar + ustar2)
+    # A matrix FormSum distributes to avoid assembling the matrix sum.
+    res = restructure_base_form(action(b + b2, ustar))
     assert res == Action(b, ustar) + Action(b2, ustar)
 
     a2 = Matrix(V, U)
@@ -316,10 +346,10 @@ def test_action():
     # Check Action left-distributivity with Sum
     # Add 3 Coefficients to check composition of Sum works fine since u
     # + u2 + u3 => Sum(u, Sum(u2, u3))
-    res = action(a, u + u2 + u3)
+    res = restructure_base_form(action(a, u + u2 + u3))
     assert res == Action(a, u3) + Action(a, u) + Action(a, u2)
     # Check Action right-distributivity with Sum
-    res = action(a + a2, u)
+    res = restructure_base_form(action(a + a2, u))
     assert res == Action(a, u) + Action(a2, u)
 
     # `action` must expand derivatives even when the top-level object is a
@@ -401,13 +431,7 @@ def test_differentiation():
 
     # -- Action -- #
     Ac = Action(w, u)
-    dAcdu = derivative(Ac, u)
-    assert dAcdu == (
-        action(adjoint(derivative(w, u), derivatives_expanded=True), u, derivatives_expanded=True)
-        + action(w, derivative(u, u), derivatives_expanded=True)
-    )
-
-    dAcdu = expand_derivatives(dAcdu)
+    dAcdu = expand_derivatives(derivative(Ac, u))
     # Since dw/du = 0
     assert dAcdu == Action(w, v)
 
@@ -433,6 +457,131 @@ def test_differentiation():
     assert dresidualdp.empty()
 
 
+def test_action_derivative():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    h = Coefficient(V)
+    v = TestFunction(V)
+    L = u**2 * inner(w, v) * dx
+    A = Action(L, w)
+    du = Argument(V, 0)
+
+    # The argument of the direction is numbered after the arguments of the Action,
+    # and not after the argument of the 1-form that the Action contracts.
+    for dA in (derivative(A, u), derivative(A, u, du)):
+        assert expand_derivatives(dA).arguments() == (du,)
+
+    # A coefficient direction adds no argument.
+    assert expand_derivatives(derivative(A, u, h)).arguments() == ()
+
+    # The derivative also reaches a coefficient in the right slot.
+    assert expand_derivatives(derivative(Action(L, u), u)).arguments() == (du,)
+    assert expand_derivatives(derivative(Action(L, u), u, h)).arguments() == ()
+
+    # The derivative of c(u) with respect to the Cofunction c is u, as an element of V**.
+    c = Cofunction(V.dual())
+    assert expand_derivatives(derivative(Action(c, u), c)) == u
+    # As an element of V**, u acts on a Cofunction t, giving t(u).
+    t = Cofunction(V.dual())
+    assert action(expand_derivatives(derivative(Action(c, u), c)), t) == Action(u, t)
+    # The derivative acts on t before it is expanded.
+    dAt = Action(derivative(Action(c, u), c), t)
+    assert dAt.arguments() == ()
+    assert expand_derivatives(dAt) == Action(u, t)
+
+
+def test_cofunction_derivative_domains():
+    # The direction of a derivative by a Cofunction is a Coargument.
+    # It is a leaf of the expression, like the Cofunction.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    w = Coefficient(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    dFdc = derivative(Action(c, w), c, dc)
+    assert extract_domains(dFdc) == (domain,)
+
+
+def test_form_sum_coargument_argument_order():
+    # A Coargument in V* is the identity map V* x V -> R.
+    # It has one argument in V* and one in V, with the same number.
+    # In a FormSum, the Argument in V comes last for every hash order.
+    # An Action can then contract it with a Coefficient in V.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    for degree in range(1, 9):
+        V = FunctionSpace(domain, LagrangeElement(triangle, degree))
+        dc = Coargument(V.dual(), 0)
+        assert dc.arguments() == (dc, Argument(V, 0))
+        assert FormSum((dc, -1)).arguments() == dc.arguments()
+
+        # The derivative of -c(w) with respect to the Cofunction c,
+        # in the direction dc, is the 1-form -dc(w) on V*.
+        u = Coefficient(V)
+        w = Coefficient(V)
+        v = TestFunction(V)
+        c = Cofunction(V.dual())
+        F = inner(u, v) * dx - c
+        dF = expand_derivatives(derivative(Action(F, w), c, dc))
+        assert dF.arguments() == (dc,)
+
+
+def test_form_sum_argument_part_order():
+    # The Argument of a Cofunction has no part, and sorts before the parts of a mixed space.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    for degree in range(1, 9):
+        V = FunctionSpace(domain, LagrangeElement(triangle, degree))
+        Q = FunctionSpace(domain, LagrangeElement(triangle, degree + 1))
+        v, q = TestFunctions(MixedFunctionSpace(V, Q))
+        F = Coefficient(V) * v * dx + Coefficient(Q) * q * dx
+        G = FormSum((F, 1), (Cofunction(V.dual()), -1))
+        assert G.arguments() == (Argument(V, 0), v, q)
+
+
+def test_cofunction_mixed_derivative():
+    # The residual F = a(u; v) - c is affine in the Cofunction c.
+    # Thus its mixed second derivative by c and u is zero.
+    # This is also true when a contains a derivative of u.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    du = Coefficient(V)
+    v = TestFunction(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    F = u * u.dx(0) * v.dx(0) * dx - c
+    dFdc = derivative(Action(F, w), c, dc)
+    assert expand_derivatives(dFdc).arguments() == (dc,)
+    d2F = expand_derivatives(derivative(dFdc, u, du))
+    assert isinstance(d2F, ZeroBaseForm)
+    assert d2F.arguments() == (dc,)
+
+
+def test_form_sum_reconstruct():
+    # A traversal that changes a component of a FormSum keeps its weight.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    u = Coefficient(V)
+    w = Coefficient(V)
+    v = TestFunction(V)
+    c = Cofunction(V.dual())
+    dc = Coargument(V.dual(), 0)
+    a = inner(grad(u), grad(v)) * dx
+    b = inner(u, v) * dx
+    F = FormSum((a, 2), (c, -3))
+    assert F._ufl_expr_reconstruct_(*F.ufl_operands) == F
+    _, cw = F.weights()
+    G = F._ufl_expr_reconstruct_(b, c)
+    assert G.components() == [b, c]
+    assert G.weights()[1] == cw
+
+    # Algebra lowering replaces the inner product in the Form component.
+    dF = expand_derivatives(derivative(Action(a - c, w), c, dc))
+    assert dF.arguments() == (dc,)
+
+
 def test_zero_base_form_mult():
     domain_2d = Mesh(LagrangeElement(triangle, 1, (2,)))
     f_2d = LagrangeElement(triangle, 1)
@@ -442,7 +591,7 @@ def test_zero_base_form_mult():
 
     u = Coefficient(V)
 
-    Zu = Z * u
+    Zu = Z @ u
     assert Zu == action(Z, u)
     assert action(Zu, u) == ZeroBaseForm(())
 

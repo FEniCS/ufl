@@ -64,11 +64,8 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
         ufl_types = (ufl_types,)
     original_ufl_types = tuple(ufl_types)
 
-    if all(t is not BaseFormOperator for t in ufl_types):
-        remove_base_form_ops = True
-        ufl_types += (BaseFormOperator,)
-    else:
-        remove_base_form_ops = False
+    # Always collect BaseFormOperators, since their slots are searched below.
+    ufl_types = (*original_ufl_types, BaseFormOperator)
 
     if base_form_op_as_expr is None:
         base_form_op_as_expr = isinstance(a, Form | Expr) and not isinstance(a, BaseFormOperator)
@@ -102,7 +99,12 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
         # This accounts for having BaseFormOperator in Forms: if N is a BaseFormOperator
         # `N(u; v*) * v * dx` <=> `action(v1 * v * dx, N(...; v*))`
         # where `v`, `v1` are `Argument`s and `v*` a `Coargument`.
-        for ai in tuple(arg for arg in o.argument_slots(outer_form=base_form_op_as_expr)):
+        argument_slots = o.argument_slots()
+        if base_form_op_as_expr:
+            argument_slots = tuple(
+                arg for arg in argument_slots[1:] if len(extract_arguments(arg)) != 0
+            )
+        for ai in argument_slots:
             # Extracting BaseArguments of an object of which a
             # Coargument is an argument, then we just return the dual
             # argument of the Coargument and not its primal argument.
@@ -111,10 +113,6 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
                 extracted = extract_type(ai, new_types, base_form_op_as_expr)
             else:
                 extracted = extract_type(ai, ufl_types, base_form_op_as_expr)
-            # Filter out any BaseFormOperators if necessary
-            # from the recursively extracted results
-            if remove_base_form_ops:
-                extracted = {obj for obj in extracted if not isinstance(obj, BaseFormOperator)}
             base_form_objects.extend(extracted)
         # Look for BaseArguments in BaseFormOperator's argument slots
         # only since that's where they are by definition. Don't look
@@ -126,10 +124,7 @@ def extract_type(a, ufl_types, base_form_op_as_expr=None):
             base_form_objects.extend(extract_type(ai, ufl_types_no_args, base_form_op_as_expr))
     objects.update(base_form_objects)
 
-    # `Remove BaseFormOperator` objects if there were initially not in `ufl_types`
-    if remove_base_form_ops:
-        objects -= {o for o in base_form_ops if not isinstance(o, original_ufl_types)}
-    return objects
+    return {o for o in objects if isinstance(o, original_ufl_types)}
 
 
 def has_type(a, ufl_type):

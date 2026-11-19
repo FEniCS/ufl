@@ -18,7 +18,7 @@ import warnings
 from collections import defaultdict
 from itertools import chain
 
-from ufl.checks import is_scalar_constant_expression
+from ufl.checks import _is_scaling_constant, is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
@@ -98,7 +98,7 @@ def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, .
 class BaseForm(metaclass=UFLType):
     """Description of an object containing arguments."""
 
-    ufl_operands: tuple[FormArgument, ...]
+    ufl_operands: tuple["Expr | BaseForm", ...]
 
     # Slots is kept empty to enable multiple inheritance with other
     # classes
@@ -223,12 +223,44 @@ class BaseForm(metaclass=UFLType):
         return NotImplemented
 
     def __mul__(self, coefficient):
-        """Take the action of this form on the given coefficient."""
-        if isinstance(coefficient, Expr):
-            from ufl.formoperators import action
+        """Scale this form by a constant.
 
-            return action(self, coefficient)
+        A constant is a number or a scalar expression of Constants, and it scales
+        the form from either side. Taking the action of a form on a function with
+        ``*`` is deprecated: use ``form @ f`` or ``action(form, f)`` instead.
+        """
+        if _is_scaling_constant(coefficient):
+            return self.__rmul__(coefficient)
+        if isinstance(coefficient, Expr) and self.arguments():
+            if isinstance(coefficient, FormArgument | BaseForm):
+                warnings.warn(
+                    "Taking the action of a form with `form * f` is deprecated, "
+                    "use `form @ f` or `action(form, f)` instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            return BaseForm.__matmul__(self, coefficient)
         return NotImplemented
+
+    def __matmul__(self, coefficient):
+        """Take the action of this form on a function."""
+        if not isinstance(coefficient, Expr):
+            return NotImplemented
+        if not isinstance(coefficient, FormArgument | BaseForm):
+            raise TypeError(
+                "A form can only act on a Coefficient, an Argument or a base form operator, "
+                f"not on {ufl_err_str(coefficient)}. "
+                "To scale a form by a constant, multiply it from the left."
+            )
+        from ufl.formoperators import action
+
+        return action(self, coefficient)
+
+    def __truediv__(self, scalar):
+        """Scale this form by ``1 / scalar``."""
+        if not is_scalar_constant_expression(scalar):
+            raise TypeError("A form can only be divided by a scalar constant.")
+        return self.__rmul__(1 / scalar)
 
     def __ne__(self, other):
         """Immediately evaluate the != operator (as opposed to the == operator)."""
@@ -249,8 +281,6 @@ class BaseForm(metaclass=UFLType):
     def _ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
         return type(self)(*operands)
-
-    __matmul__ = __mul__
 
 
 @ufl_type()
@@ -280,6 +310,11 @@ class Form(BaseForm):
         "_subdomain_data",
         "_terminal_numbering",
     )
+
+    # The integrals of a Form are mapped by map_integrands, not as operands.
+    # Thus a Form is a leaf of the DAG of a BaseForm that contains it.
+    ufl_operands = ()
+    _ufl_is_terminal_ = True
 
     def __init__(self, integrals: list[Integral]):
         """Initialise."""
@@ -526,14 +561,6 @@ class Form(BaseForm):
             return Form([scalar * itg for itg in self.integrals()])
         return NotImplemented
 
-    def __mul__(self, coefficient):
-        """UFL form operator: Take the action of this form on the given coefficient."""
-        if isinstance(coefficient, Expr):
-            from ufl.formoperators import action
-
-            return action(self, coefficient)
-        return NotImplemented
-
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and coefficients.
 
@@ -581,8 +608,6 @@ class Form(BaseForm):
         else:
             return self
 
-    __matmul__ = __mul__
-
     # --- String conversion functions, for UI purposes only ---
 
     def __str__(self):
@@ -625,7 +650,8 @@ class Form(BaseForm):
             self.arguments(), self.coefficients(), self.constants(), self.geometric_quantities()
         ):
             domain = extract_unique_domain(o, expand_mesh_sequence=False)
-            domains_in_integrands.update(domain.meshes)
+            if domain is not None:
+                domains_in_integrands.update(domain.meshes)
         domains_in_integrands -= set(self._integration_domains)
         all_domains = self._integration_domains + sort_domains(
             join_domains(domains_in_extra_domain_integral_type_map | domains_in_integrands)
@@ -776,6 +802,10 @@ class FormSum(BaseForm):
         """Get weights."""
         return self._weights
 
+    def _ufl_expr_reconstruct_(self, *operands):
+        """Return a new FormSum with new components and the same weights."""
+        return FormSum(*zip(operands, self._weights))
+
     def _sum_variational_components(self):
         """Sum variational components."""
         var_forms = None
@@ -798,13 +828,25 @@ class FormSum(BaseForm):
 
     def _analyze_form_arguments(self):
         """Return all ``Argument`` objects found in form."""
+        from ufl.argument import Coargument
+
         arguments = []
         coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
-        # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
+
+        def argument_key(a):
+            """Sort by number, then a Coargument first, then by part, with no part first.
+
+            A Coargument in V* brings an Argument in V with the same number, and it
+            sorts first, as in its own arguments.
+            """
+            part = -1 if a.part() is None else a.part()
+            return a.number(), not isinstance(a, Coargument), part
+
+        # Define canonical numbering of arguments and coefficients.
+        self._arguments = tuple(sorted(set(arguments), key=argument_key))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
@@ -929,6 +971,14 @@ class ZeroBaseForm(BaseForm):
     def empty(self):
         """Returns whether the ZeroBaseForm has no components, which is always true."""
         return True
+
+    def integrals(self):
+        """Return the integrals of the form. A ZeroBaseForm has none."""
+        return ()
+
+    def constants(self):
+        """Return the constants of the form. A ZeroBaseForm has none."""
+        return ()
 
     def signature(self):
         """Return a signature for use with JIT caches."""

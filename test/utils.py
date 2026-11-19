@@ -1,6 +1,8 @@
 """UFL test utils."""
 
 from ufl.cell import AbstractCell, Cell, CellSequence
+from ufl.classes import Derivative
+from ufl.core.ufl_type import ufl_type
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.pullback import (
     AbstractPullback,
@@ -9,7 +11,7 @@ from ufl.pullback import (
     SymmetricPullback,
     identity_pullback,
 )
-from ufl.sobolevspace import H1, SobolevSpace
+from ufl.sobolevspace import H1, HInf, SobolevSpace, smallest_common_superspace
 
 
 class FiniteElement(AbstractFiniteElement):
@@ -168,6 +170,18 @@ class LagrangeElement(FiniteElement):
         )
 
 
+class RealElement(FiniteElement):
+    """A Real element: one global degree of freedom per component.
+
+    A function in it is constant in space, like a function in a space built from
+    ``basix.ufl.real_element``.
+    """
+
+    def __init__(self, cell: Cell, shape: tuple[int, ...] = ()):
+        """Initialise."""
+        super().__init__("Real", cell, 0, shape, identity_pullback, HInf)
+
+
 class SymmetricElement(FiniteElement):
     """A symmetric finite element."""
 
@@ -194,7 +208,7 @@ class SymmetricElement(FiniteElement):
         for e in sub_elements:
             if e.cell != cell:
                 raise ValueError("All sub-elements must be defined on the same cell")
-        sobolev_space = max(e.sobolev_space for e in sub_elements)
+        sobolev_space = smallest_common_superspace(*(e.sobolev_space for e in sub_elements))
 
         super().__init__(
             "Symmetric element",
@@ -236,7 +250,7 @@ class MixedElement(FiniteElement):
             pullback = IdentityPullback()
         else:
             pullback = MixedPullback(self)
-        sobolev_space = max(e.sobolev_space for e in sub_elements)
+        sobolev_space = smallest_common_superspace(*(e.sobolev_space for e in sub_elements))
 
         super().__init__(
             "Mixed element",
@@ -249,3 +263,19 @@ class MixedElement(FiniteElement):
             _repr=f"utils.MixedElement({sub_elements!r})",
             _str=f"<MixedElement with {len(sub_elements)} sub-element(s)>",
         )
+
+
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+class ForeignDerivative(Derivative):
+    """Represent a derivative type that UFL has no rules for."""
+
+    __slots__ = ()
+
+    def __new__(cls, f):
+        return Derivative.__new__(cls)
+
+    def __init__(self, f):
+        Derivative.__init__(self, (f,))
+
+    def __str__(self):
+        return f"d{{{self.ufl_operands[0]}}}/dt"
