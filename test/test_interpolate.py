@@ -7,6 +7,7 @@ import pytest
 from utils import FiniteElement, LagrangeElement, MixedElement, RealElement
 
 from ufl import (
+    L2,
     Action,
     Adjoint,
     Argument,
@@ -15,6 +16,7 @@ from ufl import (
     Cofunction,
     Constant,
     FunctionSpace,
+    Identity,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -30,6 +32,8 @@ from ufl import (
     grad,
     inner,
     replace,
+    tetrahedron,
+    tr,
     triangle,
 )
 from ufl.algorithms.ad import expand_derivatives
@@ -1438,3 +1442,27 @@ def test_form_data_of_derivative_of_interpolated_coordinate(domain_2d):
     _compute_form_data(I_x1[0] * dx)
     _compute_form_data(derivative(x1, u)[0] * dx)
     _compute_form_data(derivative(I_x1, u)[0] * dx)
+
+
+def test_form_data_of_derivative_of_interpolated_strain():
+    """A form compiler can process the derivative of an interpolated strain."""
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    V = FunctionSpace(domain, FiniteElement("DG", tetrahedron, 1, (3,), identity_pullback, L2))
+    T = FunctionSpace(domain, LagrangeElement(tetrahedron, 1, (3, 3)))
+    u = Coefficient(V)
+
+    x1 = SpatialCoordinate(domain) + u
+    F = grad(x1)
+    B = (F.T * F - Identity(3)) / 2
+    I_B = Interpolate(B, T)
+
+    def W(E):
+        """Strain energy density."""
+        return inner(E, E) + tr(E) ** 2 / 2
+
+    _compute_form_data(B[0, 0] * dx)
+    _compute_form_data(I_B[0, 0] * dx)
+    _compute_form_data(derivative(B, u)[0, 0] * dx)
+    _compute_form_data(derivative(I_B, u)[0, 0] * dx)
+    _compute_form_data(derivative(W(B) * dx, u))
+    _compute_form_data(derivative(W(I_B) * dx, u))
