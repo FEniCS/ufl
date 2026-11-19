@@ -1101,3 +1101,18 @@ def test_restructure_operator_sum_in_expression(V1):
     )
     expression = u * (operators[0] + operators[1])
     assert restructure_base_form(expression) == expression
+
+
+def test_restructure_zero_form_operator_in_expression(V1, V2):
+    u = Coefficient(V1)
+    I0 = Interpolate(u, inner(u, TestFunction(V2)) * dx)
+    F0 = restructure_base_form(I0)
+    assert isinstance(F0, Form)
+
+    # A linear combination of 0-forms is a form
+    assert restructure_base_form(2 * I0) == 2 * F0
+    assert restructure_base_form(I0 / 2) == 0.5 * F0
+    assert restructure_base_form(I0 + I0 * 2) == 2 * F0 + F0
+    # A 0-form operator is a number in any other expression
+    assert restructure_base_form(I0 * I0) == I0 * I0
+    assert restructure_base_form(I0 * u) == I0 * u
