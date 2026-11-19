@@ -13,21 +13,30 @@ from ufl import (
     Coefficient,
     Constant,
     FunctionSpace,
+    Identity,
     Mesh,
     TestFunction,
     TrialFunction,
     action,
     adjoint,
+    as_matrix,
     as_ufl,
+    as_vector,
     conj,
     cos,
     derivative,
+    det,
+    diff,
+    dot,
     ds,
     dx,
     grad,
     inner,
+    replace,
     sin,
+    tr,
     triangle,
+    variable,
 )
 from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.analysis import extract_type
@@ -135,6 +144,97 @@ def test_derivative_shape(domain_2d, input_shape, output_shape):
     assert hessian == expected
     assert hessian.ufl_shape == output_shape
     assert hessian.arguments() == (vstar, first, second)
+
+
+def _expand_external_diff(expression, variable):
+    try:
+        return expand_derivatives(diff(expression, variable))
+    except ValueError as error:
+        if str(error).startswith("Missing differentiation handler for type ExternalOperator."):
+            pytest.xfail("ufl.diff is missing a rule for ExternalOperator (issue #456)")
+        raise
+
+
+def _replace_external_partials(expression, partials):
+    """Substitute known UFL partial derivatives for a single-operand external operator."""
+    replacements = {}
+    for operator in extract_type(expression, ExternalOperator):
+        (operand,) = operator.ufl_operands
+        (order,) = operator.derivatives
+        value = partials[order](operand)
+        for direction in operator.argument_slots()[1:]:
+            value = dot(value, direction) if direction.ufl_shape else value * direction
+        replacements[operator] = value
+    return replace(expression, replacements)
+
+
+def test_diff_external_operator_wrt_coefficient(V1):
+    u = Coefficient(V1)
+    energy = ExternalOperator(u, function_space=V1)
+    partial = _expand_external_diff(energy, u)
+    assert partial.ufl_shape == ()
+    (operator,) = extract_type(partial, ExternalOperator)
+    assert operator.ufl_operands == (u,)
+    assert operator.derivatives == (1,)
+
+    # Use the partial derivative of the model energy u**3 / 3.
+    assert _replace_external_partials(partial, {1: lambda u: u**2}) == u**2
+
+
+def test_diff_external_energy_through_deformation_invariant(domain_2d, V1):
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 2, (2,)))
+    u = Coefficient(V)
+    v, du = TestFunction(V), TrialFunction(V)
+    F = variable(Identity(2) + grad(u))
+    invariant = tr(F.T * F) - 2
+    volumetric = (det(F) - 1) ** 2 / 2
+    energy = ExternalOperator(invariant, function_space=V1)
+
+    stress = _expand_external_diff(energy + volumetric, F)
+    reference_stress = diff(invariant**2 / 4 + volumetric, F)
+    assert stress.ufl_shape == (2, 2)
+
+    residual = expand_derivatives(inner(stress, grad(v)) * dx)
+    reference = expand_derivatives(inner(reference_stress, grad(v)) * dx)
+    tangent = expand_derivatives(derivative(residual, u, du))
+    reference_tangent = expand_derivatives(derivative(reference, u, du))
+    assert residual.arguments() == (v,)
+    assert tangent.arguments() == (v, du)
+
+    # Evaluate the two integrands at the same deformation and test and trial gradients.
+    point = {
+        grad(u): as_matrix(((0.2, 0.3), (-0.4, 0.1))),
+        grad(v): as_matrix(((0.7, -0.6), (0.5, 0.4))),
+        grad(du): as_matrix(((0.6, 0.8), (-0.7, 0.5))),
+    }
+    partials = {1: lambda s: s / 2, 2: lambda s: as_ufl(0.5)}
+    for actual, expected in ((residual, reference), (tangent, reference_tangent)):
+        actual = _replace_external_partials(actual, partials)
+        (actual_integral,) = replace(actual, point).integrals()
+        (expected_integral,) = replace(expected, point).integrals()
+        assert float(actual_integral.integrand()) == pytest.approx(
+            float(expected_integral.integrand())
+        )
+
+
+def test_diff_external_operator_wrt_vector_variable(domain_2d):
+    W = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (3,)))
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(W)
+    z = variable(u)
+    N = ExternalOperator(z, function_space=V)
+
+    partial = _expand_external_diff(N, z)
+    assert partial.ufl_shape == (2, 3)
+
+    # Substitute the Jacobian of N(z) = (z[0] * z[1], z[1]**2 + 2 * z[2]).
+    def jacobian(z):
+        return as_matrix(((z[1], z[0], 0), (0, 2 * z[1], 2)))
+
+    actual = replace(_replace_external_partials(partial, {1: jacobian}), {u: as_vector((1, 2, 3))})
+    for i, row in enumerate(((2, 1, 0), (0, 4, 2))):
+        for j, value in enumerate(row):
+            assert float(actual[i, j]) == value
 
 
 def test_dual_slot_must_be_a_base_form(V1):
