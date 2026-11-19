@@ -1687,7 +1687,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         do = self._process_coefficient(o)
         if do != 0:
             return do
-        if o._parent_type is BaseForm:
+        if o._contracts_output:
             return self._contracted_operator_derivative(o)
         return do
 
@@ -1698,7 +1698,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         di_op = self._process_coefficient(i_op)
         if di_op != 0:
             return di_op
-        if i_op._parent_type is BaseForm:
+        if i_op._contracts_output:
             return self._contracted_operator_derivative(i_op)
         if dw != 0:
             # Interpolate rule: D_w[v](i_op(w, v*)) = i_op(v, v*), by linearity of Interpolate!
@@ -1712,7 +1712,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         dN = self._process_coefficient(N)
         if dN != 0:
             return dN
-        if N._parent_type is BaseForm:
+        if N._contracts_output:
             return self._contracted_operator_derivative(N)
         for i, df in enumerate(dfs):
             if df == 0:
@@ -1940,8 +1940,15 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
         dN = replace(self._expression_rules(free), {vhat: vstar})
         dvstar = self(_number_contracted_argument(N, vstar, arguments))
         if isinstance(dvstar, ZeroBaseForm):
-            return dN + ZeroBaseForm(arguments)
-        return dN + N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+            dual_term = ZeroBaseForm(arguments)
+        else:
+            dual_term = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(dvstar, *slots))
+        if isinstance(dN, Zero):
+            return dual_term
+        if isinstance(dual_term, ZeroBaseForm):
+            return dN
+        # The derivative of a form is a form, also for a 0-form operator, which is a number.
+        return FormSum((dN, 1), (dual_term, 1))
 
 
 class DerivativeRuleDispatcher(DAGTraverser):

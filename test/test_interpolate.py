@@ -156,7 +156,7 @@ def test_shape_and_negation(domain_2d, V1, V2):
         assert not isinstance(-interpolation, FormSum)
 
     assert isinstance(-Interpolate(Coefficient(V1), V2), Product)
-    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), FormSum)
+    assert isinstance(-Interpolate(Coefficient(V1), Cofunction(V2.dual())), Product)
 
 
 def test_negation_of_contracted_interpolation_with_arguments(V1, V2):
@@ -179,22 +179,22 @@ def test_external_operator_follows_dual_slot(V1, V2):
     assert isinstance(-free, Product)
     assert isinstance(free / 2, Division)
 
-    for contracted in (
-        ExternalOperator(u, function_space=V2, argument_slots=(cofunction,)),
-        ExternalOperator(u, function_space=V2, argument_slots=(cofunction, v)),
-    ):
-        assert isinstance(-contracted, FormSum)
-        assert isinstance(contracted + contracted, FormSum)
-        assert isinstance(contracted - contracted, FormSum)
-        assert contracted / 2 == 0.5 * contracted
-        with pytest.raises(TypeError):
-            contracted / u
-        if contracted.arguments():
-            with pytest.raises(TypeError):
-                2 / contracted
-        else:
-            assert isinstance(2 / contracted, Division)
-            assert (2 / contracted).ufl_operands == (2, contracted)
+    contracted = ExternalOperator(u, function_space=V2, argument_slots=(cofunction, v))
+    assert isinstance(-contracted, FormSum)
+    assert isinstance(contracted + contracted, FormSum)
+    assert isinstance(contracted - contracted, FormSum)
+    assert contracted / 2 == 0.5 * contracted
+    with pytest.raises(TypeError):
+        contracted / u
+    with pytest.raises(TypeError):
+        2 / contracted
+
+    # A 0-form is a number
+    number = ExternalOperator(u, function_space=V2, argument_slots=(cofunction,))
+    assert isinstance(-number, Product)
+    assert isinstance(number + number, Sum)
+    assert isinstance(number / u, Division)
+    assert (2 / number).ufl_operands == (2, number)
 
 
 @pytest.mark.parametrize("operand", ["coefficient", "test_function"])
@@ -210,20 +210,31 @@ def test_number_divided_by_contracted_interpolation(V1, V2, operand):
         assert (2 / interpolation).ufl_operands == (2, interpolation)
 
 
-@pytest.mark.parametrize("operand", ["coefficient", "test_function"])
-def test_difference_of_contracted_interpolations_is_a_form_sum(V1, V2, operand):
-    expr = Coefficient(V1) if operand == "coefficient" else TestFunction(V1)
-    interpolation = Interpolate(expr, Cofunction(V2.dual()))
-    linear = inner(1, TestFunction(V1)) * dx if operand == "test_function" else None
+def test_difference_of_contracted_interpolations_is_a_form_sum(V1, V2):
+    interpolation = Interpolate(TestFunction(V1), Cofunction(V2.dual()))
+    linear = inner(1, TestFunction(V1)) * dx
 
     difference = interpolation - interpolation
     assert isinstance(difference, FormSum)
     assert difference.arguments() == interpolation.arguments()
     assert difference.weights() == [1, -1]
-    if linear is not None:
-        for difference in (interpolation - linear, linear - interpolation):
-            assert isinstance(difference, FormSum)
-            assert difference.arguments() == interpolation.arguments()
+    for difference in (interpolation - linear, linear - interpolation):
+        assert isinstance(difference, FormSum)
+        assert difference.arguments() == interpolation.arguments()
+
+
+def test_zero_form_operator_is_number(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    c = Constant(domain_2d)
+    I0 = Interpolate(u, Cofunction(V2.dual()))
+    assert isinstance((-I0) * u, Product)
+    assert isinstance(2 * I0 * u * dx, Form)
+    assert isinstance(I0 / 2 * u, Product)
+    assert isinstance(I0 * I0, Product)
+    assert isinstance(I0 - c, Sum)
+    assert isinstance(I0 - 1, Sum)
+    # A Form is not an expression, so adding one gives a FormSum
+    assert isinstance(I0 + u * dx, FormSum)
 
 
 def test_zero_form_has_nothing_to_act_on(V1, V2):
@@ -334,7 +345,7 @@ def test_scaling_agrees_with_negation(domain_2d, V1, V2):
     assert type(-interpolation) is type(-1 * interpolation)
 
     interpolation = Interpolate(Coefficient(V1), Cofunction(V2.dual()))
-    assert isinstance(-1 * interpolation, FormSum)
+    assert isinstance(-1 * interpolation, Product)
     assert type(-interpolation) is type(-1 * interpolation)
 
     # The output of an adjoint interpolation is free, so its sum stays an expression.
@@ -909,7 +920,7 @@ def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     Iu = Interpolate(u, vstar)
 
     actual = expand_derivatives(derivative(Iu, u, du))
-    expected = Interpolate(du, vstar) + Interpolate(u, inner(du, v) * dx)
+    expected = FormSum((Interpolate(du, vstar), 1), (Interpolate(u, inner(du, v) * dx), 1))
 
     assert actual == expected
 
@@ -931,7 +942,7 @@ def test_second_derivative_through_nested_formsum(V1, V2):
 
     # The first derivative is a FormSum because both the operand and dual slot
     # depend on u. Differentiating that nested FormSum gives the product rule twice.
-    assert d2Idu2 == term + term
+    assert d2Idu2 == FormSum((term, 1), (term, 1))
 
     term = inner(du, Interpolate(du, V2)) * dx
     assert restructure_base_form(d2Idu2) == term + term
@@ -1355,10 +1366,13 @@ def test_constant_scales_contracted_operator_from_either_side(domain_2d, V1, V2)
     u = Coefficient(V1)
     c = Constant(domain_2d)
     cofunction = Cofunction(V2.dual())
-    for operator in (Interpolate(u, cofunction), Interpolate(TestFunction(V1), cofunction)):
-        for scalar in (2, c, 2 * c):
-            assert isinstance(scalar * operator, FormSum)
-            assert scalar * operator == operator * scalar
+    operator = Interpolate(TestFunction(V1), cofunction)
+    number = Interpolate(u, cofunction)
+    for scalar in (2, c, 2 * c):
+        assert isinstance(scalar * operator, FormSum)
+        assert scalar * operator == operator * scalar
+        assert isinstance(scalar * number, Product)
+        assert scalar * number == number * scalar
 
     # An operator with a free output is an expression on both sides
     free = Interpolate(u, V2)

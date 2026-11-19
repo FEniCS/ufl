@@ -96,12 +96,11 @@ class BaseFormOperator(Operator, BaseForm, Counted):
     to the dual of ``w_0``. Interpolate has ``u == uhat``, so ``Interpolate(e, A)`` is
     ``N(e; A, e)``.
 
-    For a 0-form operator ``I0``, negation, addition or subtraction of other forms,
-    and scaling by a scalar constant produce a ``FormSum``. Other operations,
-    such as ``I0 * u``, ``I0 + c``, ``I0**2``, ``abs(I0)`` and ``2 / I0``, produce
-    expressions, where ``u`` is a Coefficient and ``c`` is a Constant. Consequently,
-    ``-I0 * u`` and ``(2 * I0) * u`` raise a TypeError: the intermediate ``FormSum``
-    cannot multiply a Coefficient. Use ``-(I0 * u)`` or ``2 * (I0 * u)`` instead.
+    The arithmetic of the operator follows its value. With a free output, the operator
+    is a function, and it is an expression. If the dual slot contracts the output,
+    the operator is a form in its free arguments, which forms can add and constants
+    can scale. A 0-form operator ``I0`` is a number, so it is an expression, as in
+    ``I0 * u``, ``I0**2`` or ``I0 - 1``. Adding ``I0`` to a Form gives a ``FormSum``.
     """
 
     ufl_operands: tuple[Expr, ...]
@@ -312,14 +311,22 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         raise NotImplementedError()
 
     @property
+    def _contracts_output(self) -> bool:
+        """Whether the dual slot contracts the output, instead of leaving it free."""
+        dual_slot_arguments = self.argument_slots()[0].arguments()
+        return not any(isinstance(a, Coargument) for a in dual_slot_arguments)
+
+    @property
     def _parent_type(self):
         """Is this an expression or a form?
 
-        The operator is an expression if its dual slot leaves the output free,
-        otherwise the dual slot contracts the output and leaves a form.
+        The operator is an expression if its dual slot leaves the output free, or if
+        it has no arguments and is a number. Otherwise the dual slot contracts the
+        output and leaves a form in the free arguments.
         """
-        dual_slot_arguments = self.argument_slots()[0].arguments()
-        return Operator if any(isinstance(a, Coargument) for a in dual_slot_arguments) else BaseForm
+        if self.arguments() and self._contracts_output:
+            return BaseForm
+        return Operator
 
     def __add__(self, other):
         """Add."""
@@ -350,7 +357,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return self._parent_type.__truediv__(self, other)
 
     def __rtruediv__(self, other):
-        """Divide by the operator, unless it is a form with arguments."""
-        if self._parent_type is BaseForm and self.arguments():
+        """Divide by the operator, unless it is a form."""
+        if self._parent_type is BaseForm:
             return NotImplemented
         return Operator.__rtruediv__(self, other)

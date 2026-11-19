@@ -101,7 +101,7 @@ class Replacer(DAGTraverser):
         if not any(isinstance(slot, Zero) for slot in new_slots[1:]):
             return new
         # o is linear in its primal slots.
-        if new._parent_type is not BaseForm:
+        if not new._contracts_output:
             return Zero(o.ufl_shape)
         # The dual slot contracts o into a form, which keeps the Arguments of the
         # slots that became zero.
