@@ -833,6 +833,22 @@ def test_functional_derivative(V1, max_rank):
     assert restructure_base_form(dJdu, max_composed_rank=max_rank) == expected
 
 
+def test_derivative_through_external_operator_gradient(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V2)
+    du = TrialFunction(V1)
+    N = ExternalOperator(u, function_space=V2)
+    F = inner(grad(N), grad(v)) * dx
+
+    J = expand_derivatives(derivative(F, u, du))
+    dN = ExternalOperator(
+        u, function_space=V2, derivatives=(1,), argument_slots=(*N.argument_slots(), du)
+    )
+    expected = apply_algebra_lowering(inner(grad(dN), grad(v)) * dx)
+    assert renumber_indices(J) == renumber_indices(expected)
+    assert J.arguments() == (v, du)
+
+
 @pytest.mark.parametrize("max_rank", [1, 2])
 def test_functional_hessian_through_composition(V1, max_rank):
     u = Coefficient(V1)
