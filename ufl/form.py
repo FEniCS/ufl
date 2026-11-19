@@ -807,16 +807,19 @@ class FormSum(BaseForm):
 
     def _analyze_form_arguments(self):
         """Return all ``Argument`` objects found in form."""
+        from ufl.argument import Coargument
+
         arguments = []
         coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
         # Define canonical numbering of arguments and coefficients.
-        # A Coargument in V* brings an Argument in V with the same number, as
-        # the identity map V* x V -> R. The Coargument sorts first, so that the
-        # order does not depend on the hash of the set.
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), not x._dual)))
+        # A Coargument in V* brings an Argument in V with the same number.
+        # The Coargument sorts first.
+        unique = set(arguments)
+        arguments = sorted(unique, key=lambda a: (a.number(), not isinstance(a, Coargument)))
+        self._arguments = tuple(arguments)
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
