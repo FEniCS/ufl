@@ -4,16 +4,19 @@ __authors__ = "Nacime Bouziani"
 __date__ = "2021-11-19"
 
 import pytest
-from utils import FiniteElement, LagrangeElement, MixedElement
+from utils import FiniteElement, LagrangeElement, MixedElement, RealElement
 
 from ufl import (
+    L2,
     Action,
     Adjoint,
     Argument,
     Coargument,
     Coefficient,
     Cofunction,
+    Constant,
     FunctionSpace,
+    Identity,
     Mesh,
     SpatialCoordinate,
     TestFunction,
@@ -29,6 +32,8 @@ from ufl import (
     grad,
     inner,
     replace,
+    tetrahedron,
+    tr,
     triangle,
 )
 from ufl.algorithms.ad import expand_derivatives
@@ -39,13 +44,31 @@ from ufl.algorithms.analysis import (
     extract_terminals_with_domain,
     extract_type,
 )
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_function_pullbacks import (
+    apply_function_pullbacks,
+    apply_interpolate_pullbacks,
+)
+from ufl.algorithms.balancing import balance_modifiers
+from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.restructure_base_form import restructure_base_form
-from ufl.classes import Product, ReferenceGrad, ReferenceValue
+from ufl.checks import is_scalar_constant_expression
+from ufl.classes import (
+    CoefficientDerivative,
+    Division,
+    Product,
+    ReferenceGrad,
+    ReferenceValue,
+    Sum,
+    VariableDerivative,
+)
+from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.form import Form, FormSum, ZeroBaseForm
+from ufl.geometry import Jacobian
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
 
@@ -83,6 +106,18 @@ def V4(domain_2d):
 def V5(domain_2d):
     f1 = FiniteElement("CG", triangle, 5, (), identity_pullback, H1)
     return FunctionSpace(domain_2d, f1)
+
+
+def test_signature_of_form_with_operator_derivative(domain_2d):
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    assert (derivative(Interpolate(u, V), u)[0] * dx).signature()
+
+
+def test_balance_modifiers_of_pulled_back_interpolate(V1, V2):
+    u = Coefficient(V1)
+    expr = apply_interpolate_pullbacks(apply_function_pullbacks(grad(Interpolate(u**2, V2))[0]))
+    assert balance_modifiers(expr) == expr
 
 
 def test_symbolic(V1, V2):
@@ -148,6 +183,147 @@ def test_negation_of_contracted_interpolation_with_arguments(V1, V2):
     assert isinstance(inner(1, v) * dx - interpolation, FormSum)
 
 
+def test_external_operator_follows_dual_slot(V1, V2):
+    u = Coefficient(V1)
+    v = TestFunction(V1)
+    cofunction = Cofunction(V2.dual())
+    coargument = Coargument(V2.dual(), 1)
+
+    free = ExternalOperator(u, function_space=V2, argument_slots=(coargument, v))
+    assert isinstance(-free, Product)
+    assert isinstance(free / 2, Division)
+
+    contracted = ExternalOperator(u, function_space=V2, argument_slots=(cofunction, v))
+    assert isinstance(-contracted, FormSum)
+    assert isinstance(contracted + contracted, FormSum)
+    assert isinstance(contracted - contracted, FormSum)
+    assert contracted / 2 == 0.5 * contracted
+    with pytest.raises(TypeError):
+        contracted / u
+    with pytest.raises(TypeError):
+        2 / contracted
+
+    # A 0-form is a number
+    number = ExternalOperator(u, function_space=V2, argument_slots=(cofunction,))
+    assert isinstance(-number, Product)
+    assert isinstance(number + number, Sum)
+    assert isinstance(number / u, Division)
+    assert (2 / number).ufl_operands == (2, number)
+
+
+@pytest.mark.parametrize("operand", ["coefficient", "test_function"])
+def test_number_divided_by_contracted_interpolation(V1, V2, operand):
+    expr = Coefficient(V1) if operand == "coefficient" else TestFunction(V1)
+    interpolation = Interpolate(expr, Cofunction(V2.dual()))
+
+    if interpolation.arguments():
+        with pytest.raises(TypeError):
+            2 / interpolation
+    else:
+        assert isinstance(2 / interpolation, Division)
+        assert (2 / interpolation).ufl_operands == (2, interpolation)
+
+
+def test_difference_of_contracted_interpolations_is_a_form_sum(V1, V2):
+    interpolation = Interpolate(TestFunction(V1), Cofunction(V2.dual()))
+    linear = inner(1, TestFunction(V1)) * dx
+
+    difference = interpolation - interpolation
+    assert isinstance(difference, FormSum)
+    assert difference.arguments() == interpolation.arguments()
+    assert difference.weights() == [1, -1]
+    for difference in (interpolation - linear, linear - interpolation):
+        assert isinstance(difference, FormSum)
+        assert difference.arguments() == interpolation.arguments()
+
+
+def test_zero_form_operator_is_number(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    c = Constant(domain_2d)
+    I0 = Interpolate(u, Cofunction(V2.dual()))
+    assert isinstance((-I0) * u, Product)
+    assert isinstance(2 * I0 * u * dx, Form)
+    assert isinstance(I0 / 2 * u, Product)
+    assert isinstance(I0 * I0, Product)
+    assert isinstance(I0 - c, Sum)
+    assert isinstance(I0 - 1, Sum)
+    # A Form is not an expression, so adding one gives a FormSum
+    assert isinstance(I0 + u * dx, FormSum)
+
+
+def test_zero_form_has_nothing_to_act_on(V1, V2):
+    u = Coefficient(V1)
+    zero_form = Interpolate(u, Cofunction(V2.dual()))
+    assert isinstance(zero_form * u, Product)
+    assert isinstance(u * zero_form, Product)
+
+    with pytest.raises(TypeError):
+        (u * dx) * u
+    with pytest.raises(ValueError, match="without arguments"):
+        action(u * dx, u)
+    with pytest.raises(ValueError, match="without arguments"):
+        action(zero_form, u)
+
+
+def test_replace_zero_form(V1, V2):
+    u = Coefficient(V1)
+    zero_form = Interpolate(u, Cofunction(V2.dual()))
+    form = zero_form * u * dx
+    assert replace(form, {zero_form: 2.0}) == 2.0 * u * dx
+
+
+def test_form_multiplied_by_number_scales(domain_2d, V1, V2):
+    v = TestFunction(V1)
+    u = TrialFunction(V1)
+    linear = inner(Coefficient(V1), v) * dx
+    constant = Constant(domain_2d)
+
+    assert linear * 2 == 2 * linear
+    assert linear * constant == constant * linear
+    assert (inner(u, v) * dx * 2).arguments() == (v, u)
+
+    interpolation = Interpolate(v, Cofunction(V2.dual()))
+    assert interpolation * 2 == 2 * interpolation
+
+
+def test_form_acts_on_real_coefficient(domain_2d, V1):
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    v = TestFunction(V1)
+    form = inner(TrialFunction(real_space), v) * dx
+    assert (form @ Coefficient(real_space)).arguments() == (v,)
+
+
+def test_operator_of_constants_is_constant_only_in_a_real_space(domain_2d, V1, V2):
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    c = Constant(domain_2d)
+    for space in (V2, real_space):
+        operators = (Interpolate(c, space), ExternalOperator(c, function_space=space))
+        for operator in operators:
+            assert is_scalar_constant_expression(operator) == (space is real_space)
+            assert is_scalar_constant_expression(2 * operator) == (space is real_space)
+
+
+def test_form_acts_on_operator_of_constants(domain_2d, V1, V2):
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    c = Constant(domain_2d)
+    for space in (V1, real_space):
+        linear = inner(1, TestFunction(space)) * dx
+        for operator in (Interpolate(c, space), ExternalOperator(c, function_space=space)):
+            assert linear @ operator == action(linear, operator)
+            assert (linear @ operator).arguments() == ()
+
+
+@pytest.mark.parametrize("operand", ["coefficient", "constant"])
+def test_form_times_zero_form_raises(domain_2d, V1, V2, operand):
+    expr = Coefficient(V1) if operand == "coefficient" else Constant(domain_2d)
+    zero_form = Interpolate(expr, Cofunction(V2.dual()))
+    linear = inner(1, TestFunction(V1)) * dx
+    with pytest.raises(ValueError, match="0-form"):
+        linear @ zero_form
+    with pytest.raises(TypeError):
+        zero_form * linear
+
+
 def test_negation_of_interpolation_with_scaled_coargument(V1, V2):
     coargument = Coargument(V2.dual(), 0)
     u = Coefficient(V1)
@@ -159,10 +335,9 @@ def test_negation_of_interpolation_with_scaled_coargument(V1, V2):
 def test_scaling_agrees_with_negation(domain_2d, V1, V2):
     """Scaling an interpolation must agree with negating it.
 
-    Both follow the target space, the one that ``ufl_shape`` reports, so that an
-    interpolation of a test function stays an expression. Firedrake's fml is
-    what notices a disagreement: it builds ``form - label(form)`` and compares
-    the result against ``-form``.
+    Both follow the dual slot, so that an interpolation of a test function stays
+    an expression. Firedrake's fml is what notices a disagreement: it builds
+    ``form - label(form)`` and compares the result against ``-form``.
     """
     scalar_element = V1.ufl_element()
     vector_element = FiniteElement("CG", triangle, 1, (2,), identity_pullback, H1)
@@ -179,17 +354,17 @@ def test_scaling_agrees_with_negation(domain_2d, V1, V2):
         # Scaling preserves the value shape, which a FormSum would not have.
         assert (2 * interpolation).ufl_shape == target_space.value_shape
 
-    for interpolation in (
-        Interpolate(Coefficient(V1), V2),
-        Interpolate(Coefficient(V1), Cofunction(V2.dual())),
-    ):
-        assert isinstance(-1 * interpolation, Product)
-        assert type(-interpolation) is type(-1 * interpolation)
+    interpolation = Interpolate(Coefficient(V1), V2)
+    assert isinstance(-1 * interpolation, Product)
+    assert type(-interpolation) is type(-1 * interpolation)
 
-    # Addition still follows ufl_function_space(), so that a sum of adjoint
-    # interpolations stays a form -- see test_interpolate_expr.
+    interpolation = Interpolate(Coefficient(V1), Cofunction(V2.dual()))
+    assert isinstance(-1 * interpolation, Product)
+    assert type(-interpolation) is type(-1 * interpolation)
+
+    # The output of an adjoint interpolation is free, so its sum stays an expression.
     adjoint_interpolation = Interpolate(test, target_space)
-    assert isinstance(adjoint_interpolation + adjoint_interpolation, FormSum)
+    assert isinstance(adjoint_interpolation + adjoint_interpolation, Sum)
 
 
 def test_form_compiler_signature(V1, V2, V3):
@@ -439,6 +614,14 @@ def test_derivative_direction_with_same_argument_number_raises(V1, V2, V3):
         dIu.arguments()
 
 
+def test_derivative_direction_with_coargument_number_raises(V1, V2):
+    u = Coefficient(V1)
+    dIu = derivative(Interpolate(u**2, V2), u, Argument(V1, 0))
+
+    with pytest.raises(ValueError, match=r"Same argument numbers in the operator"):
+        expand_derivatives(dIu)
+
+
 def test_derivative_with_gapped_coargument(V1, V2):
     u = Coefficient(V1)
     J = Interpolate(u, Argument(V2.dual(), 1)) * dx
@@ -446,6 +629,66 @@ def test_derivative_with_gapped_coargument(V1, V2):
     dJdu = expand_derivatives(derivative(J, u))
 
     assert dJdu.arguments() == (Argument(V1, 0),)
+
+
+@pytest.mark.parametrize("dual_slot", ["cofunction", "formsum"])
+def test_dual_slot_derivative_in_integrand(V1, V2, dual_slot):
+    u = Coefficient(V1)
+    v = Argument(V1, 0)
+    c = Cofunction(V2.dual())
+    vstar = c if dual_slot == "cofunction" else 2 * c
+    F = Interpolate(u, vstar) * v * dx
+
+    # Interpolate(u, c) is a number in the integrand, and its derivative with
+    # respect to c is a form, which an integrand cannot hold.
+    with pytest.raises(ValueError, match="contracted"):
+        expand_derivatives(derivative(F, c))
+
+
+@pytest.mark.parametrize("integrand", ["linear", "power", "exp", "operand"])
+def test_contracted_derivative_in_integrand(V1, V2, integrand):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, Cofunction(V2.dual()))
+    F = {
+        "linear": Iu * f * dx,
+        "power": Iu**2 * f * dx,
+        "exp": exp(Iu) * dx,
+        "operand": Interpolate(Iu * f, V2) * dx,
+    }[integrand]
+
+    # The derivative of Iu is a form, which an expression cannot contain.
+    with pytest.raises(ValueError, match="contracted"):
+        expand_derivatives(derivative(F, u))
+
+
+def test_contracted_derivative(V1, V2):
+    u = Coefficient(V1)
+    c = Cofunction(V2.dual())
+    uhat = Argument(V1, 0)
+
+    assert expand_derivatives(derivative(Interpolate(u, c), u, uhat)) == Interpolate(uhat, c)
+    assert expand_derivatives(derivative(Interpolate(u, c), c)) == Interpolate(
+        u, Coargument(V2.dual(), 0)
+    )
+
+
+def test_derivative_of_a_form_independent_of_a_cofunction(V1, V2):
+    v = Argument(V1, 0)
+    c = Cofunction(V2.dual())
+
+    dF = expand_derivatives(derivative(Coefficient(V1) * v * dx, c))
+
+    assert dF == ZeroBaseForm((v, Coargument(V2.dual(), 1)))
+
+
+def test_derivative_of_a_form_sum_by_a_cofunction(V1, V2):
+    u = Coefficient(V1)
+    c = Cofunction(V2.dual())
+
+    dF = expand_derivatives(derivative(Interpolate(u, c) + u * dx, c))
+
+    assert dF == Interpolate(u, Coargument(V2.dual(), 0))
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])
@@ -476,13 +719,12 @@ def test_action_adjoint(V1, V2, max_rank):
 
     # action of one-form on interpolation operator
     one_form = Argument(V2, 0) * dx
-    one_form_action = action(one_form, Iv)  # V2^* -> V1^*
-    action_one_form = restructure_base_form(one_form_action, max_composed_rank=max_rank)
+    assert action(one_form, Iv) == Action(one_form, Iv)  # V2^* -> V1^*
     if max_rank == 1:
         expected = Interpolate(Argument(V1, 0), one_form)
     else:
         expected = Interpolate(Argument(V1, 0), V2) * dx
-    assert action_one_form == expected
+    assert restructure_base_form(action(one_form, Iv), max_composed_rank=max_rank) == expected
 
     # zero-form case
     action_zero_form = action(one_form, Iu)  # a number
@@ -515,23 +757,29 @@ def test_differentiation(V1, V2, max_rank):
     F = Iu * v * dx
     Ihat = TrialFunction(Iu.ufl_function_space())
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # dF/du[uhat] = Action(dF/dIu, dIu/du[uhat])
+    assert dFdu == dIu * v * dx
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     assert dFdIu == Ihat * v * dx
-    assert dFdu == Action(dFdIu, dIu)
+    # Restructured: dF/du[uhat] = Action(dF/dIu, dIu/du[uhat])
+    assert restructure_base_form(dFdu) == Action(dFdIu, dIu)
 
     # -- Differentiate: u * I(u, V2) * v * dx -- #
     F = u * Iu * v * dx
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    # dF/du[uhat] = ∂F/∂u[uhat] + Action(∂F/∂Iu, dIu/du[uhat])
-    assert dFdu == uhat * Iu * v * dx + Action(Ihat * u * v * dx, dIu)
+    assert dFdu == (uhat * Iu + u * dIu) * v * dx
+    # Restructured: dF/du[uhat] = ∂F/∂u[uhat] + Action(∂F/∂Iu, dIu/du[uhat])
+    expected = uhat * Iu * v * dx + Action(Ihat * u * v * dx, dIu)
+    assert restructure_base_form(dFdu) == expected
 
     # -- Differentiate (wrt Iu): <Iu, v> + <grad(Iu), grad(v)> - <f, v>
     f = Coefficient(V1)
     F = inner(Iu, v) * dx + inner(grad(Iu), grad(v)) * dx - inner(f, v) * dx
     dFdIu = expand_derivatives(derivative(F, Iu, Ihat))
     dFdu = expand_derivatives(derivative(F, u, uhat))
-    assert renumber_indices(dFdu) == renumber_indices(Action(dFdIu, dIu))
+    expected = inner(dIu, v) * dx + inner(grad(dIu), grad(v)) * dx
+    expected = apply_algebra_lowering(expected)
+    assert renumber_indices(dFdu) == renumber_indices(expected)
+    assert renumber_indices(restructure_base_form(dFdu)) == renumber_indices(Action(dFdIu, dIu))
 
     # BaseFormOperators are treated as coefficients when a form is differentiated wrt them.
     # -> dFdIu <=> dFdw
@@ -545,15 +793,15 @@ def test_differentiation(V1, V2, max_rank):
     # Derivative of form I(u, V2) wrt coefficient u
     J = Iu * dx
     dJdu = expand_derivatives(derivative(J, u))
-    # dJ/du[v0] = Action(I(v0; vhat), dJ/dIu)
-    restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
+    assert dJdu == Interpolate(Argument(V1, 0), V2) * dx
+    assert dJdu.arguments() == (Argument(V1, 0),)
+
     if max_rank == 1:
         expected = Interpolate(Argument(V1, 0), Argument(V2, 0) * dx)
     else:
         # dJ/dIu composes with the operator.
         expected = Interpolate(Argument(V1, 0), V2) * dx
-    assert restructured == expected
-    assert dJdu.arguments() == (Argument(V1, 0),)
+    assert restructure_base_form(dJdu, max_composed_rank=max_rank) == expected
 
 
 def test_formsum_derivative(V1, V2):
@@ -573,27 +821,34 @@ def test_second_derivative(V1, V2, max_rank):
     u = Coefficient(V1)
     f = Coefficient(V2)
     Iu = Interpolate(u, V2)
-    v0, v1 = TestFunction(V1), TrialFunction(V1)
-    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    v0 = TestFunction(V1)
+    v1 = TrialFunction(V1)
+    w0 = TestFunction(V2)
+    w1 = TrialFunction(V2)
 
     # -- Differentiate: J = 0.5 * (Iu - f)**2 * dx -- #
     J = 0.5 * (Iu - f) ** 2 * dx
     dJdu = expand_derivatives(derivative(J, u))
+    assert dJdu == 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
+
     # dJ/du[v0] = I^T dJ/dIu, the adjoint interpolation of dJ/dIu
     dJdIu = expand_derivatives(derivative(J, Iu, w0))
-    restructured = restructure_base_form(dJdu, max_composed_rank=max_rank)
     if max_rank == 1:
         expected = Interpolate(v0, dJdIu)
     else:
         expected = 0.5 * ((Iu - f) * (2 * Interpolate(v0, V2))) * dx
-    assert restructured == expected
+    assert restructure_base_form(dJdu, max_composed_rank=max_rank) == expected
 
     # d2J/du2[v0, v1] = I^T d2J/dIu2 I, since I is linear
-    d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
     d2Jdu2 = expand_derivatives(derivative(dJdu, u, v1))
-    vhat = Argument(V2.dual(), 1)
-    assert d2Jdu2 == Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert d2Jdu2 == 0.5 * (2 * Interpolate(v0, V2) * Interpolate(v1, V2)) * dx
     assert d2Jdu2.arguments() == (v0, v1)
+
+    # Restructured: d2J/du2 = Action(I^T, Action(d2J/dIu2, I))
+    d2JdIu2 = expand_derivatives(derivative(dJdIu, Iu, w1))
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert restructure_base_form(d2Jdu2) == expected
 
     # -- Nested derivatives expand one at a time from the inside out -- #
     H = derivative(derivative(J, u), u)
@@ -633,16 +888,42 @@ def test_scaled_second_derivative(V1, V2):
     u = Coefficient(V1)
     f = Coefficient(V2)
     Iu = Interpolate(u, V2)
-    v0, v1 = TestFunction(V1), TrialFunction(V1)
-    w0, w1 = TestFunction(V2), TrialFunction(V2)
+    v0 = TestFunction(V1)
+    v1 = TrialFunction(V1)
     J = 0.5 * (Iu - f) ** 2 * dx
-    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
-    # d2J/du2[v0, v1] = I^T d2J/dIu2 I
-    vhat = Argument(V2.dual(), 1)
-    d2Jdu2 = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    H = expand_derivatives(2 * derivative(derivative(J, u), u))
+    assert H == 2 * (0.5 * (2 * Interpolate(v0, V2) * Interpolate(v1, V2))) * dx
 
-    H = derivative(derivative(J, u), u)
-    assert expand_derivatives(2 * H) == 2 * d2Jdu2
+    # Restructured: 2 d2J/du2[v0, v1] = I^T (2 d2J/dIu2) I
+    w0 = TestFunction(V2)
+    w1 = TrialFunction(V2)
+    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(2 * d2JdIu2, Interpolate(v1, V2)))
+    assert restructure_base_form(H) == expected
+
+
+def test_second_derivative_with_integral_without_interpolate(V1, V2):
+    u = Coefficient(V1)
+    f = Coefficient(V2)
+    Iu = Interpolate(u, V2)
+    v0 = TestFunction(V1)
+    v1 = TrialFunction(V1)
+    J = 0.5 * (Iu - f) ** 2 * dx
+    R = 0.5 * inner(grad(u), grad(u)) * dx
+    d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
+    H = expand_derivatives(derivative(derivative(J + R, u), u))
+
+    d2Jdu2 = 0.5 * (2 * Interpolate(v0, V2) * Interpolate(v1, V2)) * dx
+    assert renumber_indices(H) == renumber_indices(d2Jdu2 + d2Rdu2)
+
+    # Moving out one Interpolate also removes the other, which leaves only R.
+    w0 = TestFunction(V2)
+    w1 = TrialFunction(V2)
+    d2JdIu2 = expand_derivatives(derivative(derivative(J, Iu, w0), Iu, w1))
+    vhat = Argument(V2.dual(), 1)
+    expected = Action(Interpolate(v0, vhat), Action(d2JdIu2, Interpolate(v1, V2)))
+    assert renumber_indices(restructure_base_form(H)) == renumber_indices(d2Rdu2 + expected)
 
 
 def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
@@ -652,10 +933,13 @@ def test_dual_slot_derivative_with_coefficient_direction(V1, V2):
     vstar = inner(u, v) * dx
     Iu = Interpolate(u, vstar)
 
-    actual = restructure_base_form(expand_derivatives(derivative(Iu, u, du)))
-    expected = inner(u, Interpolate(du, V2)) * dx + inner(du, Interpolate(u, V2)) * dx
+    actual = expand_derivatives(derivative(Iu, u, du))
+    expected = FormSum((Interpolate(du, vstar), 1), (Interpolate(u, inner(du, v) * dx), 1))
 
     assert actual == expected
+
+    expected = inner(u, Interpolate(du, V2)) * dx + inner(du, Interpolate(u, V2)) * dx
+    assert restructure_base_form(actual) == expected
 
     # The coargument in the dual slot does not depend on u.
     assert expand_derivatives(derivative(Interpolate(u, V2), u, du)) == Interpolate(du, V2)
@@ -666,13 +950,16 @@ def test_second_derivative_through_nested_formsum(V1, V2):
     du = Coefficient(V1)
     v = TestFunction(V2)
     Iu = Interpolate(u, inner(u, v) * dx)
-    term = inner(du, Interpolate(du, V2)) * dx
+    term = Interpolate(du, inner(du, v) * dx)
 
-    d2Idu2 = restructure_base_form(expand_derivatives(derivative(derivative(Iu, u, du), u, du)))
+    d2Idu2 = expand_derivatives(derivative(derivative(Iu, u, du), u, du))
 
     # The first derivative is a FormSum because both the operand and dual slot
     # depend on u. Differentiating that nested FormSum gives the product rule twice.
-    assert d2Idu2 == term + term
+    assert d2Idu2 == FormSum((term, 1), (term, 1))
+
+    term = inner(du, Interpolate(du, V2)) * dx
+    assert restructure_base_form(d2Idu2) == term + term
 
 
 def test_extract_base_form_operators(V1, V2):
@@ -1022,7 +1309,8 @@ def test_derivative_dual_slot_with_direction_numbered_zero(V1, V2, number):
 def test_second_derivative_dual_slot_with_directions_numbered_from_zero(V1, V2):
     u = Coefficient(V1)
     N = Interpolate(u**2, inner(u, TestFunction(V2)) * dx)
-    v0, v1 = Argument(V1, 0), Argument(V1, 1)
+    v0 = Argument(V1, 0)
+    v1 = Argument(V1, 1)
 
     ddN = expand_derivatives(derivative(derivative(N, u, v0), u, v1))
     assert ddN.arguments() == (v0, v1)
@@ -1086,3 +1374,109 @@ def test_action_leaves_coargument_of_interpolate_operand_bound(V1, scale):
 
     assert restructured == Interpolate(operand, ustar)
     assert restructured.arguments() == ()
+
+
+def test_constant_scales_contracted_operator_from_either_side(domain_2d, V1, V2):
+    u = Coefficient(V1)
+    c = Constant(domain_2d)
+    cofunction = Cofunction(V2.dual())
+    operator = Interpolate(TestFunction(V1), cofunction)
+    number = Interpolate(u, cofunction)
+    for scalar in (2, c, 2 * c):
+        assert isinstance(scalar * operator, FormSum)
+        assert scalar * operator == operator * scalar
+        assert isinstance(scalar * number, Product)
+        assert scalar * number == number * scalar
+
+    # An operator with a free output is an expression on both sides
+    free = Interpolate(u, V2)
+    assert isinstance(c * free, Product)
+    assert isinstance(free * c, Product)
+
+
+def test_operator_in_a_dual_space_is_not_constant(domain_2d, V1, V2):
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    v = TestFunction(real_space)
+    linear = inner(Coefficient(V1), TestFunction(V1)) * dx
+    for operator in (
+        Interpolate(v, Cofunction(V2.dual())),  # a 1-form
+        Interpolate(v, V2),  # free output, linear in v
+    ):
+        assert operator.arguments()
+        assert not is_scalar_constant_expression(operator)
+        with pytest.raises(TypeError, match="scalar constant"):
+            linear / operator
+
+
+def test_operator_subclass_registered_later_is_checked_by_its_space(domain_2d, V2):
+    from ufl.core.ufl_type import ufl_type
+
+    c = Constant(domain_2d)
+    assert is_scalar_constant_expression(c)
+
+    @ufl_type()
+    class LateOperator(ExternalOperator):
+        """An operator type registered after the first constant check."""
+
+        _ufl_noslots_ = True
+
+    real_space = FunctionSpace(domain_2d, RealElement(triangle))
+    assert not is_scalar_constant_expression(LateOperator(c, function_space=V2))
+    assert is_scalar_constant_expression(LateOperator(c, function_space=real_space))
+
+
+def _compute_form_data(form):
+    """Preprocess a form with FFCx options and check its structure."""
+    form_data = compute_form_data(
+        form,
+        do_apply_function_pullbacks=True,
+        do_apply_integral_scaling=True,
+        do_apply_geometry_lowering=True,
+        preserve_geometry_types=(Jacobian,),
+        do_apply_restrictions=True,
+        do_append_everywhere_integrals=False,
+        complex_mode=False,
+    )
+    preprocessed_form = form_data.preprocessed_form
+    assert isinstance(preprocessed_form, Form)
+    assert preprocessed_form.integrals()
+    assert preprocessed_form.arguments() == form.arguments()
+    assert not extract_type(preprocessed_form, (CoefficientDerivative, VariableDerivative))
+    return form_data
+
+
+def test_form_data_of_derivative_of_interpolated_coordinate(domain_2d):
+    """A form compiler can process the derivative of an interpolated displaced coordinate."""
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    x1 = SpatialCoordinate(domain_2d) + u
+    I_x1 = Interpolate(x1, V)
+
+    _compute_form_data(x1[0] * dx)
+    _compute_form_data(I_x1[0] * dx)
+    _compute_form_data(derivative(x1, u)[0] * dx)
+    _compute_form_data(derivative(I_x1, u)[0] * dx)
+
+
+def test_form_data_of_derivative_of_interpolated_strain():
+    """A form compiler can process the derivative of an interpolated strain."""
+    domain = Mesh(LagrangeElement(tetrahedron, 1, (3,)))
+    V = FunctionSpace(domain, FiniteElement("DG", tetrahedron, 1, (3,), identity_pullback, L2))
+    T = FunctionSpace(domain, LagrangeElement(tetrahedron, 1, (3, 3)))
+    u = Coefficient(V)
+
+    x1 = SpatialCoordinate(domain) + u
+    F = grad(x1)
+    B = (F.T * F - Identity(3)) / 2
+    I_B = Interpolate(B, T)
+
+    def W(E):
+        """Strain energy density."""
+        return inner(E, E) + tr(E) ** 2 / 2
+
+    _compute_form_data(B[0, 0] * dx)
+    _compute_form_data(I_B[0, 0] * dx)
+    _compute_form_data(derivative(B, u)[0, 0] * dx)
+    _compute_form_data(derivative(I_B, u)[0, 0] * dx)
+    _compute_form_data(derivative(W(B) * dx, u))
+    _compute_form_data(derivative(W(I_B) * dx, u))

@@ -211,6 +211,7 @@ class Coargument(BaseForm, BaseArgument):
 
     _primal = False
     _dual = True
+    _ufl_is_terminal_ = True
 
     def __new__(cls, *args, **kw):
         """Create a new Coargument."""
@@ -235,8 +236,9 @@ class Coargument(BaseForm, BaseArgument):
         # Define canonical numbering of arguments and coefficients
         self._coefficients = ()
         # Coarguments map from V* to V*, i.e. V* -> V*, or equivalently V* x V -> R.
-        # So they have one argument in the primal space and one in the dual space.
-        self._arguments = (Argument(self.ufl_function_space().dual(), 0), self)
+        # So they have one argument in the dual space and one in the primal space,
+        # in this order. The Argument in V comes last, so an Action contracts it.
+        self._arguments = (self, Argument(self.ufl_function_space().dual(), 0))
 
     def ufl_domain(self):
         """Return the UFL domain."""

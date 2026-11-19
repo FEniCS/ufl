@@ -22,6 +22,7 @@ from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.exprequals import expr_equals
 from ufl.form import BaseForm
 from ufl.precedence import parstr
+from ufl.utils.counted import Counted
 from ufl.variable import Variable
 
 # --- Basic differentiation objects ---
@@ -173,6 +174,9 @@ class BaseFormOperatorDerivative(BaseFormOperator, BaseFormDerivative):
         self._argument_slots = base_form._argument_slots
         self._function_space = base_form._function_space
         self._domains = None
+        # BaseFormDerivative.__init__ does not reach Counted.__init__, which
+        # Form.signature needs.
+        Counted.__init__(self, counted_class=BaseFormOperator)
 
     # Enforce Operator reconstruction as Operator is a parent class of
     # both: BaseFormDerivative and BaseFormOperator.
