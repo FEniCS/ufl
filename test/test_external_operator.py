@@ -37,6 +37,7 @@ from ufl import (
     tr,
     triangle,
     variable,
+    zero,
 )
 from ufl.algorithms import expand_coefficient_derivatives, expand_derivatives
 from ufl.algorithms.analysis import extract_type
@@ -146,15 +147,6 @@ def test_derivative_shape(domain_2d, input_shape, output_shape):
     assert hessian.arguments() == (vstar, first, second)
 
 
-def _expand_external_diff(expression, variable):
-    try:
-        return expand_derivatives(diff(expression, variable))
-    except ValueError as error:
-        if str(error).startswith("Missing differentiation handler for type ExternalOperator."):
-            pytest.xfail("ufl.diff is missing a rule for ExternalOperator (issue #456)")
-        raise
-
-
 def _replace_external_partials(expression, partials):
     """Substitute known UFL partial derivatives for a single-operand external operator."""
     replacements = {}
@@ -171,7 +163,7 @@ def _replace_external_partials(expression, partials):
 def test_diff_external_operator_wrt_coefficient(V1):
     u = Coefficient(V1)
     energy = ExternalOperator(u, function_space=V1)
-    partial = _expand_external_diff(energy, u)
+    partial = expand_derivatives(diff(energy, u))
     assert partial.ufl_shape == ()
     (operator,) = extract_type(partial, ExternalOperator)
     assert operator.ufl_operands == (u,)
@@ -190,7 +182,7 @@ def test_diff_external_energy_through_deformation_invariant(domain_2d, V1):
     volumetric = (det(F) - 1) ** 2 / 2
     energy = ExternalOperator(invariant, function_space=V1)
 
-    stress = _expand_external_diff(energy + volumetric, F)
+    stress = expand_derivatives(diff(energy + volumetric, F))
     reference_stress = diff(invariant**2 / 4 + volumetric, F)
     assert stress.ufl_shape == (2, 2)
 
@@ -224,7 +216,7 @@ def test_diff_external_operator_wrt_vector_variable(domain_2d):
     z = variable(u)
     N = ExternalOperator(z, function_space=V)
 
-    partial = _expand_external_diff(N, z)
+    partial = expand_derivatives(diff(N, z))
     assert partial.ufl_shape == (2, 3)
 
     # Substitute the Jacobian of N(z) = (z[0] * z[1], z[1]**2 + 2 * z[2]).
@@ -235,6 +227,16 @@ def test_diff_external_operator_wrt_vector_variable(domain_2d):
     for i, row in enumerate(((2, 1, 0), (0, 4, 2))):
         for j, value in enumerate(row):
             assert float(actual[i, j]) == value
+
+
+def test_diff_external_operator_wrt_independent_variable(domain_2d):
+    W = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (3,)))
+    V = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(W)
+    z = variable(Coefficient(W))
+    N = ExternalOperator(u, function_space=V)
+
+    assert expand_derivatives(diff(N, z)) == zero(2, 3)
 
 
 def test_dual_slot_must_be_a_base_form(V1):
