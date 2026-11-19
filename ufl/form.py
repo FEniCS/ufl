@@ -18,10 +18,11 @@ import warnings
 from collections import defaultdict
 from itertools import chain
 
-from ufl.checks import is_scalar_constant_expression
+from ufl.checks import _is_scaling_constant, is_scalar_constant_expression
 from ufl.constant import Constant
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
+from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.domain import extract_unique_domain, sort_domains
 from ufl.equation import Equation
@@ -222,12 +223,44 @@ class BaseForm(metaclass=UFLType):
         return NotImplemented
 
     def __mul__(self, coefficient):
-        """Take the action of this form on the given coefficient."""
-        if isinstance(coefficient, Expr):
-            from ufl.formoperators import action
+        """Scale this form by a constant.
 
-            return action(self, coefficient)
+        A constant is a number or a scalar expression of Constants, and it scales
+        the form from either side. Taking the action of a form on a function with
+        ``*`` is deprecated: use ``form @ f`` or ``action(form, f)`` instead.
+        """
+        if _is_scaling_constant(coefficient):
+            return self.__rmul__(coefficient)
+        if isinstance(coefficient, Expr) and self.arguments():
+            if isinstance(coefficient, FormArgument | BaseForm):
+                warnings.warn(
+                    "Taking the action of a form with `form * f` is deprecated, "
+                    "use `form @ f` or `action(form, f)` instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            return BaseForm.__matmul__(self, coefficient)
         return NotImplemented
+
+    def __matmul__(self, coefficient):
+        """Take the action of this form on a function."""
+        if not isinstance(coefficient, Expr):
+            return NotImplemented
+        if not isinstance(coefficient, FormArgument | BaseForm):
+            raise TypeError(
+                "A form can only act on a Coefficient, an Argument or a base form operator, "
+                f"not on {ufl_err_str(coefficient)}. "
+                "To scale a form by a constant, multiply it from the left."
+            )
+        from ufl.formoperators import action
+
+        return action(self, coefficient)
+
+    def __truediv__(self, scalar):
+        """Scale this form by ``1 / scalar``."""
+        if not is_scalar_constant_expression(scalar):
+            raise TypeError("A form can only be divided by a scalar constant.")
+        return self.__rmul__(1 / scalar)
 
     def __ne__(self, other):
         """Immediately evaluate the != operator (as opposed to the == operator)."""
@@ -248,8 +281,6 @@ class BaseForm(metaclass=UFLType):
     def _ufl_expr_reconstruct_(self, *operands):
         """Return a new object of the same type with new operands."""
         return type(self)(*operands)
-
-    __matmul__ = __mul__
 
 
 @ufl_type()
@@ -530,14 +561,6 @@ class Form(BaseForm):
             return Form([scalar * itg for itg in self.integrals()])
         return NotImplemented
 
-    def __mul__(self, coefficient):
-        """UFL form operator: Take the action of this form on the given coefficient."""
-        if isinstance(coefficient, Expr):
-            from ufl.formoperators import action
-
-            return action(self, coefficient)
-        return NotImplemented
-
     def __call__(self, *args, **kwargs):
         """UFL form operator: Evaluate form by replacing arguments and coefficients.
 
@@ -584,8 +607,6 @@ class Form(BaseForm):
             return replace(self, repdict)
         else:
             return self
-
-    __matmul__ = __mul__
 
     # --- String conversion functions, for UI purposes only ---
 
@@ -781,6 +802,10 @@ class FormSum(BaseForm):
         """Get weights."""
         return self._weights
 
+    def _ufl_expr_reconstruct_(self, *operands):
+        """Return a new FormSum with new components and the same weights."""
+        return FormSum(*zip(operands, self._weights))
+
     def _sum_variational_components(self):
         """Sum variational components."""
         var_forms = None
@@ -803,13 +828,25 @@ class FormSum(BaseForm):
 
     def _analyze_form_arguments(self):
         """Return all ``Argument`` objects found in form."""
+        from ufl.argument import Coargument
+
         arguments = []
         coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
-        # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
+
+        def argument_key(a):
+            """Sort by number, then a Coargument first, then by part, with no part first.
+
+            A Coargument in V* brings an Argument in V with the same number, and it
+            sorts first, as in its own arguments.
+            """
+            part = -1 if a.part() is None else a.part()
+            return a.number(), not isinstance(a, Coargument), part
+
+        # Define canonical numbering of arguments and coefficients.
+        self._arguments = tuple(sorted(set(arguments), key=argument_key))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):

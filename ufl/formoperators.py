@@ -194,6 +194,10 @@ def action(form, coefficient=None, derivatives_expanded=None):
     When `action` is being called multiple times on the same form, expanding derivatives
     become expensive -> `derivatives_expanded` enables to use caching mechanisms to avoid that.
     """
+    if isinstance(form, BaseForm) and not form.arguments():
+        raise ValueError("Cannot take the action of a form without arguments.")
+    if isinstance(coefficient, BaseForm) and not coefficient.arguments():
+        raise ValueError("Cannot take the action on a 0-form, which has no arguments.")
     is_coefficient_valid = not isinstance(coefficient, BaseForm) or (
         isinstance(coefficient, BaseFormOperator) and len(coefficient.arguments()) == 1
     )
@@ -430,11 +434,8 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
             cd += [as_ufl(k), as_ufl(coefficient_derivatives[k])]
         coefficient_derivatives = ExprMapping(*cd)
 
-    # Got a form? Apply derivatives to the integrands in turn, unless the
-    # chain rule through base form operators requires the whole form.
-    if isinstance(form, Form) and (
-        isinstance(coefficient, SpatialCoordinate) or not form.base_form_operators()
-    ):
+    # Got a form? Apply derivatives to the integrands in turn.
+    if isinstance(form, Form):
         integrals = []
         for itg in form.integrals():
             if isinstance(coefficient, SpatialCoordinate):
@@ -442,8 +443,9 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
                     itg.integrand(), coefficients, arguments, coefficient_derivatives
                 )
             elif isinstance(coefficient, BaseForm) and not isinstance(
-                coefficient, BaseFormOperator
+                coefficient, BaseFormOperator | Cofunction
             ):
+                # A Form can depend on a Cofunction in the dual slot of an operator.
                 # Make the `ZeroBaseForm` arguments
                 arguments = form.arguments() + coefficient.arguments()
                 return ZeroBaseForm(arguments)
