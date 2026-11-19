@@ -15,7 +15,6 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_coordinate_derivatives, apply_derivatives
 from ufl.algorithms.apply_function_pullbacks import (
     apply_function_pullbacks,
-    apply_interpolate_pullbacks,
 )
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
@@ -146,12 +145,6 @@ def compute_form_data(
 
     form = preprocess_form(form, complex_mode)
 
-    # Evaluate interpolations on the reference cell of their target element.
-    # Apply the derivatives first, since the derivative rules cannot
-    # differentiate the ReferenceValue that the pullbacks introduce.
-    if do_apply_function_pullbacks:
-        form = apply_interpolate_pullbacks(form)
-
     # --- Group form integrals
     # TODO: Refactor this, it's rather opaque what this does
     # TODO: Is self.original_form.ufl_domains() right here?
@@ -171,7 +164,8 @@ def compute_form_data(
     if do_apply_function_pullbacks:
         # Rewrite coefficients and arguments in terms of their
         # reference cell values with Piola transforms and symmetry
-        # transforms injected where needed.
+        # transforms injected where needed, and evaluate interpolations
+        # on the reference cell of their target element.
         # Decision: Not supporting grad(dolfin.Expression) without a
         #           Domain.  Current dolfin works if Expression has a
         #           cell but this should be changed to a mesh.

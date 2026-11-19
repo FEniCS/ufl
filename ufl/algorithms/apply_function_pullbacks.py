@@ -18,24 +18,25 @@ from ufl.form import BaseForm
 
 
 class FunctionPullbackApplier(DAGTraverser):
-    """A pull back applier."""
+    """A pull back applier for form arguments and interpolations."""
 
     @singledispatchmethod
-    def process(self, o: Expr) -> Expr:
+    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
         """Process ``o``.
 
         Args:
-            o: `Expr` to be processed.
+            o: `Expr` or `BaseForm` to be processed.
 
         Returns:
-            Processed `Expr`.
+            Processed `Expr` or `BaseForm`.
 
         """
         return super().process(o)
 
     @process.register(Expr)
-    def _(self, o: Expr) -> Expr:
-        """Handle Expr."""
+    @process.register(BaseForm)
+    def _(self, o: Expr | BaseForm) -> Expr | BaseForm:
+        """Handle Expr and BaseForm."""
         return self.reuse_if_untouched(o)
 
     @process.register(FormArgument)
@@ -60,29 +61,6 @@ class FunctionPullbackApplier(DAGTraverser):
         assert f.ufl_shape == o.ufl_shape
         return f
 
-
-class InterpolatePullbackApplier(DAGTraverser):
-    """A pull back applier for interpolation."""
-
-    @singledispatchmethod
-    def process(self, o: Expr | BaseForm) -> Expr | BaseForm:
-        """Process ``o``.
-
-        Args:
-            o: `Expr` or `BaseForm` to be processed.
-
-        Returns:
-            Processed `Expr` or `BaseForm`.
-
-        """
-        return super().process(o)
-
-    @process.register(Expr)
-    @process.register(BaseForm)
-    def _(self, o: Expr | BaseForm) -> Expr | BaseForm:
-        """Handle Expr and BaseForm."""
-        return self.reuse_if_untouched(o)
-
     @process.register(Interpolate)
     @DAGTraverser.postorder
     def _(self, o: Interpolate, operand: Expr) -> Expr:
@@ -101,7 +79,7 @@ def apply_inverse_pullback(expr, element, domain=None):
 
     This is a rule on a single node, not a DAG traversal: the expression is
     mapped as a whole, and an interpolation inside it is left alone for
-    `apply_interpolate_pullbacks` to lower.
+    `apply_function_pullbacks` to lower.
 
     Args:
         expr: An expression on a physical cell, whose shape must be the
@@ -131,27 +109,14 @@ def apply_inverse_pullback(expr, element, domain=None):
     return r
 
 
-def apply_interpolate_pullbacks(expr):
-    """Change the representation of the interpolations in an expression.
-
-    An interpolation is evaluated on the reference cell of its target element,
-    so its operand is mapped there and the result is pulled back to the
-    physical cell for the expression that holds it.
-
-    Args:
-        expr: An Expr or Form
-
-    Returns:
-        The expression with its interpolations on their reference cells
-    """
-    return map_integrands(InterpolatePullbackApplier(), expr)
-
-
 def apply_function_pullbacks(expr):
     """Change representation of coefficients and arguments in an expression.
 
     Applies Piola mappings where applicable and represents all
-    form arguments in reference value.
+    form arguments in reference value. An interpolation is evaluated on the
+    reference cell of its target element, so its operand is mapped there and
+    the result is pulled back to the physical cell for the expression that
+    holds it.
 
     Args:
         expr: An Expression
