@@ -781,6 +781,10 @@ class FormSum(BaseForm):
         """Get weights."""
         return self._weights
 
+    def _ufl_expr_reconstruct_(self, *operands):
+        """Return a new FormSum with new components and the same weights."""
+        return FormSum(*zip(operands, self._weights))
+
     def _sum_variational_components(self):
         """Sum variational components."""
         var_forms = None
@@ -803,13 +807,24 @@ class FormSum(BaseForm):
 
     def _analyze_form_arguments(self):
         """Return all ``Argument`` objects found in form."""
+        from ufl.argument import Coargument
+
         arguments = []
         coefficients = []
         for component in self._components:
             arguments.extend(component.arguments())
             coefficients.extend(component.coefficients())
-        # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
+
+        def argument_key(a):
+            """Sort by number, then a Coargument first, then by part, with no part first.
+
+            A Coargument in V* brings an Argument in V with the same number.
+            """
+            part = -1 if a.part() is None else a.part()
+            return a.number(), not isinstance(a, Coargument), part
+
+        # Define canonical numbering of arguments and coefficients.
+        self._arguments = tuple(sorted(set(arguments), key=argument_key))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
 
     def _analyze_domains(self):
