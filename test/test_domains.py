@@ -1,5 +1,7 @@
 """Tests of domain language and attaching domains to forms."""
 
+from collections.abc import Callable
+
 import pytest
 import utils  # noqa: F401
 from mockobjects import MockMesh
@@ -29,6 +31,7 @@ from ufl import (
 )
 from ufl.action import Action
 from ufl.algorithms import compute_form_data, extract_arguments, extract_coefficients
+from ufl.core.expr import Expr
 from ufl.domain import extract_domains
 from ufl.form import FormSum, ZeroBaseForm
 from ufl.pullback import (
@@ -110,6 +113,22 @@ def test_simple_domain_case():
 
     M = f * dx
     assert M.ufl_domains() == (D,)
+
+
+@pytest.mark.parametrize("terminal", [Coefficient, TrialFunction])
+def test_form_with_domain_free_terminal(
+    terminal: Callable[[FunctionSpace], Expr],
+) -> None:
+    """A domain-free coefficient or argument adds no mesh to a form."""
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    P = FunctionSpace(None, LagrangeElement(triangle, 0))
+    parameter = terminal(P)
+    form = parameter * TestFunction(V) * dx
+
+    assert extract_domains(form) == (domain,)
+    assert form.domain_numbering() == {domain: 0}
+    assert isinstance(form.signature(), str)
 
 
 def test_creating_domains_with_coordinate_fields():  # FIXME: Rewrite for new approach
