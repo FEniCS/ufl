@@ -17,6 +17,7 @@ from ufl import (
     Mesh,
     MixedFunctionSpace,
     TestFunction,
+    TestFunctions,
     TrialFunction,
     action,
     adjoint,
@@ -524,6 +525,18 @@ def test_form_sum_coargument_argument_order():
         F = inner(u, v) * dx - c
         dF = expand_derivatives(derivative(Action(F, w), c, dc))
         assert dF.arguments() == (dc,)
+
+
+def test_form_sum_argument_part_order():
+    # The Argument of a Cofunction has no part, and sorts before the parts of a mixed space.
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    for degree in range(1, 9):
+        V = FunctionSpace(domain, LagrangeElement(triangle, degree))
+        Q = FunctionSpace(domain, LagrangeElement(triangle, degree + 1))
+        v, q = TestFunctions(MixedFunctionSpace(V, Q))
+        F = Coefficient(V) * v * dx + Coefficient(Q) * q * dx
+        G = FormSum((F, 1), (Cofunction(V.dual()), -1))
+        assert G.arguments() == (Argument(V, 0), v, q)
 
 
 def test_cofunction_mixed_derivative():
