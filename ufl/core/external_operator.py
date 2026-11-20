@@ -62,11 +62,6 @@ class ExternalOperator(BaseFormOperator):
             argument_slots=argument_slots,
         )
 
-    def ufl_element(self):
-        """Shortcut to get the finite element of the function space of the external operator."""
-        # Useful when applying split on an ExternalOperator
-        return self._function_space.ufl_element()
-
     def grad(self):
         """Returns the symbolic grad of the external operator."""
         # By default, differential rules produce `grad(assembled_o)`
