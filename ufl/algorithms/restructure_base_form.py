@@ -239,10 +239,9 @@ class BaseFormRestructurer(DAGTraverser):
             Nhat_number, vhat_number = 0, 1 + max(slot_numbers)
         else:
             Nhat_number, vhat_number = 1 + max(other_numbers, default=-1), 0
-        # Reconstruct, so that the arguments keep the class of those of N.
-        Nhat = slot_arguments[0].reconstruct(
-            function_space=vstar.ufl_function_space().dual(), number=Nhat_number
-        )
+        # Reconstruct both sides of the output pairing to preserve their argument classes.
+        _, output_argument = vstar.arguments()
+        Nhat = output_argument.reconstruct(number=Nhat_number)
         vhat = vstar.reconstruct(number=vhat_number)
         dF = expand_coefficient_derivatives(derivative(o, N, Nhat))
         dN = N._ufl_expr_reconstruct_(*N.ufl_operands, argument_slots=(vhat, *slots))
