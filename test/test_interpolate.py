@@ -18,6 +18,7 @@ from ufl import (
     FunctionSpace,
     Identity,
     Mesh,
+    MeshSequence,
     SpatialCoordinate,
     TestFunction,
     TestFunctions,
@@ -32,6 +33,7 @@ from ufl import (
     grad,
     inner,
     replace,
+    split,
     tetrahedron,
     tr,
     triangle,
@@ -67,6 +69,7 @@ from ufl.classes import (
 )
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
+from ufl.domain import extract_unique_domain
 from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.geometry import Jacobian
 from ufl.pullback import identity_pullback
@@ -147,13 +150,13 @@ def test_form_compiler_metadata(domain_2d, V1, V2):
     adjoint_interpolation = Interpolate(TestFunction(V1), cofunction)
     assert adjoint_interpolation.coefficients() == (cofunction,)
     assert adjoint_interpolation.ufl_function_space() == V1.dual()
-    assert adjoint_interpolation.ufl_element() == V2.ufl_element()
+    assert adjoint_interpolation.ufl_element() == V1.ufl_element()
 
     scalar_interpolation = Interpolate(u, cofunction)
     assert scalar_interpolation.arguments() == ()
     assert scalar_interpolation.coefficients() == (u, cofunction)
     assert scalar_interpolation.ufl_function_space() is None
-    assert scalar_interpolation.ufl_element() == V2.ufl_element()
+    assert scalar_interpolation.ufl_element() is None
 
 
 def test_shape_and_negation(domain_2d, V1, V2):
@@ -402,6 +405,41 @@ def test_reference_value_derivative(V1, V2):
     expression = apply_derivatives(grad(reference_value))
     reference_grads = extract_type(expression, ReferenceGrad)
     assert reference_value in {g.ufl_operands[0] for g in reference_grads}
+
+
+@pytest.mark.parametrize("make_operand", [Coefficient, TestFunction])
+def test_reference_value_derivative_from_mixed_space(domain_2d, make_operand):
+    vector_element = LagrangeElement(triangle, 2, (2,))
+    scalar_element = LagrangeElement(triangle, 1, ())
+    mixed_domain = MeshSequence((domain_2d, domain_2d))
+    mixed_element = MixedElement([vector_element, scalar_element], make_cell_sequence=True)
+    source = FunctionSpace(mixed_domain, mixed_element)
+    target = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2, 2)))
+    u, _ = split(make_operand(source))
+    interpolation = Interpolate(grad(u), target)
+
+    assert interpolation.ufl_function_space() == target
+    assert interpolation.ufl_function_space().ufl_element() == interpolation.ufl_element()
+    reference_value = ReferenceValue(interpolation)
+    expression = apply_derivatives(grad(reference_value))
+    assert expression.ufl_shape == (2, 2, 2)
+    assert extract_type(expression, ReferenceGrad)
+    assert extract_unique_domain(interpolation, expand_mesh_sequence=False) == domain_2d
+
+
+def test_reference_value_derivative_into_mixed_space(domain_2d):
+    vector_element = LagrangeElement(triangle, 2, (2,))
+    scalar_element = LagrangeElement(triangle, 1, ())
+    mixed_domain = MeshSequence((domain_2d, domain_2d))
+    mixed_element = MixedElement([scalar_element, scalar_element], make_cell_sequence=True)
+    source = FunctionSpace(domain_2d, vector_element)
+    target = FunctionSpace(mixed_domain, mixed_element)
+    interpolation = Interpolate(TestFunction(source), target)
+
+    reference_value = ReferenceValue(interpolation)
+    expression = apply_derivatives(grad(reference_value))
+    assert reference_value in {g.ufl_operands[0] for g in extract_type(expression, ReferenceGrad)}
+    assert extract_unique_domain(interpolation, expand_mesh_sequence=False) == mixed_domain
 
 
 def test_symbolic_adjoint(V1, V2):
@@ -1125,10 +1163,12 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
     adjoint_twoform = Interpolate(
         Argument(V2, 0), Argument(V1.dual(), 1)
     )  # V1^* x V2 -> R, equiv V1^* -> V2^*
-    assert adjoint_twoform.ufl_function_space() == V2.dual()
+    assert adjoint_twoform.ufl_function_space() == V1
+    assert adjoint_twoform.ufl_function_space().ufl_element() == adjoint_twoform.ufl_element()
     assert adjoint_twoform.arguments() == (Argument(V2, 0), Argument(V1.dual(), 1))
     Iu_adj = Interpolate(Argument(V3, 0), adjoint_twoform)  # V1^* x V3 -> R, equiv V1^* -> V3^*
-    assert Iu_adj.ufl_function_space() == V3.dual()
+    assert Iu_adj.ufl_function_space() == V2
+    assert Iu_adj.ufl_function_space().ufl_element() == Iu_adj.ufl_element()
     assert Iu_adj.arguments() == (Argument(V3, 0), Argument(V1.dual(), 1))
     assert set(extract_arguments(Iu_adj)) == {
         Argument(V3, 0),
@@ -1254,7 +1294,7 @@ def test_interpolate_form(V1, V2):
     # Adjoint interpolation of Form
     G3 = Interpolate(V2_test, F_act)
     assert G3.arguments() == (V2_test, V1_trial)
-    assert G3.ufl_function_space() == V2.dual()
+    assert G3.ufl_function_space() == V1
 
 
 def test_interpolate_adjoint(V1, V2):

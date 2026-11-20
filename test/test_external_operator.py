@@ -40,6 +40,7 @@ from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative, Derivative
+from ufl.domain import extract_unique_domain
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -142,6 +143,20 @@ def test_dual_slot_must_be_a_base_form(V1):
 
     with pytest.raises(ValueError, match="dual slot must be a BaseForm"):
         ExternalOperator(u, function_space=V1, argument_slots=(u,))
+
+
+def test_unique_domain_of_external_operator(domain_2d, V1):
+    source_domain = Mesh(domain_2d.ufl_coordinate_element())
+    source = FunctionSpace(source_domain, V1.ufl_element())
+    operands = (Coefficient(source), Coefficient(source))
+    operator = ExternalOperator(*operands, function_space=V1)
+    assert extract_unique_domain(operator) == domain_2d
+
+    contracted = ExternalOperator(
+        *operands, function_space=V1, argument_slots=(Cofunction(V1.dual()),)
+    )
+    assert extract_unique_domain(contracted) == source_domain
+    assert contracted.ufl_element() is None
 
 
 def test_form(V1, V2):
@@ -899,6 +914,7 @@ def test_extraction_external_operator_composition(V1, V2, V3, V4, V5):
     args = extract_arguments(e4)
 
     assert e1.ufl_function_space() == V2.dual()
+    assert e1.ufl_element() == V2.ufl_element()
     assert e2.ufl_function_space() == V3.dual()
     assert e3.ufl_function_space() == V4.dual()
     assert e4.ufl_function_space() == V5.dual()
