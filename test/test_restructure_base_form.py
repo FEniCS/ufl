@@ -818,6 +818,24 @@ def test_restructure_nested_adjoint_interpolate(V1, V2, V3, max_rank):
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])
+def test_restructure_nested_interpolate_primal_slot(V1, V2, max_rank):
+    # The adjoint of I_21 I_12 applied to x is I_12^* I_21^* x.
+    N = Interpolate(Interpolate(TrialFunction(V1), V2), V1)
+    x = Cofunction(V1.dual())
+    expression = action(adjoint(N), x)
+
+    restructured = restructure_base_form(expression, max_composed_rank=max_rank)
+    if max_rank == 1:
+        # The rank-two inner interpolation is split off, so I_21^* is applied first.
+        expected = Interpolate(TestFunction(V1), Interpolate(TestFunction(V2), x))
+    else:
+        # The rank-two inner interpolation composes, so the composition keeps its order.
+        expected = Interpolate(Interpolate(TestFunction(V1), V2), x)
+    assert restructured == expected
+    assert restructured.arguments() == expression.arguments()
+
+
+@pytest.mark.parametrize("max_rank", [1, 2])
 def test_restructure_pullback_of_action(V1, V2, max_rank):
     # Pull back the Action J through two interpolations, then check that each Form and
     # operator that is assembled on its own is numbered from zero.

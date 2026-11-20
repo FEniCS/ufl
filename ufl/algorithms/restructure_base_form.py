@@ -88,10 +88,12 @@ class BaseFormRestructurer(DAGTraverser):
 
     The rules for operators follow, where ``B`` has rank two, ``A`` is a Form or has rank
     above one and ``w_i`` is an Argument numbered ``i``. An operator with one rank-two
-    primal slot ``B`` is split first. A Form and an expression compose only if each operator
-    in the expression has rank at most ``max_composed_rank``. Otherwise a rank-one Form
-    stays in the dual slot of the operator, the Action of a Form of higher rank is kept,
-    and an operator in the integrand of a Form moves out into an Action.
+    primal slot ``B`` is split first, unless ``B`` is a composable expression. A composable
+    ``B`` stays in its slot, so the composition keeps its order. A Form and an expression
+    compose only if each operator in the expression has rank at most ``max_composed_rank``.
+    Otherwise a rank-one Form stays in the dual slot of the operator, the Action of a Form
+    of higher rank is kept, and an operator in the integrand of a Form moves out into an
+    Action.
     The primal-slot split shown below assumes that the Coargument of ``B`` is first.
     If it is last, reverse the Action operands to contract the same output.
 
@@ -110,14 +112,15 @@ class BaseFormRestructurer(DAGTraverser):
         """Initialise.
 
         Args:
-            max_composed_rank: The highest rank of an operator that composes with a Form.
+            max_composed_rank: The highest rank of an operator that composes with a Form
+                or stays in a primal slot of another operator.
             kwargs: Passed to the DAGTraverser.
         """
         super().__init__(**kwargs)
         self.max_composed_rank = max_composed_rank
 
     def composable(self, operand: Expr | BaseForm) -> bool:
-        """Return whether an operand may compose with a Form.
+        """Return whether an operand may compose with a Form or with another operator.
 
         An expression composes if each operator in it has rank at most ``max_composed_rank``.
         """
@@ -339,7 +342,12 @@ class BaseFormRestructurer(DAGTraverser):
         if operands != o.ufl_operands or argument_slots != o.argument_slots():
             o = o._ufl_expr_reconstruct_(*operands, argument_slots=argument_slots)
         vstar, *slots = o.argument_slots()
-        rank_two_slots = [i for i, slot in enumerate(slots) if _rank(slot) == 2]
+        # A composable rank-two expression stays in its primal slot.
+        rank_two_slots = [
+            i
+            for i, slot in enumerate(slots)
+            if _rank(slot) == 2 and not (isinstance(slot, Expr) and self.composable(slot))
+        ]
         if len(rank_two_slots) == 1:
             # A base form operator is linear in its other argument slots, so for
             # any linear map B: N(u; v*, B) splits into an Action that contracts
@@ -513,14 +521,15 @@ def restructure_base_form(form: Expr | BaseForm, max_composed_rank: int = 1) -> 
 
     Leave Forms without base form operators unchanged for the form compiler.
     Preserve spatial derivatives, move operators of rank above ``max_composed_rank``
-    out of integrands into Actions, split compositions in argument slots into
-    Actions, associate rank-one contractions first, compose Forms and operators
+    out of integrands into Actions, split the other compositions in argument slots
+    into Actions, associate rank-one contractions first, compose Forms and operators
     with Action operands, and distribute over the remaining expression Sums.
 
     Args:
         form: The expression or BaseForm to restructure.
-        max_composed_rank: The highest rank of an operator that composes with a Form.
-            A rank-one Form stays in the dual slot of an operator of higher rank.
+        max_composed_rank: The highest rank of an operator that composes with a Form
+            or stays in a primal slot of another operator. A rank-one Form stays in the
+            dual slot of an operator of higher rank.
 
     Returns:
         The restructured BaseForm.
