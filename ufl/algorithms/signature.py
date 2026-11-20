@@ -106,12 +106,14 @@ def compute_expression_hashdata(expression, terminal_hashdata) -> bytes:
         else:
             data = [expr._ufl_typecode_]
 
-            # Interpolate's target space is an argument slot rather than a UFL
-            # operand and affects the form signature.
+            from ufl.core.external_operator import ExternalOperator
             from ufl.core.interpolate import Interpolate
 
             if isinstance(expr, Interpolate):
+                # The target space is an argument slot rather than a UFL operand.
                 data.append(expr.signature())
+            elif isinstance(expr, ExternalOperator) and expr.zero_derivatives:
+                data.append(tuple(sorted(expr.zero_derivatives)))
 
             for op in expr.ufl_operands:
                 data += [cache[op]]

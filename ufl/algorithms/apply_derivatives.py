@@ -1706,15 +1706,18 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         return di_op
 
     @process.register(ExternalOperator)
-    @DAGTraverser.postorder
-    def _(self, N: ExternalOperator, *dfs) -> Expr:
-        """Differentiate an external_operator."""
+    def _(self, N: ExternalOperator) -> Expr:
+        """Differentiate an external operator."""
         dN = self._process_coefficient(N)
-        if dN != 0:
+        if dN != 0 or N.is_zero_derivative(N.derivatives):
             return dN
         if N._contracts_output:
             return self._contracted_operator_derivative(N)
-        for i, df in enumerate(dfs):
+        for i, operand in enumerate(N.ufl_operands):
+            derivatives = tuple(dj + int(i == j) for j, dj in enumerate(N.derivatives))
+            if N.is_zero_derivative(derivatives):
+                continue
+            df = self(operand)
             if df == 0:
                 continue
             if len(extract_arguments(df)) == 0:
@@ -1724,7 +1727,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             # dNdOi(..., Oi, ...; DOi(u)[v], ..., v*) is the Gateaux derivative of
             # N(..., Oi, ...; ..., v*) with respect to its i-th operand Oi in the
             # direction DOi(u)[v], e.g. N(u) = u**2 gives dNdu(u; uhat, v*) = 2 * u * uhat.
-            derivatives = tuple(dj + int(i == j) for j, dj in enumerate(N.derivatives))
             dN += N._ufl_expr_reconstruct_(
                 *N.ufl_operands,
                 derivatives=derivatives,
@@ -1912,6 +1914,8 @@ class BaseFormDerivativeRuleset(GateauxDerivativeRuleset):
             # The arguments of N are free here, unlike those of an operator in an
             # integrand, so they cannot be renumbered to make room for the direction.
             raise ValueError("Same argument numbers in the operator and the derivative direction.")
+        if isinstance(N, ExternalOperator) and N.is_zero_derivative(N.derivatives):
+            return ZeroBaseForm(N.arguments() + self._direction_arguments)
         vstar, *slots = N.argument_slots()
         slot_arguments = [a for s in slots for a in extract_type(s, Argument, True)]
         contracted, _ = _split_dual_slot_arguments(vstar, slot_arguments)
