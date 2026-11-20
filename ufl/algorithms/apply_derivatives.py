@@ -1227,13 +1227,14 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = df
             return df
 
-    @process.register(ExternalOperator)
-    @DAGTraverser.postorder
-    def _(self, N: ExternalOperator, *dfs: Expr) -> Expr:
-        """Differentiate an external operator with respect to a variable."""
+    @process.register(BaseFormOperator)
+    def _(self, N: BaseFormOperator) -> Expr:
+        """Differentiate a base form operator with respect to a variable."""
         if N._contracts_output:
-            raise ValueError("Cannot differentiate a contracted external operator with diff.")
+            raise ValueError("Cannot differentiate a contracted base form operator with diff.")
 
+        orders = N.derivatives or ()
+        dfs = tuple(self(op) for op in N.ufl_operands) if orders else ()
         vstar, *slots = N.argument_slots()
         dslots = tuple(self(slot) for slot in slots)
         components = np.empty(self._var_shape, dtype=object)
@@ -1245,7 +1246,7 @@ class VariableRuleset(GenericDerivativeRuleset):
                 direction = df[..., *component]
                 if isinstance(direction, Zero):
                     continue
-                derivatives = tuple(dj + int(i == j) for j, dj in enumerate(N.derivatives))
+                derivatives = tuple(dj + int(i == j) for j, dj in enumerate(orders))
                 dN += N._ufl_expr_reconstruct_(
                     *N.ufl_operands,
                     derivatives=derivatives,

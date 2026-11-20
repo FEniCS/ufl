@@ -120,7 +120,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                 The FunctionSpace or MixedFunctionSpace of the operator output.
             derivatives:
                 The derivative multi-index: the number of times that the
-                operator is differentiated with respect to each operand.
+                operator is differentiated with respect to each operand. Use
+                ``None`` when the operator is fully determined by its argument slots.
             argument_slots:
                 The slots in which the operator is linear, given as
                 ``(dual_slot, *primal_slots)``. The dual slot is paired with the
@@ -156,10 +157,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
         self._function_space = function_space
 
-        # -- Derivatives -- #
-        # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
-        # while other don't since they are fully determined by their
-        # argument slots (e.g. Interpolate)
         self.derivatives = derivatives
 
         # -- Argument slots -- #
