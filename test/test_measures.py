@@ -1,5 +1,8 @@
 """Tests of the various ways Measure objects can be created and used."""
 
+from collections import UserList
+
+import pytest
 from mockobjects import MockMesh, MockMeshFunction
 from utils import LagrangeElement
 
@@ -188,3 +191,40 @@ def test_foo():
     assert M.subdomain_data()[mydomain]["exterior_facet"][0] == exterior_facet_domains
     assert len(M.subdomain_data()[mydomain]["interior_facet"]) == 1
     assert M.subdomain_data()[mydomain]["interior_facet"][0] == interior_facet_domains
+
+
+@pytest.mark.parametrize("ids", [[], [1], [2, 3], ["left", "right"]])
+@pytest.mark.parametrize("sequence_type", [list, tuple, UserList])
+def test_sequence_subdomain_ids(ids, sequence_type):
+    ids = sequence_type(ids)
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    expected = Measure("dx", domain=domain, subdomain_id=tuple(ids))
+    direct = Measure("dx", domain=domain, subdomain_id=ids)
+    called = Measure("dx", domain=domain)(ids)
+    reconstructed = Measure("dx", domain=domain).reconstruct(subdomain_id=ids)
+    for measure in (direct, called, reconstructed):
+        assert measure == expected
+        assert hash(measure) == hash(expected)
+        assert measure.subdomain_id() == tuple(ids)
+        assert as_ufl(1) * measure == as_ufl(1) * expected
+
+
+def test_range_subdomain_ids():
+    assert Measure("dx", subdomain_id=range(1, 4)) == Measure("dx", subdomain_id=(1, 2, 3))
+    assert Measure("dx", subdomain_id="everywhere").subdomain_id() == "everywhere"
+    assert Measure("dx", subdomain_id="left").subdomain_id() == "left"
+
+
+def test_list_subdomain_ids_are_copied():
+    ids = [1, 2]
+    measure = Measure("dx", subdomain_id=ids)
+    original_hash = hash(measure)
+    ids.append(3)
+    assert measure.subdomain_id() == (1, 2)
+    assert hash(measure) == original_hash
+
+
+@pytest.mark.parametrize("ids", [[1, None], [1, 1.5], [[1]], [object()]])
+def test_invalid_list_subdomain_ids(ids):
+    with pytest.raises(ValueError, match="Invalid subdomain_id"):
+        Measure("dx", subdomain_id=ids)
