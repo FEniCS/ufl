@@ -770,6 +770,8 @@ def test_restructure_external_operator_output_argument(V1):
     class FieldCoargument(Coargument):
         """The dual argument paired with a FieldArgument."""
 
+        # Coargument.equals checks for the exact UFL type, so an instance of
+        # this subclass would otherwise compare unequal to itself.
         equals = BaseArgument.__eq__
 
         def arguments(self):
