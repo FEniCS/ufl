@@ -56,6 +56,16 @@ class CoefficientSplitter(DAGTraverser):
         super().__init__(compress=compress, visited_cache=visited_cache, result_cache=result_cache)
         self._coefficient_split = coefficient_split
 
+    @staticmethod
+    def _check_modified_terminal(op: Expr) -> None:
+        """Check that a terminal modifier is applied to a terminal or another terminal modifier.
+
+        The modifiers are passed down to the terminal, which would be wrong for an operand
+        that is a general operator. An Interpolate is handled as a finite element terminal.
+        """
+        if not (isinstance(op, Terminal | Interpolate) or op._ufl_is_terminal_modifier_):
+            raise ValueError(f"Must be a terminal or a terminal modifier: {op!r}.")
+
     @singledispatchmethod
     def process(
         self,
@@ -110,8 +120,7 @@ class CoefficientSplitter(DAGTraverser):
         if reference_value:
             raise RuntimeError(f"Can not apply ReferenceValue on a ReferenceValue: got {o}")
         (op,) = o.ufl_operands
-        if not op._ufl_terminal_modifiers_:
-            raise ValueError(f"Must be a terminal modifier: {op!r}.")
+        self._check_modified_terminal(op)
         return self(
             op,
             reference_value=True,
@@ -129,8 +138,7 @@ class CoefficientSplitter(DAGTraverser):
     ) -> Expr:
         """Handle ReferenceGrad."""
         (op,) = o.ufl_operands
-        if not op._ufl_terminal_modifiers_:
-            raise ValueError(f"Must be a terminal modifier: {op!r}.")
+        self._check_modified_terminal(op)
         return self(
             op,
             reference_value=reference_value,
@@ -150,8 +158,7 @@ class CoefficientSplitter(DAGTraverser):
         if restricted is not None:
             raise RuntimeError(f"Can not apply Restricted on a Restricted: got {o}")
         (op,) = o.ufl_operands
-        if not op._ufl_terminal_modifiers_:
-            raise ValueError(f"Must be a terminal modifier: {op!r}.")
+        self._check_modified_terminal(op)
         return self(
             op,
             reference_value=reference_value,
