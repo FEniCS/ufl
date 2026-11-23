@@ -1757,10 +1757,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         for i, df in enumerate(dfs):
             if df == 0:
                 continue
-            if len(extract_arguments(df)) == 0:
-                raise NotImplementedError(
-                    "Frechet derivative of external operators need to be provided!"
-                )
             # dNdOi(..., Oi, ...; DOi(u)[v], ..., v*) is the Gateaux derivative of
             # N(..., Oi, ...; ..., v*) with respect to its i-th operand Oi in the
             # direction DOi(u)[v], e.g. N(u) = u**2 gives dNdu(u; uhat, v*) = 2 * u * uhat.

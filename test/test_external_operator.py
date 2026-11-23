@@ -50,6 +50,7 @@ from ufl.coefficient import Cofunction
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.differentiation import BaseFormDerivative, BaseFormOperatorDerivative, Derivative
+from ufl.domain import extract_unique_domain
 from ufl.form import BaseForm, FormSum, ZeroBaseForm
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import H1
@@ -101,6 +102,7 @@ def test_properties(V1):
     assert e.ufl_operands[1] == r
     assert e.derivatives == (0, 0)
     assert e.ufl_shape == ()
+    assert f"; {V1!r}; " in repr(e)
 
     e2 = ExternalOperator(u, r, function_space=V1, derivatives=(3, 4))
     assert e2.derivatives == (3, 4)
@@ -244,6 +246,27 @@ def test_dual_slot_must_be_a_base_form(V1):
 
     with pytest.raises(ValueError, match="dual slot must be a BaseForm"):
         ExternalOperator(u, function_space=V1, argument_slots=(u,))
+
+
+def test_function_space_subclass(V1):
+    class LibraryFunctionSpace(FunctionSpace):
+        def __eq__(self, other):
+            return type(self) is type(other) and super().__eq__(other)
+
+        __hash__ = FunctionSpace.__hash__
+
+    V = LibraryFunctionSpace(V1.ufl_domain(), V1.ufl_element())
+    N = ExternalOperator(Coefficient(V1), function_space=V)
+    assert N.ufl_function_space().dual() == V.dual()
+
+
+def test_unique_domain_of_operator_with_several_operands(V1):
+    u, w = Coefficient(V1), Coefficient(V1)
+    N = ExternalOperator(u, w, function_space=V1)
+    assert extract_unique_domain(N) == V1.ufl_domain()
+
+    N = ExternalOperator(1, u * dx, function_space=V1)
+    assert extract_unique_domain(N) == V1.ufl_domain()
 
 
 def test_form(V1, V2):
@@ -910,6 +933,17 @@ def test_coefficient_derivatives(V1):
     # The given derivative of N replaces the derivative of its operator.
     dF = derivative(N * v * dx, u, uhat, coefficient_derivatives={N: g})
     assert expand_derivatives(dF) == g * uhat * v * dx
+
+
+def test_derivative_in_coefficient_direction(V1):
+    u = Coefficient(V1)
+    h = Coefficient(V1)
+    N = ExternalOperator(u**2, function_space=V1)
+    F = N * dx
+
+    tangent = expand_derivatives(derivative(F, u, h))
+    assert tangent == expand_derivatives(action(derivative(F, u, TrialFunction(V1)), h))
+    assert tangent.arguments() == ()
 
 
 @pytest.mark.parametrize("max_rank", [1, 2])
