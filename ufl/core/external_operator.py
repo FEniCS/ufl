@@ -13,8 +13,21 @@ be evaluated as well as its derivatives from a given set of operands.
 #
 # Modified by Nacime Bouziani, 2023
 
+from collections.abc import Iterable
+
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
+
+
+def _validate_derivative_multi_index(derivatives, num_operands):
+    if not isinstance(derivatives, tuple):
+        raise TypeError(f"Expecting a tuple for derivatives and not {derivatives}.")
+    if len(derivatives) != num_operands:
+        raise ValueError(f"Expecting a size of {num_operands} for {derivatives}.")
+    if not all(isinstance(d, int) and d >= 0 for d in derivatives):
+        raise ValueError(
+            f"Expecting a derivative multi-index with nonnegative indices, not {derivatives}."
+        )
 
 
 @ufl_type(num_ops="varying", is_differential=True)
@@ -25,7 +38,14 @@ class ExternalOperator(BaseFormOperator):
     # multiple inheritance pattern:
     _ufl_noslots_ = True
 
-    def __init__(self, *operands, function_space, derivatives=None, argument_slots=()):
+    def __init__(
+        self,
+        *operands,
+        function_space,
+        derivatives=None,
+        argument_slots=(),
+        zero_derivatives: Iterable[tuple[int, ...]] = (),
+    ):
         """Initialise.
 
         Args:
@@ -39,20 +59,23 @@ class ExternalOperator(BaseFormOperator):
             argument_slots:
                 tuple composed containing expressions with
                 :py:class:`ufl.Argument` or :py:class:`ufl.Coefficient` objects.
+            zero_derivatives:
+                An iterable of positive-order derivative multi-indices known to vanish
+                identically. Each multi-index has one nonnegative integer per operand.
+                Further derivatives of the declared partials also vanish.
         """
-        # -- Derivatives -- #
-        if derivatives is not None:
-            if not isinstance(derivatives, tuple):
-                raise TypeError(f"Expecting a tuple for derivatives and not {derivatives}.")
-            if not len(derivatives) == len(operands):
-                raise ValueError(f"Expecting a size of {len(operands)} for {derivatives}.")
-            if not all(isinstance(d, int) for d in derivatives) or any(d < 0 for d in derivatives):
-                raise ValueError(
-                    "Expecting a derivative multi-index with nonnegative indices, "
-                    f"not {derivatives}."
-                )
+        num_operands = len(operands)
+        if derivatives is None:
+            derivatives = (0,) * num_operands
         else:
-            derivatives = (0,) * len(operands)
+            _validate_derivative_multi_index(derivatives, num_operands)
+
+        zero_derivatives = tuple(zero_derivatives)
+        for multi_index in zero_derivatives:
+            _validate_derivative_multi_index(multi_index, num_operands)
+            if not any(multi_index):
+                raise ValueError("zero_derivatives requires positive-order derivatives.")
+        self._zero_derivatives = frozenset(zero_derivatives)
 
         BaseFormOperator.__init__(
             self,
@@ -60,6 +83,18 @@ class ExternalOperator(BaseFormOperator):
             function_space=function_space,
             derivatives=derivatives,
             argument_slots=argument_slots,
+        )
+
+    @property
+    def zero_derivatives(self) -> frozenset[tuple[int, ...]]:
+        """Return the declared identically zero derivative multi-indices."""
+        return self._zero_derivatives
+
+    def is_zero_derivative(self, derivatives: tuple[int, ...]) -> bool:
+        """Return whether a derivative follows from a declared zero partial."""
+        return any(
+            all(order >= zero_order for order, zero_order in zip(derivatives, zero, strict=True))
+            for zero in self.zero_derivatives
         )
 
     def ufl_element(self):
@@ -90,6 +125,8 @@ class ExternalOperator(BaseFormOperator):
         self, *operands, function_space=None, derivatives=None, argument_slots=None, add_kwargs={}
     ):
         """Return a new object of the same type with new operands."""
+        if self.zero_derivatives:
+            add_kwargs = {"zero_derivatives": self.zero_derivatives, **add_kwargs}
         return type(self)(
             *operands,
             function_space=function_space or self._function_space,
@@ -110,6 +147,11 @@ class ExternalOperator(BaseFormOperator):
         e += ")"
         return d + e + "/" + d_ops if sum(derivatives) > 0 else e
 
+    def _ufl_compute_hash_(self):
+        """Hash the operator and its declared zero derivatives."""
+        base_hash = super()._ufl_compute_hash_()
+        return hash((base_hash, self.zero_derivatives)) if self.zero_derivatives else base_hash
+
     def __eq__(self, other):
         """Check for equality."""
         if self is other:
@@ -119,5 +161,6 @@ class ExternalOperator(BaseFormOperator):
             and all(a == b for a, b in zip(self.ufl_operands, other.ufl_operands))
             and all(a == b for a, b in zip(self._argument_slots, other._argument_slots))
             and self.derivatives == other.derivatives
+            and self.zero_derivatives == other.zero_derivatives
             and self._function_space == other._function_space
         )

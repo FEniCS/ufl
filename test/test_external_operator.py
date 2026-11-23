@@ -26,6 +26,7 @@ from ufl import (
     dx,
     grad,
     inner,
+    replace,
     sin,
     triangle,
 )
@@ -135,6 +136,97 @@ def test_derivative_shape(domain_2d, input_shape, output_shape):
     assert hessian == expected
     assert hessian.ufl_shape == output_shape
     assert hessian.arguments() == (vstar, first, second)
+
+
+def test_zero_derivatives_preserved_by_replacement(V1):
+    u, w = Coefficient(V1), Coefficient(V1)
+    zero_derivatives = {(2,)}
+    N = ExternalOperator(u, function_space=V1, zero_derivatives=zero_derivatives)
+    zero_derivatives.clear()
+
+    replaced = replace(N, {u: w})
+    equivalent = ExternalOperator(w, function_space=V1, zero_derivatives=[(2,)])
+    unknown = ExternalOperator(w, function_space=V1)
+
+    assert N.zero_derivatives == frozenset({(2,)})
+    assert replaced == equivalent
+    assert replaced != unknown
+    assert len({replaced, equivalent, unknown}) == 2
+    assert (replaced * dx).signature() == (equivalent * dx).signature()
+    assert (replaced * dx).signature() != (unknown * dx).signature()
+
+
+@pytest.mark.parametrize(
+    "zero_derivatives, error, message",
+    [
+        ([(2,)], ValueError, "Expecting a size of 2"),
+        ([(2, -1)], ValueError, "nonnegative indices"),
+        ([(0, 0)], ValueError, "positive-order derivatives"),
+        ([[2, 0]], TypeError, "Expecting a tuple"),
+    ],
+)
+def test_validate_zero_derivatives(V1, zero_derivatives, error, message):
+    with pytest.raises(error, match=message):
+        ExternalOperator(
+            Coefficient(V1), Coefficient(V1), function_space=V1, zero_derivatives=zero_derivatives
+        )
+
+
+@pytest.mark.parametrize("operand_index", [0, 1])
+def test_zero_external_operator_partial(V1, operand_index):
+    operands = (Coefficient(V1), Coefficient(V1))
+    u, other = operands[operand_index], operands[1 - operand_index]
+    v, w, z = (Argument(V1, number) for number in range(3))
+    N = ExternalOperator(*operands, function_space=V1, zero_derivatives={(2, 0), (0, 2)})
+
+    first = derivative(N * dx, u, v)
+    pure = expand_derivatives(derivative(first, u, w))
+    assert isinstance(pure, ZeroBaseForm)
+    assert pure.arguments() == (v, w)
+
+    mixed = expand_derivatives(derivative(first, other, w))
+    (partial,) = extract_type(mixed, ExternalOperator)
+    assert partial.derivatives == (1, 1)
+    assert partial.zero_derivatives == N.zero_derivatives
+
+    third = expand_derivatives(derivative(mixed, u, z))
+    assert isinstance(third, ZeroBaseForm)
+    assert third.arguments() == (v, w, z)
+
+
+def test_zero_external_operator_partial_keeps_operand_chain_rule(V1):
+    u = Coefficient(V1)
+    v, w = TestFunction(V1), TrialFunction(V1)
+    operand = u**2
+    N = ExternalOperator(operand, function_space=V1, zero_derivatives={(2,)})
+
+    actual = expand_derivatives(derivative(derivative(N * dx, u, v), u, w))
+    direction = expand_derivatives(derivative(derivative(operand, u, v), u, w))
+    expected = ExternalOperator(
+        operand,
+        function_space=V1,
+        derivatives=(1,),
+        argument_slots=(*N.argument_slots(), direction),
+        zero_derivatives={(2,)},
+    )
+    assert actual == expected * dx
+    assert actual.arguments() == (v, w)
+
+
+def test_differentiate_contracted_zero_external_operator_partial(V1):
+    u, direction = Coefficient(V1), Coefficient(V1)
+    v = TestFunction(V1)
+    N = ExternalOperator(
+        u,
+        function_space=V1,
+        derivatives=(1,),
+        argument_slots=(u * v * dx, direction),
+        zero_derivatives={(1,)},
+    )
+
+    result = expand_derivatives(derivative(N, u, v))
+    assert isinstance(result, ZeroBaseForm)
+    assert result.arguments() == (v,)
 
 
 def test_dual_slot_must_be_a_base_form(V1):
