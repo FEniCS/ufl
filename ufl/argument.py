@@ -31,10 +31,12 @@ __all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunct
 
 
 class BaseArgument:
-    """UFL value: Representation of an argument to a form."""
+    """UFL value: Representation of an argument to a form.
+
+    Abstract base of Argument and Coargument.
+    """
 
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""
@@ -151,7 +153,7 @@ class BaseArgument:
         )
 
 
-@ufl_type()
+@ufl_type
 class Argument(FormArgument, BaseArgument):
     """UFL value: Representation of an argument to a form."""
 
@@ -193,7 +195,7 @@ class Argument(FormArgument, BaseArgument):
         return self._repr
 
 
-@ufl_type()
+@ufl_type
 class Coargument(BaseForm, BaseArgument):
     """UFL value: Representation of an argument to a form in a dual space."""
 

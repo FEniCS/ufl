@@ -10,7 +10,7 @@ from ufl.algebra import Product
 from ufl.constantvalue import Zero
 from ufl.core.expr import Expr, ufl_err_str
 from ufl.core.multiindex import MultiIndex
-from ufl.core.operator import Operator
+from ufl.core.operator import Operator, ShapeFromFirstOperand
 from ufl.core.ufl_type import ufl_type
 from ufl.indexed import Indexed
 from ufl.precedence import parstr
@@ -18,8 +18,8 @@ from ufl.precedence import parstr
 # --- Sum over an index ---
 
 
-@ufl_type(num_ops=2)
-class IndexSum(Operator):
+@ufl_type
+class IndexSum(ShapeFromFirstOperand, Operator):
     """Index sum."""
 
     __slots__ = ("_dimension", "_initialised", "ufl_free_indices", "ufl_index_dimensions")
@@ -78,11 +78,6 @@ class IndexSum(Operator):
     def dimension(self):
         """Get dimension."""
         return self._dimension
-
-    @property
-    def ufl_shape(self):
-        """Get UFL shape."""
-        return self.ufl_operands[0].ufl_shape
 
     def _simplify_indexed(self, multiindex):
         """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""

@@ -9,6 +9,7 @@
 from functools import singledispatchmethod
 
 import ufl
+import ufl.core.expr
 from ufl.algorithms.remove_component_tensors import remove_component_tensors
 from ufl.corealg.dag_traverser import DAGTraverser
 

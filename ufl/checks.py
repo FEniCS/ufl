@@ -12,6 +12,7 @@ from functools import cache
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import FormArgument
+from ufl.core.ufl_type import registry
 from ufl.corealg.traversal import (
     cutoff_unique_post_traversal,
     traverse_unique_terminals,
@@ -54,7 +55,7 @@ def _base_form_operator_types(num_types: int) -> tuple[bool, ...]:
     """
     from ufl.core.base_form_operator import BaseFormOperator  # Avoid circular import
 
-    return tuple(issubclass(cls, BaseFormOperator) for cls in Expr._ufl_all_classes_[:num_types])
+    return tuple(issubclass(cls, BaseFormOperator) for cls in registry.classes[:num_types])
 
 
 def is_scalar_constant_expression(expr):
@@ -68,7 +69,7 @@ def is_scalar_constant_expression(expr):
 
     # TODO: This does not consider gradients of coefficients, so false
     # negatives are possible.
-    cutoff_types = _base_form_operator_types(len(Expr._ufl_all_classes_))
+    cutoff_types = _base_form_operator_types(len(registry))
     for e in cutoff_unique_post_traversal(expr, cutoff_types):
         if isinstance(e, FormArgument | BaseFormOperator):
             # Arguments, Coefficients and base form operators all take values in

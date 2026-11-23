@@ -2,6 +2,7 @@
 
 from ufl.cell import AbstractCell, Cell, CellSequence
 from ufl.classes import Derivative
+from ufl.core.operator import ShapeAndIndicesFromFirstOperand
 from ufl.core.ufl_type import ufl_type
 from ufl.finiteelement import AbstractFiniteElement
 from ufl.pullback import (
@@ -265,8 +266,8 @@ class MixedElement(FiniteElement):
         )
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class ForeignDerivative(Derivative):
+@ufl_type
+class ForeignDerivative(ShapeAndIndicesFromFirstOperand, Derivative):
     """Represent a derivative type that UFL has no rules for."""
 
     __slots__ = ()

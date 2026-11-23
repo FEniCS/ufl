@@ -7,14 +7,12 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.constantvalue import ConstantValue
-from ufl.core.operator import Operator
+from ufl.core.operator import Operator, ShapeAndIndicesFromFirstOperand
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(
-    inherit_shape_from_operand=0, inherit_indices_from_operand=0, num_ops=1, is_evaluation=True
-)
-class CellAvg(Operator):
+@ufl_type
+class CellAvg(ShapeAndIndicesFromFirstOperand, Operator):
     """Cell average."""
 
     __slots__ = ()
@@ -29,11 +27,6 @@ class CellAvg(Operator):
         """Initialise."""
         Operator.__init__(self, (f,))
 
-    @property
-    def ufl_shape(self):
-        """Get the UFL shape."""
-        return self.ufl_operands[0].ufl_shape
-
     def evaluate(self, x, mapping, component, index_values):
         """Performs an approximate symbolic evaluation, since we don't have a cell."""
         return self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -43,10 +36,8 @@ class CellAvg(Operator):
         return f"cell_avg({self.ufl_operands[0]})"
 
 
-@ufl_type(
-    inherit_shape_from_operand=0, inherit_indices_from_operand=0, num_ops=1, is_evaluation=True
-)
-class FacetAvg(Operator):
+@ufl_type
+class FacetAvg(ShapeAndIndicesFromFirstOperand, Operator):
     """Facet average."""
 
     __slots__ = ()
@@ -60,11 +51,6 @@ class FacetAvg(Operator):
     def __init__(self, f):
         """Initialise."""
         Operator.__init__(self, (f,))
-
-    @property
-    def ufl_shape(self):
-        """Return the UFL shape."""
-        return self.ufl_operands[0].ufl_shape
 
     def evaluate(self, x, mapping, component, index_values):
         """Performs an approximate symbolic evaluation, since we dont have a cell."""

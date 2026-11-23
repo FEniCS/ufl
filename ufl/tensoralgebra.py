@@ -8,6 +8,11 @@
 from ufl.algebra import Conj, Operator
 from ufl.constantvalue import Zero
 from ufl.core.expr import ufl_err_str
+from ufl.core.operator import (
+    IndicesFromFirstOperand,
+    ShapeAndIndicesFromFirstOperand,
+    ShapeFromFirstOperand,
+)
 from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import merge_nonoverlapping_indices
 from ufl.precedence import parstr
@@ -42,7 +47,7 @@ from ufl.sorting import sorted_expr
 # --- Classes representing compound tensor algebra operations ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class CompoundTensorOperator(Operator):
     """Compount tensor operator."""
 
@@ -86,8 +91,8 @@ class CompoundTensorOperator(Operator):
 #     pass
 
 
-@ufl_type(is_shaping=True, num_ops=1, inherit_indices_from_operand=0)
-class Transposed(CompoundTensorOperator):
+@ufl_type
+class Transposed(IndicesFromFirstOperand, CompoundTensorOperator):
     """Transposed tensor."""
 
     __slots__ = ()
@@ -116,7 +121,7 @@ class Transposed(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)}^T"
 
 
-@ufl_type(num_ops=2)
+@ufl_type
 class Outer(CompoundTensorOperator):
     """Outer."""
 
@@ -149,7 +154,7 @@ class Outer(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} (X) {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2)
+@ufl_type
 class Inner(CompoundTensorOperator):
     """Inner."""
 
@@ -191,7 +196,7 @@ class Inner(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} : {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2)
+@ufl_type
 class Dot(CompoundTensorOperator):
     """Dot."""
 
@@ -240,10 +245,12 @@ class Dot(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} . {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type
 class Perp(CompoundTensorOperator):
     """Perp."""
 
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, A):
@@ -273,7 +280,7 @@ class Perp(CompoundTensorOperator):
         return f"perp({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=2)
+@ufl_type
 class Cross(CompoundTensorOperator):
     """Cross."""
 
@@ -312,8 +319,8 @@ class Cross(CompoundTensorOperator):
         return f"{parstr(self.ufl_operands[0], self)} x {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
-class Trace(CompoundTensorOperator):
+@ufl_type
+class Trace(IndicesFromFirstOperand, CompoundTensorOperator):
     """Trace."""
 
     __slots__ = ()
@@ -341,10 +348,13 @@ class Trace(CompoundTensorOperator):
         return f"tr({self.ufl_operands[0]})"
 
 
-@ufl_type(is_scalar=True, num_ops=1)
+@ufl_type
 class Determinant(CompoundTensorOperator):
     """Determinant."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, A):
@@ -380,10 +390,12 @@ class Determinant(CompoundTensorOperator):
 
 # TODO: Drop Inverse and represent it as product of Determinant and
 # Cofactor?
-@ufl_type(is_index_free=True, num_ops=1)
-class Inverse(CompoundTensorOperator):
+@ufl_type
+class Inverse(ShapeFromFirstOperand, CompoundTensorOperator):
     """Inverse."""
 
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, A):
@@ -413,20 +425,17 @@ class Inverse(CompoundTensorOperator):
         """Initialise."""
         CompoundTensorOperator.__init__(self, (A,))
 
-    @property
-    def ufl_shape(self):
-        """Get the UFL shape."""
-        return self.ufl_operands[0].ufl_shape
-
     def __str__(self):
         """Format as a string."""
         return f"{parstr(self.ufl_operands[0], self)}^-1"
 
 
-@ufl_type(is_index_free=True, num_ops=1)
-class Cofactor(CompoundTensorOperator):
+@ufl_type
+class Cofactor(ShapeFromFirstOperand, CompoundTensorOperator):
     """Cofactor."""
 
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __init__(self, A):
@@ -444,18 +453,13 @@ class Cofactor(CompoundTensorOperator):
         if isinstance(A, Zero):
             raise ValueError("Cannot take cofactor of zero matrix.")
 
-    @property
-    def ufl_shape(self):
-        """Get the UFL shape."""
-        return self.ufl_operands[0].ufl_shape
-
     def __str__(self):
         """Format as a string."""
         return f"cofactor({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Deviatoric(CompoundTensorOperator):
+@ufl_type
+class Deviatoric(ShapeAndIndicesFromFirstOperand, CompoundTensorOperator):
     """Deviatoric."""
 
     __slots__ = ()
@@ -489,8 +493,8 @@ class Deviatoric(CompoundTensorOperator):
         return f"dev({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Skew(CompoundTensorOperator):
+@ufl_type
+class Skew(ShapeAndIndicesFromFirstOperand, CompoundTensorOperator):
     """Skew."""
 
     __slots__ = ()
@@ -523,8 +527,8 @@ class Skew(CompoundTensorOperator):
         return f"skew({self.ufl_operands[0]})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Sym(CompoundTensorOperator):
+@ufl_type
+class Sym(ShapeAndIndicesFromFirstOperand, CompoundTensorOperator):
     """Sym."""
 
     __slots__ = ()

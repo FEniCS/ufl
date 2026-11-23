@@ -88,7 +88,7 @@ class IndexExpander(ReuseTransformer):
         if s:
             raise ValueError(f"Free index set mismatch, these indices have no value assigned: {s}.")
 
-        return x._ufl_class_(x.value())
+        return type(x)(x.value())
 
     def conditional(self, x):
         """Apply to conditional."""

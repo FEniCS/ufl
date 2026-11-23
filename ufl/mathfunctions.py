@@ -51,10 +51,13 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 # --- Function representations ---
 
 
-@ufl_type(is_abstract=True, is_scalar=True, num_ops=1)
+@ufl_type
 class MathFunction(Operator):
     """Base class for all unary scalar math functions."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     # Freeze member variables for objects in this class
     __slots__ = ("_name",)
 
@@ -83,7 +86,7 @@ class MathFunction(Operator):
         return f"{self._name}({self.ufl_operands[0]})"
 
 
-@ufl_type()
+@ufl_type
 class Sqrt(MathFunction):
     """Square root."""
 
@@ -105,7 +108,7 @@ class Sqrt(MathFunction):
         MathFunction.__init__(self, "sqrt", argument)
 
 
-@ufl_type()
+@ufl_type
 class Exp(MathFunction):
     """Exponentiation.."""
 
@@ -124,7 +127,7 @@ class Exp(MathFunction):
         MathFunction.__init__(self, "exp", argument)
 
 
-@ufl_type()
+@ufl_type
 class Ln(MathFunction):
     """Natural logarithm."""
 
@@ -151,7 +154,7 @@ class Ln(MathFunction):
             return cmath.log(a)
 
 
-@ufl_type()
+@ufl_type
 class Cos(MathFunction):
     """Cosine."""
 
@@ -170,7 +173,7 @@ class Cos(MathFunction):
         MathFunction.__init__(self, "cos", argument)
 
 
-@ufl_type()
+@ufl_type
 class Sin(MathFunction):
     """Sine."""
 
@@ -189,7 +192,7 @@ class Sin(MathFunction):
         MathFunction.__init__(self, "sin", argument)
 
 
-@ufl_type()
+@ufl_type
 class Tan(MathFunction):
     """Tangent."""
 
@@ -208,7 +211,7 @@ class Tan(MathFunction):
         MathFunction.__init__(self, "tan", argument)
 
 
-@ufl_type()
+@ufl_type
 class Cosh(MathFunction):
     """Hyperbolic cosine."""
 
@@ -227,7 +230,7 @@ class Cosh(MathFunction):
         MathFunction.__init__(self, "cosh", argument)
 
 
-@ufl_type()
+@ufl_type
 class Sinh(MathFunction):
     """Hyperbolic sine."""
 
@@ -246,7 +249,7 @@ class Sinh(MathFunction):
         MathFunction.__init__(self, "sinh", argument)
 
 
-@ufl_type()
+@ufl_type
 class Tanh(MathFunction):
     """Hyperbolic tangent."""
 
@@ -265,7 +268,7 @@ class Tanh(MathFunction):
         MathFunction.__init__(self, "tanh", argument)
 
 
-@ufl_type()
+@ufl_type
 class Acos(MathFunction):
     """Inverse cosine."""
 
@@ -284,7 +287,7 @@ class Acos(MathFunction):
         MathFunction.__init__(self, "acos", argument)
 
 
-@ufl_type()
+@ufl_type
 class Asin(MathFunction):
     """Inverse sine."""
 
@@ -303,7 +306,7 @@ class Asin(MathFunction):
         MathFunction.__init__(self, "asin", argument)
 
 
-@ufl_type()
+@ufl_type
 class Atan(MathFunction):
     """Inverse tangent."""
 
@@ -322,10 +325,13 @@ class Atan(MathFunction):
         MathFunction.__init__(self, "atan", argument)
 
 
-@ufl_type(is_scalar=True, num_ops=2)
+@ufl_type
 class Atan2(Operator):
     """Inverse tangent with two inputs."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ()
 
     def __new__(cls, arg1, arg2):
@@ -364,7 +370,7 @@ class Atan2(Operator):
         return f"atan2({self.ufl_operands[0]},{self.ufl_operands[1]})"
 
 
-@ufl_type()
+@ufl_type
 class Erf(MathFunction):
     """Erf function."""
 
@@ -388,10 +394,13 @@ class Erf(MathFunction):
         return math.erf(a)
 
 
-@ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
+@ufl_type
 class BesselFunction(Operator):
     """Base class for all bessel functions."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = "_name"
 
     def __init__(self, name, nu, argument):
@@ -437,7 +446,7 @@ class BesselFunction(Operator):
         return f"{self._name}({self.ufl_operands[0]}, {self.ufl_operands[1]})"
 
 
-@ufl_type()
+@ufl_type
 class BesselJ(BesselFunction):
     """Bessel J function."""
 
@@ -448,7 +457,7 @@ class BesselJ(BesselFunction):
         BesselFunction.__init__(self, "cyl_bessel_j", nu, argument)
 
 
-@ufl_type()
+@ufl_type
 class BesselY(BesselFunction):
     """Bessel Y function."""
 
@@ -459,7 +468,7 @@ class BesselY(BesselFunction):
         BesselFunction.__init__(self, "cyl_bessel_y", nu, argument)
 
 
-@ufl_type()
+@ufl_type
 class BesselI(BesselFunction):
     """Bessel I function."""
 
@@ -470,7 +479,7 @@ class BesselI(BesselFunction):
         BesselFunction.__init__(self, "cyl_bessel_i", nu, argument)
 
 
-@ufl_type()
+@ufl_type
 class BesselK(BesselFunction):
     """Bessel K function."""
 

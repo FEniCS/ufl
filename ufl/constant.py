@@ -12,11 +12,9 @@ from ufl.domain import as_domain
 from ufl.utils.counted import Counted
 
 
-@ufl_type()
+@ufl_type
 class Constant(Terminal, Counted):
     """Constant."""
-
-    _ufl_noslots_ = True
 
     def __init__(self, domain, shape=(), count=None):
         """Initalise."""

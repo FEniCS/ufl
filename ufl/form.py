@@ -94,8 +94,8 @@ def _sorted_integrals(integrals: typing.Iterable[Integral]) -> tuple[Integral, .
     return tuple(all_integrals)  # integrals_dict
 
 
-@ufl_type()
-class BaseForm(metaclass=UFLType):
+@ufl_type
+class BaseForm(UFLType):
     """Description of an object containing arguments."""
 
     ufl_operands: tuple["Expr | BaseForm", ...]
@@ -103,12 +103,6 @@ class BaseForm(metaclass=UFLType):
     # Slots is kept empty to enable multiple inheritance with other
     # classes
     __slots__ = ()
-    _ufl_is_abstract_ = True
-    _ufl_required_methods_: tuple[str, ...] = (
-        "_analyze_form_arguments",
-        "_analyze_domains",
-        "ufl_domains",
-    )
 
     def __init__(self):
         """Initialise."""
@@ -283,7 +277,7 @@ class BaseForm(metaclass=UFLType):
         return type(self)(*operands)
 
 
-@ufl_type()
+@ufl_type
 class Form(BaseForm):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
 
@@ -724,7 +718,7 @@ def as_form(form):
     return form
 
 
-@ufl_type()
+@ufl_type
 class FormSum(BaseForm):
     """Form sum.
 
@@ -743,7 +737,6 @@ class FormSum(BaseForm):
         "_weights",
         "ufl_operands",
     )
-    _ufl_required_methods_ = "_analyze_form_arguments"  # type: ignore
 
     def __new__(cls, *args, **kwargs):
         """Create a new FormSum."""
@@ -908,7 +901,7 @@ class FormSum(BaseForm):
         return r
 
 
-@ufl_type()
+@ufl_type
 class ZeroBaseForm(BaseForm):
     """Description of a zero base form.
 
@@ -1005,6 +998,12 @@ class ZeroBaseForm(BaseForm):
         else:
             return False
 
+    def __hash__(self):
+        """Hash."""
+        if self._hash is None:
+            self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
+        return self._hash
+
     def __str__(self):
         """Format as a string."""
         return "ZeroBaseForm({})".format(", ".join(str(arg) for arg in self._arguments))
@@ -1012,9 +1011,3 @@ class ZeroBaseForm(BaseForm):
     def __repr__(self):
         """Representation."""
         return "ZeroBaseForm({})".format(", ".join(repr(arg) for arg in self._arguments))
-
-    def __hash__(self):
-        """Hash."""
-        if self._hash is None:
-            self._hash = hash(("ZeroBaseForm", hash(self._arguments)))
-        return self._hash

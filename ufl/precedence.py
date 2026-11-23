@@ -88,29 +88,27 @@ def build_precedence_list():
 def build_precedence_mapping(precedence_list):
     """Given a precedence list, build a dict with class->int mappings.
 
+    Each registered expression type gets the precedence of the closest class
+    in its MRO that appears in the list. Types without one are returned as
+    missing.
+
     Utility function used by some external code.
     """
-    from ufl.classes import Expr, abstract_classes, all_ufl_classes
+    from ufl.core.expr import Expr
+    from ufl.core.ufl_type import registry
 
-    pm = {}
-    missing = set()
     # Assign integer values for each precedence level
-    k = 0
-    for p in precedence_list:
-        for c in p:
-            pm[c] = k
-        k += 1
-    # Check for missing classes, fill in subclasses
-    for c in all_ufl_classes:
-        if c not in abstract_classes and c not in pm:
-            b = c.__bases__[0]
-            while b is not Expr:
-                if b in pm:
-                    pm[c] = pm[b]
-                    break
-                b = b.__bases__[0]
-            if c not in pm:
-                missing.add(c)
+    levels = {c: k for k, p in enumerate(precedence_list) for c in p}
+    pm = dict(levels)
+    missing = set()
+    for c in registry.classes:
+        if c is Expr or not issubclass(c, Expr) or c in pm:
+            continue
+        level = next((levels[b] for b in c.__mro__ if b in levels), None)
+        if level is None:
+            missing.add(c)
+        else:
+            pm[c] = level
     return pm, missing
 
 
@@ -122,5 +120,5 @@ def assign_precedences(precedence_list):
     if missing:
         warnings.warn(
             "Missing precedence levels for classes:\n"
-            + "\n".join(f"  {c}" for c in sorted(missing))
+            + "\n".join(f"  {c}" for c in sorted(missing, key=lambda c: c.__name__))
         )

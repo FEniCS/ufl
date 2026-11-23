@@ -44,6 +44,7 @@ from ufl.classes import (
 )
 from ufl.compound_expressions import cross_expr, determinant_expr, inverse_expr
 from ufl.core.multiindex import Index, indices
+from ufl.core.ufl_type import registry
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.domain import extract_unique_domain
 from ufl.measure import custom_integral_types, point_integral_types
@@ -58,7 +59,7 @@ class GeometryLoweringApplier(DAGTraverser):
         """Initialise."""
         super().__init__()
         # Store preserve_types as boolean lookup table
-        self._preserve_types = [False] * Expr._ufl_num_typecodes_
+        self._preserve_types = [False] * len(registry)
         for cls in preserve_types:
             self._preserve_types[cls._ufl_typecode_] = True
 

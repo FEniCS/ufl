@@ -107,7 +107,7 @@ Xe = CEK * (X - X0e)
 # --- Expression node types
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class GeometricQuantity(Terminal):
     """Geometric quantity."""
 
@@ -137,15 +137,15 @@ class GeometricQuantity(Terminal):
 
     def _ufl_signature_data_(self, renumbering):
         """Signature data of geometric quantities depend on the domain numbering."""
-        return (self._ufl_class_.__name__,) + self._domain._ufl_signature_data_(renumbering)
+        return (type(self).__name__,) + self._domain._ufl_signature_data_(renumbering)
 
     def __str__(self):
         """Format as a string."""
-        return self._ufl_class_.name
+        return type(self).name
 
     def __repr__(self):
         """Representation."""
-        r = f"{self._ufl_class_.__name__}({self._domain!r})"
+        r = f"{type(self).__name__}({self._domain!r})"
         return r
 
     def _ufl_compute_hash_(self):
@@ -154,24 +154,24 @@ class GeometricQuantity(Terminal):
 
     def __eq__(self, other):
         """Check equality."""
-        return isinstance(other, self._ufl_class_) and other._domain == self._domain
+        return isinstance(other, type(self)) and other._domain == self._domain
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class GeometricCellQuantity(GeometricQuantity):
     """Geometric cell quantity."""
 
     __slots__ = ()
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class GeometricFacetQuantity(GeometricQuantity):
     """Geometric facet quantity."""
 
     __slots__ = ()
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class GeometricRidgeQuantity(GeometricQuantity):
     """Geometric ridge quantity."""
 
@@ -181,7 +181,7 @@ class GeometricRidgeQuantity(GeometricQuantity):
 # --- Coordinate represented in different coordinate systems
 
 
-@ufl_type()
+@ufl_type
 class SpatialCoordinate(GeometricCellQuantity):
     """The coordinate in a domain.
 
@@ -224,7 +224,7 @@ class SpatialCoordinate(GeometricCellQuantity):
         return -1
 
 
-@ufl_type()
+@ufl_type
 class CellCoordinate(GeometricCellQuantity):
     """The coordinate in a reference cell.
 
@@ -251,7 +251,7 @@ class CellCoordinate(GeometricCellQuantity):
         return t == 0
 
 
-@ufl_type()
+@ufl_type
 class FacetCoordinate(GeometricFacetQuantity):
     """The coordinate in a reference cell of a facet.
 
@@ -286,7 +286,7 @@ class FacetCoordinate(GeometricFacetQuantity):
         return t <= 1
 
 
-@ufl_type()
+@ufl_type
 class RidgeCoordinate(GeometricRidgeQuantity):
     """The coordinate in a reference cell of a ridge.
 
@@ -321,7 +321,7 @@ class RidgeCoordinate(GeometricRidgeQuantity):
 # --- Origin of coordinate systems in larger coordinate systems
 
 
-@ufl_type()
+@ufl_type
 class CellOrigin(GeometricCellQuantity):
     """The spatial coordinate corresponding to origin of a reference cell."""
 
@@ -339,7 +339,7 @@ class CellOrigin(GeometricCellQuantity):
         return True
 
 
-@ufl_type()
+@ufl_type
 class FacetOrigin(GeometricFacetQuantity):
     """The spatial coordinate corresponding to origin of a reference facet."""
 
@@ -353,7 +353,7 @@ class FacetOrigin(GeometricFacetQuantity):
         return (g,)
 
 
-@ufl_type()
+@ufl_type
 class RidgeOrigin(GeometricRidgeQuantity):
     """The spatial coordinate corresponding to origin of a reference ridge."""
 
@@ -367,7 +367,7 @@ class RidgeOrigin(GeometricRidgeQuantity):
         return (g,)
 
 
-@ufl_type()
+@ufl_type
 class CellFacetOrigin(GeometricFacetQuantity):
     """The reference cell coordinate corresponding to origin of a reference facet."""
 
@@ -381,7 +381,7 @@ class CellFacetOrigin(GeometricFacetQuantity):
         return (t,)
 
 
-@ufl_type()
+@ufl_type
 class CellRidgeOrigin(GeometricRidgeQuantity):
     """The reference cell coordinate corresponding to origin of a reference ridge."""
 
@@ -398,7 +398,7 @@ class CellRidgeOrigin(GeometricRidgeQuantity):
 # --- Jacobians of mappings between coordinate systems
 
 
-@ufl_type()
+@ufl_type
 class Jacobian(GeometricCellQuantity):
     r"""The Jacobian of the mapping from reference cell to spatial coordinates.
 
@@ -421,7 +421,7 @@ class Jacobian(GeometricCellQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class FacetJacobian(GeometricFacetQuantity):
     """The Jacobian of the mapping from reference facet to spatial coordinates.
 
@@ -456,7 +456,7 @@ class FacetJacobian(GeometricFacetQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class RidgeJacobian(GeometricRidgeQuantity):
     """The Jacobian of the mapping from reference ridge to spatial coordinates.
 
@@ -492,7 +492,7 @@ class RidgeJacobian(GeometricRidgeQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
     """The Jacobian of the mapping from reference facet to reference cell coordinates.
 
@@ -522,7 +522,7 @@ class CellFacetJacobian(GeometricFacetQuantity):  # dX/dXf
         return True
 
 
-@ufl_type()
+@ufl_type
 class CellRidgeJacobian(GeometricRidgeQuantity):  # dX/dXe
     """The Jacobian of the mapping from reference ridge to reference cell coordinates.
 
@@ -552,7 +552,7 @@ class CellRidgeJacobian(GeometricRidgeQuantity):  # dX/dXe
         return True
 
 
-@ufl_type()
+@ufl_type
 class FacetRidgeJacobian(GeometricRidgeQuantity):  # dXf/dXe
     """The Jacobian of the mapping from reference ridge to reference facet coordinates.
 
@@ -582,7 +582,7 @@ class FacetRidgeJacobian(GeometricRidgeQuantity):  # dXf/dXe
         return True
 
 
-@ufl_type()
+@ufl_type
 class ReferenceCellEdgeVectors(GeometricCellQuantity):
     """The vectors between reference cell vertices for each edge in cell."""
 
@@ -610,7 +610,7 @@ class ReferenceCellEdgeVectors(GeometricCellQuantity):
         return True
 
 
-@ufl_type()
+@ufl_type
 class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
     """The vectors between reference cell vertices for each edge in current facet."""
 
@@ -644,7 +644,7 @@ class ReferenceFacetEdgeVectors(GeometricFacetQuantity):
         return True
 
 
-@ufl_type()
+@ufl_type
 class CellVertices(GeometricCellQuantity):
     """Physical cell vertices."""
 
@@ -670,7 +670,7 @@ class CellVertices(GeometricCellQuantity):
         return True
 
 
-@ufl_type()
+@ufl_type
 class CellEdgeVectors(GeometricCellQuantity):
     """The vectors between physical cell vertices for each edge in cell."""
 
@@ -699,7 +699,7 @@ class CellEdgeVectors(GeometricCellQuantity):
         return True
 
 
-@ufl_type()
+@ufl_type
 class FacetEdgeVectors(GeometricFacetQuantity):
     """The vectors between physical cell vertices for each edge in current facet."""
 
@@ -737,7 +737,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 # --- Determinants (signed or pseudo) of geometry mapping Jacobians
 
 
-@ufl_type()
+@ufl_type
 class JacobianDeterminant(GeometricCellQuantity):
     """The determinant of the Jacobian.
 
@@ -755,7 +755,7 @@ class JacobianDeterminant(GeometricCellQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class FacetJacobianDeterminant(GeometricFacetQuantity):
     """The pseudo-determinant of the FacetJacobian."""
 
@@ -768,7 +768,7 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class RidgeJacobianDeterminant(GeometricRidgeQuantity):
     """The pseudo-determinant of the RidgeJacobian."""
 
@@ -781,7 +781,7 @@ class RidgeJacobianDeterminant(GeometricRidgeQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class CellFacetJacobianDeterminant(GeometricFacetQuantity):
     """The pseudo-determinant of the CellFacetJacobian."""
 
@@ -795,7 +795,7 @@ class CellFacetJacobianDeterminant(GeometricFacetQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class CellRidgeJacobianDeterminant(GeometricRidgeQuantity):
     """The pseudo-determinant of the CellRidgeJacobian."""
 
@@ -812,7 +812,7 @@ class CellRidgeJacobianDeterminant(GeometricRidgeQuantity):
 # --- Inverses (signed or pseudo) of geometry mapping Jacobians
 
 
-@ufl_type()
+@ufl_type
 class JacobianInverse(GeometricCellQuantity):
     """The inverse of the Jacobian.
 
@@ -837,7 +837,7 @@ class JacobianInverse(GeometricCellQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class FacetJacobianInverse(GeometricFacetQuantity):
     """The pseudo-inverse of the FacetJacobian."""
 
@@ -867,7 +867,7 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class RidgeJacobianInverse(GeometricRidgeQuantity):
     """The pseudo-inverse of the RidgeJacobian."""
 
@@ -897,7 +897,7 @@ class RidgeJacobianInverse(GeometricRidgeQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class CellFacetJacobianInverse(GeometricFacetQuantity):
     """The pseudo-inverse of the CellFacetJacobian."""
 
@@ -925,7 +925,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class CellRidgeJacobianInverse(GeometricRidgeQuantity):
     """The pseudo-inverse of the RidgeFacetJacobian."""
 
@@ -956,7 +956,7 @@ class CellRidgeJacobianInverse(GeometricRidgeQuantity):
 # --- Types representing normal or tangent vectors
 
 
-@ufl_type()
+@ufl_type
 class FacetNormal(GeometricFacetQuantity):
     """The outwards pointing normal vector of the current facet."""
 
@@ -980,7 +980,7 @@ class FacetNormal(GeometricFacetQuantity):
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets
 
 
-@ufl_type()
+@ufl_type
 class CellNormal(GeometricCellQuantity):
     """The upwards pointing normal vector of the current manifold cell."""
 
@@ -1001,7 +1001,7 @@ class CellNormal(GeometricCellQuantity):
         return self._domain.is_piecewise_linear_simplex_domain()
 
 
-@ufl_type()
+@ufl_type
 class ReferenceNormal(GeometricFacetQuantity):
     """The outwards pointing normal vector of the current facet on the reference cell."""
 
@@ -1021,7 +1021,7 @@ class ReferenceNormal(GeometricFacetQuantity):
 # TODO: Clean up this set of types? Document!
 
 
-@ufl_type()
+@ufl_type
 class ReferenceCellVolume(GeometricCellQuantity):
     """The volume of the reference cell."""
 
@@ -1029,7 +1029,7 @@ class ReferenceCellVolume(GeometricCellQuantity):
     name = "reference_cell_volume"
 
 
-@ufl_type()
+@ufl_type
 class ReferenceFacetVolume(GeometricFacetQuantity):
     """The volume of the reference cell of the current facet."""
 
@@ -1037,7 +1037,7 @@ class ReferenceFacetVolume(GeometricFacetQuantity):
     name = "reference_facet_volume"
 
 
-@ufl_type()
+@ufl_type
 class ReferenceRidgeVolume(GeometricRidgeQuantity):
     """The volume of the reference cell of the current ridge."""
 
@@ -1045,7 +1045,7 @@ class ReferenceRidgeVolume(GeometricRidgeQuantity):
     name = "reference_ridge_volume"
 
 
-@ufl_type()
+@ufl_type
 class CellVolume(GeometricCellQuantity):
     """The volume of the cell."""
 
@@ -1053,7 +1053,7 @@ class CellVolume(GeometricCellQuantity):
     name = "volume"
 
 
-@ufl_type()
+@ufl_type
 class Circumradius(GeometricCellQuantity):
     """The circumradius of the cell."""
 
@@ -1061,7 +1061,7 @@ class Circumradius(GeometricCellQuantity):
     name = "circumradius"
 
 
-@ufl_type()
+@ufl_type
 class CellDiameter(GeometricCellQuantity):
     """The diameter of the cell, i.e., maximal distance of two points in the cell."""
 
@@ -1069,7 +1069,7 @@ class CellDiameter(GeometricCellQuantity):
     name = "diameter"
 
 
-@ufl_type()
+@ufl_type
 # FIXME: Should this be allowed for interval domain?
 class FacetArea(GeometricFacetQuantity):
     """The area of the facet."""
@@ -1078,7 +1078,7 @@ class FacetArea(GeometricFacetQuantity):
     name = "facetarea"
 
 
-@ufl_type()
+@ufl_type
 class MinCellEdgeLength(GeometricCellQuantity):
     """The minimum edge length of the cell."""
 
@@ -1086,7 +1086,7 @@ class MinCellEdgeLength(GeometricCellQuantity):
     name = "mincelledgelength"
 
 
-@ufl_type()
+@ufl_type
 class MaxCellEdgeLength(GeometricCellQuantity):
     """The maximum edge length of the cell."""
 
@@ -1094,7 +1094,7 @@ class MaxCellEdgeLength(GeometricCellQuantity):
     name = "maxcelledgelength"
 
 
-@ufl_type()
+@ufl_type
 class MinFacetEdgeLength(GeometricFacetQuantity):
     """The minimum edge length of the facet."""
 
@@ -1102,7 +1102,7 @@ class MinFacetEdgeLength(GeometricFacetQuantity):
     name = "minfacetedgelength"
 
 
-@ufl_type()
+@ufl_type
 class MaxFacetEdgeLength(GeometricFacetQuantity):
     """The maximum edge length of the facet."""
 
@@ -1113,7 +1113,7 @@ class MaxFacetEdgeLength(GeometricFacetQuantity):
 # --- Types representing other stuff
 
 
-@ufl_type()
+@ufl_type
 class CellOrientation(GeometricCellQuantity):
     """The orientation (+1/-1) of the current cell.
 
@@ -1129,7 +1129,7 @@ class CellOrientation(GeometricCellQuantity):
     name = "cell_orientation"
 
 
-@ufl_type()
+@ufl_type
 class FacetOrientation(GeometricFacetQuantity):
     """The orientation (+1/-1) of the current facet relative to the reference cell."""
 
@@ -1139,7 +1139,7 @@ class FacetOrientation(GeometricFacetQuantity):
 
 # This doesn't quite fit anywhere. Make a special set of symbolic
 # terminal types instead?
-@ufl_type()
+@ufl_type
 class QuadratureWeight(GeometricQuantity):
     """The current quadrature weight.
 

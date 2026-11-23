@@ -10,7 +10,7 @@
 from ufl.checks import is_true_ufl_scalar, is_ufl_scalar
 from ufl.constantvalue import ComplexValue, IntValue, ScalarValue, Zero, as_ufl, zero
 from ufl.core.expr import ufl_err_str
-from ufl.core.operator import Operator
+from ufl.core.operator import IndicesFromFirstOperand, Operator, ShapeAndIndicesFromFirstOperand
 from ufl.core.ufl_type import ufl_type
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.indexed import Indexed
@@ -20,14 +20,8 @@ from ufl.sorting import sorted_expr
 # --- Algebraic operators ---
 
 
-@ufl_type(
-    num_ops=2,
-    inherit_shape_from_operand=0,
-    inherit_indices_from_operand=0,
-    binop="__add__",
-    rbinop="__radd__",
-)
-class Sum(Operator):
+@ufl_type
+class Sum(ShapeAndIndicesFromFirstOperand, Operator):
     """Sum."""
 
     __slots__ = ()
@@ -104,7 +98,7 @@ class Sum(Operator):
         return " + ".join([parstr(o, self) for o in self.ufl_operands])
 
 
-@ufl_type(num_ops=2, binop="__mul__", rbinop="__rmul__")
+@ufl_type
 class Product(Operator):
     """The product of two or more UFL objects."""
 
@@ -201,8 +195,8 @@ class Product(Operator):
         return " * ".join((parstr(a, self), parstr(b, self)))
 
 
-@ufl_type(num_ops=2, inherit_indices_from_operand=0, binop="__div__", rbinop="__rdiv__")
-class Division(Operator):
+@ufl_type
+class Division(IndicesFromFirstOperand, Operator):
     """Division."""
 
     __slots__ = ()
@@ -266,8 +260,8 @@ class Division(Operator):
         return f"{parstr(self.ufl_operands[0], self)} / {parstr(self.ufl_operands[1], self)}"
 
 
-@ufl_type(num_ops=2, inherit_indices_from_operand=0, binop="__pow__", rbinop="__rpow__")
-class Power(Operator):
+@ufl_type
+class Power(IndicesFromFirstOperand, Operator):
     """Power."""
 
     __slots__ = ()
@@ -328,8 +322,8 @@ class Power(Operator):
         return f"{parstr(a, self)} ** {parstr(b, self)}"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0, unop="__abs__")
-class Abs(Operator):
+@ufl_type
+class Abs(ShapeAndIndicesFromFirstOperand, Operator):
     """Absolute value."""
 
     __slots__ = ()
@@ -363,8 +357,8 @@ class Abs(Operator):
         return f"|{parstr(a, self)}|"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Conj(Operator):
+@ufl_type
+class Conj(ShapeAndIndicesFromFirstOperand, Operator):
     """Complex conjugate."""
 
     __slots__ = ()
@@ -398,8 +392,8 @@ class Conj(Operator):
         return f"conj({parstr(a, self)})"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Real(Operator):
+@ufl_type
+class Real(ShapeAndIndicesFromFirstOperand, Operator):
     """Real part."""
 
     __slots__ = ()
@@ -435,8 +429,8 @@ class Real(Operator):
         return f"Re[{parstr(a, self)}]"
 
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
-class Imag(Operator):
+@ufl_type
+class Imag(ShapeAndIndicesFromFirstOperand, Operator):
     """Imaginary part."""
 
     __slots__ = ()

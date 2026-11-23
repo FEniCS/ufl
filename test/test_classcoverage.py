@@ -113,8 +113,8 @@ from ufl.classes import (
     Sqrt,
     Tan,
     Tanh,
-    all_ufl_classes,
 )
+from ufl.core.ufl_type import registry
 
 has_repr: set[str] = set()
 has_dict: set[str] = set()
@@ -189,18 +189,21 @@ def testExports(self):
             for c in list(vars(m).values()):
                 if isinstance(c, type) and issubclass(c, Expr):
                     all_expr_classes.append(c)
-    missing_classes = set(c.__name__ for c in all_expr_classes) - set(
-        c.__name__ for c in all_ufl_classes
-    )
+    missing_classes = set(c.__name__ for c in all_expr_classes) - set(ufl.classes.__all__)
     if missing_classes:
         print("The following subclasses of Expr were not exported from ufl.classes:")
         print("\n".join(sorted(missing_classes)))
     assert missing_classes == set()
 
 
-def testAll(self):
-    Expr.ufl_enable_profiling()
+def testExprHashing():
+    """Every expression type hashes as an expression; customise via _ufl_compute_hash_."""
+    exprs = [c for c in registry.classes if issubclass(c, Expr)]
+    assert exprs
+    assert [c.__name__ for c in exprs if c.__hash__ is not Expr.__hash__] == []
 
+
+def testAll(self):
     # --- Elements:
     cell = triangle
     dim = 2
@@ -720,24 +723,6 @@ def testAll(self):
     d = derivative(a, f1, v1)
     f = action(d)
     # e = action(b)
-
-    # --- Check which classes have been created
-    ic, _dc = Expr.ufl_disable_profiling()
-
-    constructed = set()
-    unused = set(Expr._ufl_all_classes_)
-    for cls in Expr._ufl_all_classes_:
-        tc = cls._ufl_typecode_
-        if ic[tc]:
-            constructed.add(cls)
-        if cls._ufl_is_abstract_:
-            unused.remove(cls)
-
-    if unused:
-        print()
-        print("The following classes were never instantiated in class coverage test:")
-        print("\n".join(sorted(map(str, unused))))
-        print()
 
     # --- Check which classes had certain member variables
     if has_repr:

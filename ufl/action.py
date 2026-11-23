@@ -22,7 +22,7 @@ from ufl.form import BaseForm, Form, ZeroBaseForm
 #     to be computed at assembly time ---
 
 
-@ufl_type()
+@ufl_type
 class Action(BaseForm):
     """UFL base form type: respresents the action of an object on another.
 

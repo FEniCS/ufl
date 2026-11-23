@@ -1,7 +1,7 @@
 """Classes.
 
-It contains functionality used by algorithms for dealing with groups
-of classes, and for mapping types to different handler functions.
+Collects the UFL classes in one namespace. The registered UFL types are
+available, indexed by typecode, from ``ufl.core.ufl_type.registry``.
 """
 # Copyright (C) 2008-2016 Martin Sandve Alnæs
 #
@@ -14,7 +14,6 @@ of classes, and for mapping types to different handler functions.
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Paul T. Kühner, 2025
 
-import ufl.core.expr
 from ufl import exproperators as __exproperators
 from ufl.action import Action
 from ufl.adjoint import Adjoint
@@ -63,7 +62,12 @@ from ufl.core.expr import Expr
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, Index, IndexBase, MultiIndex
-from ufl.core.operator import Operator
+from ufl.core.operator import (
+    IndicesFromFirstOperand,
+    Operator,
+    ShapeAndIndicesFromFirstOperand,
+    ShapeFromFirstOperand,
+)
 from ufl.core.terminal import FormArgument, Terminal
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
@@ -335,6 +339,7 @@ __all__ = [
     "IndexBase",
     "IndexSum",
     "Indexed",
+    "IndicesFromFirstOperand",
     "Inner",
     "IntValue",
     "Integral",
@@ -397,6 +402,8 @@ __all__ = [
     "RidgeJacobianInverse",
     "RidgeOrigin",
     "ScalarValue",
+    "ShapeAndIndicesFromFirstOperand",
+    "ShapeFromFirstOperand",
     "Sin",
     "Sinh",
     "Skew",
@@ -423,16 +430,4 @@ __all__ = [
     "Zero",
     "ZeroBaseForm",
     "__exproperators",
-    "abstract_classes",
-    "all_ufl_classes",
-    "nonterminal_classes",
-    "terminal_classes",
-    "ufl_classes",
 ]
-
-# Collect all classes in sets automatically classified by some properties
-all_ufl_classes = set(ufl.core.expr.Expr._ufl_all_classes_)
-abstract_classes = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
-ufl_classes = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
-terminal_classes = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
-nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)

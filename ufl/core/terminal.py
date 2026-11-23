@@ -17,13 +17,14 @@ from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(is_abstract=True, is_terminal=True)
+@ufl_type
 class Terminal(Expr):
     """Base class for terminal objects.
 
     A terminal node in the UFL expression tree.
     """
 
+    _ufl_is_terminal_ = True
     __slots__ = ()
 
     def __init__(self):
@@ -96,7 +97,7 @@ class Terminal(Expr):
 # --- Subgroups of terminals ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class FormArgument(Terminal):
     """An abstract class for a form argument (a thing in a primal finite element space)."""
 
