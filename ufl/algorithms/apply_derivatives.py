@@ -1227,6 +1227,46 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = df
             return df
 
+    @process.register(BaseFormOperator)
+    def _(self, N: BaseFormOperator) -> Expr:
+        """Differentiate a base form operator with respect to a variable."""
+        if N._contracts_output:
+            raise ValueError("Cannot differentiate a contracted base form operator with diff.")
+
+        orders = N.derivatives or ()
+        dfs = tuple(self(op) for op in N.ufl_operands) if orders else ()
+        vstar, *slots = N.argument_slots()
+        dslots = tuple(self(slot) for slot in slots)
+        components = np.empty(self._var_shape, dtype=object)
+        # Each slot takes a direction with its original shape. Use one direction
+        # per component of the variable so that no free indices enter the slots.
+        for component in np.ndindex(self._var_shape):
+            dN = Zero(N.ufl_shape)
+            for i, df in enumerate(dfs):
+                direction = df[..., *component]
+                if isinstance(direction, Zero):
+                    continue
+                derivatives = tuple(dj + int(i == j) for j, dj in enumerate(orders))
+                dN += N._ufl_expr_reconstruct_(
+                    *N.ufl_operands,
+                    derivatives=derivatives,
+                    argument_slots=(vstar, *slots, direction),
+                )
+            for i, dslot in enumerate(dslots):
+                direction = dslot[..., *component]
+                if isinstance(direction, Zero):
+                    continue
+                dN += N._ufl_expr_reconstruct_(
+                    *N.ufl_operands,
+                    argument_slots=(vstar, *slots[:i], direction, *slots[i + 1 :]),
+                )
+            components[component] = dN
+
+        # Stacking adds the variable axes first. Move them after the output axes.
+        dN, ii = as_scalar(as_tensor(components))
+        rank = len(self._var_shape)
+        return as_tensor(dN, ii[rank:] + ii[:rank])
+
     @process.register(Grad)
     @DAGTraverser.postorder
     def _(self, o: Expr, df: Expr) -> Expr:
@@ -1717,10 +1757,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         for i, df in enumerate(dfs):
             if df == 0:
                 continue
-            if len(extract_arguments(df)) == 0:
-                raise NotImplementedError(
-                    "Frechet derivative of external operators need to be provided!"
-                )
             # dNdOi(..., Oi, ...; DOi(u)[v], ..., v*) is the Gateaux derivative of
             # N(..., Oi, ...; ..., v*) with respect to its i-th operand Oi in the
             # direction DOi(u)[v], e.g. N(u) = u**2 gives dNdu(u; uhat, v*) = 2 * u * uhat.

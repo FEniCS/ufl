@@ -120,7 +120,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
                 The FunctionSpace or MixedFunctionSpace of the operator output.
             derivatives:
                 The derivative multi-index: the number of times that the
-                operator is differentiated with respect to each operand.
+                operator is differentiated with respect to each operand. Use
+                ``None`` when the operator is fully determined by its argument slots.
             argument_slots:
                 The slots in which the operator is linear, given as
                 ``(dual_slot, *primal_slots)``. The dual slot is paired with the
@@ -156,10 +157,6 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             raise ValueError("Expecting a FunctionSpace or FiniteElement.")
         self._function_space = function_space
 
-        # -- Derivatives -- #
-        # Some BaseFormOperator does have derivatives (e.g. ExternalOperator)
-        # while other don't since they are fully determined by their
-        # argument slots (e.g. Interpolate)
         self.derivatives = derivatives
 
         # -- Argument slots -- #
@@ -180,7 +177,12 @@ class BaseFormOperator(Operator, BaseForm, Counted):
             for a in extract_type(slot, Argument, base_form_op_as_expr=True)
         ]
         contracted, _ = _split_dual_slot_arguments(dual_slot, slot_args)
-        if contracted is not None and contracted.ufl_function_space() != function_space:
+        # The contracted argument may be on a plain UFL space when the supplied
+        # space is a subclass, as in DOLFINx.
+        if (
+            contracted is not None
+            and contracted.ufl_function_space().dual() != function_space.dual()
+        ):
             raise ValueError("The contracted argument in the dual slot must be on function_space.")
 
         # Internal variables for caching coefficient and domain data
@@ -288,7 +290,7 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         """Default repr string construction for base form operators."""
         r = f"{type(self).__name__}("
         r += ", ".join(repr(op) for op in self.ufl_operands)
-        r += "; {self.ufl_function_space()!r}; "
+        r += f"; {self.ufl_function_space()!r}; "
         r += ", ".join(repr(arg) for arg in self.argument_slots())
         r += f"; derivatives={self.derivatives!r})"
         return r
