@@ -264,14 +264,19 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         return self._function_space.value_shape
 
     def ufl_function_space(self):
-        """Return the target space of an operator, the result space of a linear form, or None."""
+        """Return the function space associated with the operator's free arguments.
+
+        With more than one free argument, return the operator's output space.
+        With one free argument, return the dual of its function space.
+        With no free arguments, return ``None``.
+        """
         arguments = self.arguments()
         if len(arguments) > 1:
             return self._function_space
-        if not arguments:
+        elif len(arguments) == 1:
+            return arguments[0].ufl_function_space().dual()
+        else:
             return None
-        (arg,) = arguments
-        return arg.ufl_function_space().dual()
 
     def ufl_element(self):
         """Return the element of the reported function space, or None for a scalar."""
