@@ -224,7 +224,7 @@ def test_list_subdomain_ids_are_copied():
     assert hash(measure) == original_hash
 
 
-@pytest.mark.parametrize("ids", [[1, None], [1, 1.5], [[1]], [object()]])
+@pytest.mark.parametrize("ids", [[1, None], [1, 1.5], [[1]], [object()], b"ab"])
 def test_invalid_list_subdomain_ids(ids):
     with pytest.raises(ValueError, match="Invalid subdomain_id"):
         Measure("dx", subdomain_id=ids)

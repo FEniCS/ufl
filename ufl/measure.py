@@ -162,7 +162,7 @@ class Measure:
 
         # Accept "everywhere", single subdomain, or multiple
         # subdomains
-        if isinstance(subdomain_id, Sequence) and not isinstance(subdomain_id, (str, tuple)):
+        if isinstance(subdomain_id, Sequence) and not isinstance(subdomain_id, (str, bytes, tuple)):
             subdomain_id = tuple(subdomain_id)
         if isinstance(subdomain_id, tuple):
             for did in subdomain_id:
