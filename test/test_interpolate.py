@@ -52,7 +52,6 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_function_pullbacks import (
     apply_function_pullbacks,
-    apply_interpolate_pullbacks,
 )
 from ufl.algorithms.balancing import balance_modifiers
 from ufl.algorithms.compute_form_data import compute_form_data
@@ -120,7 +119,7 @@ def test_signature_of_form_with_operator_derivative(domain_2d):
 
 def test_balance_modifiers_of_pulled_back_interpolate(V1, V2):
     u = Coefficient(V1)
-    expr = apply_interpolate_pullbacks(apply_function_pullbacks(grad(Interpolate(u**2, V2))[0]))
+    expr = apply_function_pullbacks(grad(Interpolate(u**2, V2))[0])
     assert balance_modifiers(expr) == expr
 
 
