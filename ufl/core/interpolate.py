@@ -71,13 +71,8 @@ class Interpolate(BaseFormOperator):
 
         # Reversed order convention
         argument_slots = (v, expr)
-        # A FormSum can list a Coargument before its paired primal argument.
-        dual_slot_arguments = v.arguments()
-        target_argument = next(
-            (arg for arg in dual_slot_arguments if not isinstance(arg, Coargument)),
-            dual_slot_arguments[0],
-        )
-        function_space = target_argument.ufl_function_space()
+        # Get the primal space (V** = V)
+        function_space = v.arguments()[0].ufl_function_space()
         self._function_space = function_space
 
         # Set the operand as `expr` for DAG traversal purpose.
