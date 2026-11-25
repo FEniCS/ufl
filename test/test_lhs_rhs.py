@@ -35,9 +35,9 @@ from ufl import (
     system,
     triangle,
 )
-from ufl.form import ZeroBaseForm
 from ufl.algorithms import compute_form_data
 from ufl.algorithms.formtransformations import compute_form_arities
+from ufl.form import ZeroBaseForm
 
 
 def test_lhs_rhs_simple():
