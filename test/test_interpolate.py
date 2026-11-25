@@ -26,15 +26,19 @@ from ufl import (
     action,
     adjoint,
     conj,
+    cos,
     derivative,
+    diff,
     dx,
     exp,
     grad,
     inner,
     replace,
+    sin,
     tetrahedron,
     tr,
     triangle,
+    variable,
 )
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import (
@@ -863,6 +867,12 @@ def test_second_derivative(V1, V2, max_rank):
     d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
     d2JRdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
     assert d2JRdu2 == d2Jdu2 + d2Rdu2
+
+
+def test_diff_through_interpolate(V1, V2):
+    z = variable(Coefficient(V1))
+
+    assert expand_derivatives(diff(Interpolate(sin(z), V2), z)) == Interpolate(cos(z), V2)
 
 
 def test_derivative_keeps_interpolate(V1, V2):
