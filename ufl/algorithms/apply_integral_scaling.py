@@ -17,7 +17,7 @@ from ufl.classes import (
     RidgeJacobianDeterminant,
 )
 from ufl.differentiation import CoordinateDerivative
-from ufl.measure import custom_integral_types, point_integral_types
+from ufl.measure import custom_integral_types, peak_integral_types
 
 
 def compute_integrand_scaling_factor(integral):
@@ -80,7 +80,7 @@ def compute_integrand_scaling_factor(integral):
         # scaling
         scale = weight
 
-    elif integral_type in point_integral_types:
+    elif integral_type in peak_integral_types:
         # No need to scale 'integral' over a point
         scale = 1
 
