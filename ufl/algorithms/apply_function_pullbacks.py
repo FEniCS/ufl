@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import warnings
 from functools import singledispatchmethod
 
 from ufl.algorithms.map_integrands import map_integrands
@@ -107,6 +108,27 @@ def apply_inverse_pullback(expr, element, domain=None):
             f"'{element.reference_value_shape}', got '{r.ufl_shape}'"
         )
     return r
+
+
+def apply_interpolate_pullbacks(expr):
+    """Return the expression unchanged.
+
+    Deprecated: `apply_function_pullbacks` now changes the representation of
+    the interpolations together with the form arguments.
+
+    Args:
+        expr: An Expr or Form
+
+    Returns:
+        The expression, unchanged
+    """
+    warnings.warn(
+        "apply_interpolate_pullbacks is deprecated, "
+        "apply_function_pullbacks now applies the interpolation pullbacks.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return expr
 
 
 def apply_function_pullbacks(expr):
