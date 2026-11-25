@@ -247,7 +247,8 @@ class MeshSequence(AbstractDomain, UFLObject):
 
     def _ufl_sort_key_(self):
         """UFL sort key."""
-        return ("MeshSequence", tuple(m._ufl_sort_key_() for m in self._meshes))
+        typespecific = tuple(m._ufl_sort_key_() for m in self._meshes)
+        return (self.geometric_dimension, self.topological_dimension, "MeshSequence", typespecific)
 
     @property
     def meshes(self):
@@ -372,6 +373,10 @@ def join_domains(domains: Sequence[AbstractDomain], expand_mesh_sequence: bool =
         for domain in joined_domains:
             unrolled_joined_domains.update(domain.meshes)
         joined_domains = unrolled_joined_domains
+    else:
+        # Drop each mesh contained in a MeshSequence, so that the result expands to the same meshes.
+        for domain in [d for d in joined_domains if isinstance(d, MeshSequence)]:
+            joined_domains.difference_update(domain.meshes)
 
     if not joined_domains:
         return set()
@@ -403,9 +408,14 @@ def extract_domains(
         `tuple` of domains.
 
     """
+    from ufl.algorithms.traversal import iter_expressions
+    from ufl.core.base_form_operator import BaseFormOperator
     from ufl.form import Form
     from ufl.integral import Integral
 
+    if isinstance(expr, BaseFormOperator) and expand_mesh_sequence:
+        # The argument slots carry domains that the operands cannot reach.
+        return tuple(expr.ufl_domains())
     if isinstance(expr, Form):
         if not expand_mesh_sequence:
             raise NotImplementedError("""
@@ -419,9 +429,20 @@ def extract_domains(
         )
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
     else:
+        # iter_expressions decomposes FormSum/Action/Adjoint (and nested
+        # Forms within them) down to plain Expr trees and leaf BaseForms
+        # (e.g. ZeroBaseForm, Matrix), each of which traverse_unique_terminals
+        # can walk directly. Fall back to the bare expr for anything it
+        # doesn't recognise (e.g. a FunctionSpace), matching the
+        # AttributeError that as_domain() relies on to catch that case.
+        try:
+            exprs = iter_expressions(expr)
+        except ValueError:
+            exprs = (expr,)
         domainlist = []
-        for t in traverse_unique_terminals(expr):
-            domainlist.extend(t.ufl_domains())
+        for e in exprs:
+            for t in traverse_unique_terminals(e):
+                domainlist.extend(t.ufl_domains())
         return sort_domains(join_domains(domainlist, expand_mesh_sequence=expand_mesh_sequence))
 
 
@@ -438,7 +459,18 @@ def extract_unique_domain(
         domain.
 
     """
-    domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
+    from ufl.core.base_form_operator import BaseFormOperator
+
+    if isinstance(expr, BaseFormOperator):
+        # The domain of the operator value comes from its operands.
+        operand_domains = [
+            domain
+            for operand in expr.ufl_operands
+            for domain in extract_domains(operand, expand_mesh_sequence=expand_mesh_sequence)
+        ]
+        domains = tuple(join_domains(operand_domains, expand_mesh_sequence=expand_mesh_sequence))
+    else:
+        domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
     if len(domains) == 1:
         return domains[0]
     elif domains:

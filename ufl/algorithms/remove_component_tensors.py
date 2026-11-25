@@ -8,16 +8,15 @@ This module contains classes and functions to remove component tensors.
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
-from collections import defaultdict
+from functools import singledispatchmethod
 
-from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import ComponentTensor, Index, MultiIndex, Zero
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.algorithms.map_integrands import map_integrands
+from ufl.classes import ComponentTensor, Expr, Index, Indexed, MultiIndex, Zero
+from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.index_combination_utils import unique_sorted_indices
 
 
-class IndexReplacer(MultiFunction):
+class IndexReplacer(DAGTraverser):
     """Replace Indices."""
 
     def __init__(self, fimap: dict):
@@ -27,26 +26,42 @@ class IndexReplacer(MultiFunction):
            fimap: map for index replacements.
 
         """
-        MultiFunction.__init__(self)
+        super().__init__()
         self.fimap = fimap
 
-    expr = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process an expression node."""
+        return super().process(o)
 
-    def zero(self, o):
+    @process.register(Expr)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *ops: Expr) -> Expr:
+        """Reuse an expression if none of its operands changed."""
+        if all(a is b for a, b in zip(o.ufl_operands, ops)):
+            return o
+        return o._ufl_expr_reconstruct_(*ops)
+
+    @process.register(Zero)
+    def _(self, o: Zero) -> Zero:
         """Handle Zero."""
         indices = tuple(map(Index, o.ufl_free_indices))
         if not any(i in self.fimap for i in indices):
             # Reuse if untouched
             return o
 
-        fi = []
-        for i, d in zip(indices, o.ufl_index_dimensions):
+        fi: list[tuple[int, int]] = []
+        index_dimensions: tuple[int, ...] = o.ufl_index_dimensions
+        for i, d in zip(indices, index_dimensions):
             j = self.fimap.get(i, i)
             if isinstance(j, Index):
                 fi.append((j.count(), d))
 
         fi = unique_sorted_indices(sorted(fi))
-        free_indices, index_dimensions = zip(*fi)
+        if fi:
+            free_indices, index_dimensions = zip(*fi)
+        else:
+            free_indices, index_dimensions = (), ()
 
         return Zero(
             shape=o.ufl_shape,
@@ -54,7 +69,8 @@ class IndexReplacer(MultiFunction):
             index_dimensions=index_dimensions,
         )
 
-    def multi_index(self, o):
+    @process.register(MultiIndex)
+    def _(self, o: MultiIndex) -> MultiIndex:
         """Handle MultiIndex."""
         if not any(i in self.fimap for i in o):
             # Reuse if untouched
@@ -64,20 +80,30 @@ class IndexReplacer(MultiFunction):
         return MultiIndex(indices)
 
 
-class IndexRemover(MultiFunction):
+class IndexRemover(DAGTraverser):
     """Remove Indexed."""
 
     def __init__(self):
         """Initialise."""
-        MultiFunction.__init__(self)
+        super().__init__()
         self.rules = {}
-        # caches for reuse in the dispatched transformers
-        self.vcaches = defaultdict(dict)
-        self.rcaches = defaultdict(dict)
 
-    expr = MultiFunction.reuse_if_untouched
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process an expression node."""
+        return super().process(o)
 
-    def indexed(self, o, o1, i1):
+    @process.register(Expr)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *ops: Expr) -> Expr:
+        """Reuse an expression if none of its operands changed."""
+        if all(a is b for a, b in zip(o.ufl_operands, ops)):
+            return o
+        return o._ufl_expr_reconstruct_(*ops)
+
+    @process.register(Indexed)
+    @DAGTraverser.postorder
+    def _(self, o: Indexed, o1: Expr, i1: MultiIndex) -> Expr:
         """Simplify Indexed."""
         if isinstance(o1, ComponentTensor):
             # Simplify Indexed ComponentTensor
@@ -93,8 +119,7 @@ class IndexRemover(MultiFunction):
                 rule = IndexReplacer(fimap)
                 self.rules[rkey] = rule
 
-            key = (IndexReplacer, *rkey)
-            return map_expr_dag(rule, o2, vcache=self.vcaches[key], rcache=self.rcaches[key])
+            return rule(o2)
 
         elif o.ufl_operands[0] is o1:
             # Reuse if untouched
@@ -106,4 +131,4 @@ class IndexRemover(MultiFunction):
 def remove_component_tensors(o):
     """Remove component tensors."""
     rule = IndexRemover()
-    return map_integrand_dags(rule, o)
+    return map_integrands(rule, o)

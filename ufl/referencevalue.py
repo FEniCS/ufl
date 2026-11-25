@@ -5,6 +5,7 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from ufl.core.interpolate import Interpolate
 from ufl.core.operator import Operator
 from ufl.core.terminal import FormArgument
 from ufl.core.ufl_type import ufl_type
@@ -12,14 +13,14 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(num_ops=1, is_index_free=True, is_terminal_modifier=True, is_in_reference_frame=True)
 class ReferenceValue(Operator):
-    """Representation of the reference cell value of a form argument."""
+    """Representation of the reference cell value of a finite element field."""
 
     __slots__ = ()
 
-    def __init__(self, f):
+    def __init__(self, f: FormArgument | Interpolate) -> None:
         """Initialise."""
-        if not isinstance(f, FormArgument):
-            raise ValueError("Can only take reference value of form arguments.")
+        if not isinstance(f, FormArgument | Interpolate):
+            raise ValueError("Can only take reference value of finite element fields.")
         Operator.__init__(self, (f,))
 
     @property

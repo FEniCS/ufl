@@ -129,7 +129,7 @@ class Measure:
                 the integral_type on the primal domain in a multi-domain problem.
             domain: an AbstractDomain object (most often a Mesh);
                 the primal domain in a multi-domain problem.
-            subdomain_id: either string "everywhere", a single subdomain id int, or tuple of ints
+            subdomain_id: a single subdomain id int or string, or a tuple of ints and strings
             metadata: dict, with additional compiler-specific parameters
                 affecting how code is generated, including parameters
                 for optimization or debugging of generated code
@@ -163,10 +163,10 @@ class Measure:
         # subdomains
         if isinstance(subdomain_id, tuple):
             for did in subdomain_id:
-                if not isinstance(did, numbers.Integral):
+                if not isinstance(did, (numbers.Integral, str)):
                     raise ValueError(f"Invalid subdomain_id {did}.")
         else:
-            if not (subdomain_id in ("everywhere",) or isinstance(subdomain_id, numbers.Integral)):
+            if not isinstance(subdomain_id, (numbers.Integral, str)):
                 raise ValueError(f"Invalid subdomain_id {subdomain_id}.")
         self._subdomain_id = subdomain_id
 
@@ -214,7 +214,7 @@ class Measure:
         return self._domain
 
     def subdomain_id(self):
-        """Return the domain id of this measure (integer)."""
+        """Return the subdomain id of this measure (integer or string)."""
         return self._subdomain_id
 
     def intersect_measures(self):
@@ -289,6 +289,7 @@ class Measure:
         subdomain_data=None,
         degree=None,
         scheme=None,
+        intersect_measures=None,
     ):
         """Reconfigure measure with new domain specification or metadata."""
         # Let syntax dx() mean integral over everywhere
@@ -326,6 +327,7 @@ class Measure:
             domain=domain,
             metadata=metadata,
             subdomain_data=subdomain_data,
+            intersect_measures=intersect_measures,
         )
 
     def __str__(self):

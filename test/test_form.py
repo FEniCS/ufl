@@ -1,9 +1,12 @@
 import pytest
-from utils import LagrangeElement
+from utils import LagrangeElement, RealElement
 
 from ufl import (
+    Action,
+    Coargument,
     Coefficient,
     Cofunction,
+    Constant,
     Form,
     FormSum,
     FunctionSpace,
@@ -12,6 +15,7 @@ from ufl import (
     TestFunction,
     TrialFunction,
     action,
+    adjoint,
     derivative,
     dot,
     ds,
@@ -21,7 +25,8 @@ from ufl import (
     nabla_grad,
     triangle,
 )
-from ufl.form import BaseForm
+from ufl.algorithms.restructure_base_form import restructure_base_form
+from ufl.form import BaseForm, ZeroBaseForm
 
 
 @pytest.fixture
@@ -139,6 +144,15 @@ def test_form_empty(mass):
     assert Form([]).empty()
 
 
+def test_zero_base_form_compiler_interface(mass):
+    zero = ZeroBaseForm(mass.arguments())
+    assert zero.empty()
+    assert zero.integrals() == ()
+    assert zero.constants() == ()
+    assert zero.terminal_numbering() == {}
+    assert zero._cache == {}
+
+
 def test_form_integrals(mass, boundary_load):
     assert isinstance(mass.integrals(), tuple)
     assert len(mass.integrals()) == 1
@@ -197,9 +211,73 @@ def test_formsum(mass):
     assert isinstance(2 * v, BaseForm)
     assert (2 * v).weights()[0] == 2
 
-    f = action(-v, u)
+    f = restructure_base_form(action(-v, u))
     df = derivative(9 * f, u)
-    assert isinstance(f, FormSum)
-    assert f.weights()[0] == -1
+    assert f == Action(-v, u)
     assert isinstance(df, FormSum)
-    assert df.weights()[0] == -9
+    assert df.weights()[0] == 9
+
+    assert FormSum((mass, 1)) is mass
+
+
+def test_form_divided_by_constant_scales(mass):
+    V = mass.arguments()[0].ufl_function_space()
+    c = Constant(V.ufl_domain())
+    cofunction = Cofunction(V.dual())
+    for form in (mass, mass + cofunction, cofunction, Action(mass, Coefficient(V))):
+        assert form / 2 == 0.5 * form
+        assert form / c == (1 / c) * form
+        with pytest.raises(TypeError):
+            form / Coefficient(V)
+        with pytest.raises(TypeError):
+            2 / form
+
+
+def test_constant_scales_a_form_from_either_side(mass):
+    V = mass.arguments()[0].ufl_function_space()
+    c = Constant(V.ufl_domain())
+    u = Coefficient(V)
+    forms = (
+        mass,
+        u * TestFunction(V) * dx,
+        Cofunction(V.dual()),
+        Coargument(V.dual(), 0),
+        Action(mass, u),
+        adjoint(mass),
+        ZeroBaseForm(mass.arguments()),
+    )
+    for form in forms:
+        for scalar in (2, 0.5, c, 2 * c + 1):
+            assert form * scalar == scalar * form
+
+
+def test_form_acts_on_real_function_on_the_right(domain):
+    """A function in a Real space is constant, but on the right a form acts on it."""
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    R = FunctionSpace(domain, RealElement(triangle))
+    r, c = Coefficient(R), Constant(domain)
+    v = TestFunction(V)
+    A = inner(TrialFunction(R), v) * dx
+
+    assert (A @ r).arguments() == (v,)
+    with pytest.warns(DeprecationWarning, match="form @ f"):
+        assert A * r == A @ r
+    # A constant scales, also on the right
+    assert (A * c).arguments() == A.arguments()
+    # An expression of a Real function could be acted on or scale, so it raises
+    # on the right, and scales on the left.
+    for operand in (2 * r, r * r, c * r):
+        with pytest.raises(TypeError, match="multiply it from the left"):
+            A * operand
+        assert (operand * A).arguments() == A.arguments()
+
+
+def test_matmul_only_acts(mass):
+    V = mass.arguments()[0].ufl_function_space()
+    u, c = Coefficient(V), Constant(V.ufl_domain())
+    assert mass @ u == action(mass, u)
+    for operand in (2 * u, c):
+        with pytest.raises(TypeError, match="can only act on"):
+            mass @ operand
+    with pytest.raises(TypeError):
+        mass @ 2

@@ -232,12 +232,16 @@ class ScalarValue(ConstantValue):
         """
         if isinstance(other, self._ufl_class_):
             return self._value == other._value
-        elif isinstance(other, int | float):
+        elif isinstance(other, int | float | complex):
             # FIXME: Disallow this, require explicit 'expr ==
             # IntValue(3)' instead to avoid ambiguities!
             return other == self._value
         else:
             return False
+
+    def _ufl_compute_hash_(self):
+        """Hash the value, so that equal values have equal hashes."""
+        return hash((self._ufl_typecode_, self._value))
 
     def __str__(self):
         """Format as a string."""

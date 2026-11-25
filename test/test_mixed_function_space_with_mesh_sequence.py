@@ -32,7 +32,7 @@ from ufl import (
 )
 from ufl.algorithms import compute_form_data
 from ufl.cell import Cell, CellSequence
-from ufl.domain import extract_domains
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.pullback import contravariant_piola, identity_pullback
 from ufl.sobolevspace import H1, L2, HDiv
 
@@ -184,6 +184,34 @@ def test_mixed_function_space_with_mesh_sequence_signature():
     assert form_a.signature() == form_b.signature()
     assert extract_domains(form_a) == (mesh0, mesh1)
     assert extract_domains(form_b) == (mesh1, mesh0)
+
+
+def test_mixed_function_space_with_mesh_sequence_extract_domains():
+    cell = triangle
+    elem0 = LagrangeElement(cell, 1)
+    elem1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1, (2,), contravariant_piola, HDiv)
+    elem = MixedElement([elem0, elem1], make_cell_sequence=True)
+    mesh0 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=100)
+    mesh1 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=101)
+    domain = MeshSequence([mesh0, mesh1])
+    f = Coefficient(FunctionSpace(domain, elem), count=1000)
+    expr = CellVolume(mesh1) * f[0]
+    assert extract_domains(expr, expand_mesh_sequence=False) == (domain,)
+    assert extract_domains(expr) == (mesh0, mesh1)
+
+    # A mesh outside the MeshSequence stays a separate domain.
+    mesh2 = Mesh(LagrangeElement(cell, 1, (2,)), ufl_id=102)
+    expr = CellVolume(mesh2) * f[0]
+    assert set(extract_domains(expr, expand_mesh_sequence=False)) == {domain, mesh2}
+    with pytest.raises(ValueError, match="multiple domains"):
+        extract_unique_domain(expr, expand_mesh_sequence=False)
+
+    # Repeat with every component on the same mesh.
+    domain = MeshSequence([mesh0, mesh0])
+    f = Coefficient(FunctionSpace(domain, elem), count=1001)
+    expr = CellVolume(mesh0) * f[0]
+    assert extract_domains(expr, expand_mesh_sequence=False) == (domain,)
+    assert extract_domains(expr) == (mesh0,)
 
 
 def test_mixed_function_space_with_mesh_sequence_hash():

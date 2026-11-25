@@ -8,12 +8,16 @@ from ufl import (
     Mesh,
     SpatialCoordinate,
     as_tensor,
+    dS,
+    dx,
     grad,
     i,
     triangle,
 )
+from ufl.algorithms import validate_form
 from ufl.algorithms.apply_restrictions import apply_restrictions
 from ufl.algorithms.renumbering import renumber_indices
+from ufl.core.interpolate import Interpolate
 from ufl.pullback import identity_pullback
 from ufl.sobolevspace import L2
 
@@ -46,6 +50,13 @@ def test_apply_restrictions():
     # provided otherwise the user choice is respected
     assert apply_restrictions(f, default_restrictions={domain: "+"}) == f("+")
     assert apply_restrictions(f("-"), default_restrictions={domain: "+"}) == f("-")
+    interpolation = Interpolate(f, v2_space)
+    assert apply_restrictions(interpolation, default_restrictions={domain: "+"}) == interpolation(
+        "+"
+    )
+    discontinuous_interpolation = Interpolate(f, v0_space)
+    with pytest.raises(BaseException):
+        apply_restrictions(discontinuous_interpolation, default_restrictions={domain: "+"})
     assert apply_restrictions(f("+"), default_restrictions={domain: "+"}) == f("+")
 
     # Propagation to terminals
@@ -72,3 +83,14 @@ def test_apply_restrictions():
     # This would be nicer, but -f is translated to -1*f which is
     # translated to as_tensor(-1*f[i], i). assert
     # apply_restrictions(n('-'), default_restrictions={domain: '+'}) == -n('+')
+
+
+def test_validate_form_restricted_integrand():
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(FunctionSpace(domain, LagrangeElement(triangle, 1)))
+
+    validate_form(u("+") * dS)
+    with pytest.raises(ValueError, match="only allowed for interior facet integrals"):
+        validate_form(u("+") * dx)
+    with pytest.raises(ValueError, match="must be restricted in interior facet integrals"):
+        validate_form(u * dS)
