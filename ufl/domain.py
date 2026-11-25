@@ -451,7 +451,7 @@ def extract_unique_domain(
 ) -> AbstractDomain | None:
     """Return the single unique domain expression is defined on or throw an error.
 
-    A base form operator that has a function space is defined on its domain.
+    Use a base form operator's function space when present and its operands otherwise.
 
     Args:
         expr: UFL-expression or form to extract domain from.

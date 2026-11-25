@@ -23,7 +23,6 @@ from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_function_pullbacks import (
     apply_function_pullbacks,
-    apply_interpolate_pullbacks,
     apply_inverse_pullback,
 )
 from ufl.algorithms.cancel_jacobian_products import cancel_jacobian_products
@@ -591,7 +590,7 @@ def test_apply_inverse_pullback_checks_shapes():
         apply_inverse_pullback(g, element, domain)
 
 
-def test_apply_interpolate_pullbacks():
+def test_interpolate_pullbacks():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
     element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
@@ -600,12 +599,12 @@ def test_apply_interpolate_pullbacks():
     f = Coefficient(W)
 
     expr = Interpolate(f, V)
-    r = apply_interpolate_pullbacks(expr)
+    r = apply_function_pullbacks(expr)
     (interpolation,) = extract_type(r, Interpolate)
     # The interpolation is evaluated on the reference cell of its target
     # element, and its result pulled back for the expression that holds it.
     assert renumber_indices(interpolation.ufl_operands[0]) == renumber_indices(
-        apply_inverse_pullback(f, element, domain)
+        apply_inverse_pullback(ReferenceValue(f), element, domain)
     )
     assert renumber_indices(r) == renumber_indices(
         element.pullback.apply(ReferenceValue(interpolation), domain)
@@ -615,16 +614,17 @@ def test_apply_interpolate_pullbacks():
     assert r.ufl_shape == expr.ufl_shape
 
 
-def test_apply_interpolate_pullbacks_identity_pullback():
+def test_interpolate_pullbacks_identity_pullback():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
     W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
     f = Coefficient(W)
     # Nothing to map: the interpolation is only taken to its reference value.
-    assert apply_interpolate_pullbacks(Interpolate(f, W)) == ReferenceValue(Interpolate(f, W))
+    expected = ReferenceValue(Interpolate(ReferenceValue(f), W))
+    assert apply_function_pullbacks(Interpolate(f, W)) == expected
 
 
-def test_apply_interpolate_pullbacks_nested():
+def test_interpolate_pullbacks_nested():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
     element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
@@ -632,7 +632,7 @@ def test_apply_interpolate_pullbacks_nested():
     W = FunctionSpace(domain, LagrangeElement(cell, 2, (2,)))
     f = Coefficient(W)
 
-    r = apply_interpolate_pullbacks(Interpolate(Interpolate(f, W), V))
+    r = apply_function_pullbacks(Interpolate(Interpolate(f, W), V))
     interpolations = extract_type(r, Interpolate)
     assert len(interpolations) == 2
     for interpolation in interpolations:
@@ -640,7 +640,7 @@ def test_apply_interpolate_pullbacks_nested():
         assert operand.ufl_shape == interpolation.ufl_element().reference_value_shape
 
 
-def test_apply_interpolate_pullbacks_in_a_form():
+def test_interpolate_pullbacks_in_a_form():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
     element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
@@ -650,7 +650,7 @@ def test_apply_interpolate_pullbacks_in_a_form():
     v = TestFunction(V)
 
     form = inner(Interpolate(f, V), v) * dx
-    r = apply_interpolate_pullbacks(form)
+    r = apply_function_pullbacks(form)
     assert r.arguments() == form.arguments()
     (integrand,) = (itg.integrand() for itg in r.integrals())
     (interpolation,) = extract_type(integrand, Interpolate)
@@ -660,7 +660,7 @@ def test_apply_interpolate_pullbacks_in_a_form():
     compute_form_data(form, do_apply_function_pullbacks=True, do_apply_geometry_lowering=True)
 
 
-def test_apply_interpolate_pullbacks_after_derivatives():
+def test_interpolate_pullbacks_after_derivatives():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
     element = FiniteElement("Raviart-Thomas", cell, 1, (2,), contravariant_piola, HDiv)
@@ -679,12 +679,12 @@ def test_apply_interpolate_pullbacks_after_derivatives():
     assert len(fd.preprocessed_form.arguments()) == 2
 
 
-def test_apply_interpolate_pullbacks_reuses_untouched_expressions():
+def test_interpolate_pullbacks_reuses_untouched_expressions():
     cell = triangle
     domain = Mesh(LagrangeElement(cell, 1, (2,)))
-    f = Coefficient(FunctionSpace(domain, LagrangeElement(cell, 2)))
-    expr = inner(grad(f), grad(f))
-    assert apply_interpolate_pullbacks(expr) is expr
+    x = SpatialCoordinate(domain)
+    expr = inner(grad(x), grad(x))
+    assert apply_function_pullbacks(expr) is expr
 
 
 def test_apply_function_pullbacks_in_a_form():

@@ -27,16 +27,20 @@ from ufl import (
     action,
     adjoint,
     conj,
+    cos,
     derivative,
+    diff,
     dx,
     exp,
     grad,
     inner,
     replace,
+    sin,
     split,
     tetrahedron,
     tr,
     triangle,
+    variable,
 )
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.analysis import (
@@ -50,7 +54,6 @@ from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
 from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_function_pullbacks import (
     apply_function_pullbacks,
-    apply_interpolate_pullbacks,
 )
 from ufl.algorithms.balancing import balance_modifiers
 from ufl.algorithms.compute_form_data import compute_form_data
@@ -119,7 +122,7 @@ def test_signature_of_form_with_operator_derivative(domain_2d):
 
 def test_balance_modifiers_of_pulled_back_interpolate(V1, V2):
     u = Coefficient(V1)
-    expr = apply_interpolate_pullbacks(apply_function_pullbacks(grad(Interpolate(u**2, V2))[0]))
+    expr = apply_function_pullbacks(grad(Interpolate(u**2, V2))[0])
     assert balance_modifiers(expr) == expr
 
 
@@ -902,6 +905,12 @@ def test_second_derivative(V1, V2, max_rank):
     d2Rdu2 = expand_derivatives(derivative(derivative(R, u), u))
     d2JRdu2 = expand_derivatives(derivative(derivative(J + R, u), u))
     assert d2JRdu2 == d2Jdu2 + d2Rdu2
+
+
+def test_diff_through_interpolate(V1, V2):
+    z = variable(Coefficient(V1))
+
+    assert expand_derivatives(diff(Interpolate(sin(z), V2), z)) == Interpolate(cos(z), V2)
 
 
 def test_derivative_keeps_interpolate(V1, V2):

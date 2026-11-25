@@ -30,11 +30,14 @@ from ufl import (
     indices,
     inner,
     interval,
+    lhs,
+    rhs,
     system,
     triangle,
 )
 from ufl.algorithms import compute_form_data
 from ufl.algorithms.formtransformations import compute_form_arities
+from ufl.form import ZeroBaseForm
 
 
 def test_lhs_rhs_simple():
@@ -214,6 +217,27 @@ def test_lhs_rhs_derivatives():
 
     derivative(F0, f)
     a, L = system(F0)
+
+
+def test_lhs_rhs_zero_base_form():
+    V = LagrangeElement(interval, 1)
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, V)
+    v = TestFunction(space)
+    u = TrialFunction(space)
+
+    zero = ZeroBaseForm((v, u))
+    assert lhs(zero) == zero
+    assert rhs(zero) == ZeroBaseForm((v,))
+    a, L = system(zero)
+    assert a == zero
+    assert L == ZeroBaseForm((v,))
+
+    # A form whose derivative vanishes expands to a ZeroBaseForm inside lhs and rhs
+    f = Coefficient(space)
+    F = v * dx
+    assert lhs(derivative(F, f, u)) == zero
+    assert rhs(derivative(F, f, u)) == ZeroBaseForm((v,))
 
 
 def test_lhs_rhs_slightly_obscure():
