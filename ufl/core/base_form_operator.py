@@ -261,7 +261,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
         Applying a derivative to its directions leaves the output shape unchanged,
         independently of the shapes and numbers of the slot arguments.
         """
-        return self._function_space.value_shape
+        function_space = self.ufl_function_space()
+        return function_space.value_shape if function_space is not None else None
 
     def ufl_function_space(self):
         """Return the function space associated with the operator's free arguments.
