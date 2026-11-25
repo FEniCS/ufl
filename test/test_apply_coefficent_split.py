@@ -1,3 +1,4 @@
+import pytest
 from utils import LagrangeElement, MixedElement
 
 from ufl import (
@@ -15,6 +16,7 @@ from ufl.classes import (
     Interpolate,
     ListTensor,
     PositiveRestricted,
+    Product,
     ReferenceGrad,
     ReferenceValue,
 )
@@ -76,6 +78,27 @@ def test_interpolate_is_terminal_modifier_boundary():
     expr = PositiveRestricted(ReferenceGrad(ReferenceValue(interpolation)))
 
     assert apply_coefficient_split(expr, {}) == expr
+
+
+def test_terminal_modifier_operand():
+    cell = triangle
+    mesh = Mesh(LagrangeElement(cell, 1, (2,)))
+    elem0 = LagrangeElement(cell, 1)
+    elem1 = LagrangeElement(cell, 2)
+    V0 = FunctionSpace(mesh, elem0)
+    V1 = FunctionSpace(mesh, elem1)
+    V = FunctionSpace(mesh, MixedElement([elem0, elem1]))
+    # A non-empty split, so that the expressions are traversed.
+    coefficient_split = {Coefficient(V): (Coefficient(V0), Coefficient(V1))}
+
+    # An Interpolate is a finite element terminal.
+    expr = PositiveRestricted(ReferenceGrad(ReferenceValue(Interpolate(Coefficient(V1), V1))))
+    assert apply_coefficient_split(expr, coefficient_split) == expr
+
+    # A terminal modifier of a general operator is not a modified terminal.
+    g = ReferenceValue(Coefficient(V1))
+    with pytest.raises(ValueError, match="Must be a terminal or a terminal modifier"):
+        apply_coefficient_split(ReferenceGrad(Product(g, g)), coefficient_split)
 
 
 def test_derivative_zero_simplication():

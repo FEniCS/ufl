@@ -3,6 +3,7 @@ __authors__ = "Marie E. Rognes"
 # First added: 2011-11-09
 # Last changed: 2011-11-09
 
+import pytest
 from utils import LagrangeElement
 
 from ufl import (
@@ -11,20 +12,32 @@ from ufl import (
     Constant,
     FunctionSpace,
     Mesh,
+    MixedFunctionSpace,
+    SpatialCoordinate,
     TestFunction,
+    TestFunctions,
     TrialFunction,
+    TrialFunctions,
     action,
+    conditional,
     derivative,
     dS,
     ds,
     dx,
     exp,
+    extract_blocks,
+    grad,
+    indices,
+    inner,
     interval,
     lhs,
     rhs,
     system,
+    triangle,
 )
 from ufl.form import ZeroBaseForm
+from ufl.algorithms import compute_form_data
+from ufl.algorithms.formtransformations import compute_form_arities
 
 
 def test_lhs_rhs_simple():
@@ -54,6 +67,139 @@ def test_lhs_rhs_simple():
     F3 = action(F2, f)
     a, L = system(F3)
     assert len(L.integrals()) == 1
+
+
+@pytest.mark.parametrize(
+    "weights", [(1, 1, 2, 2), (0, 0, 2, 2), (1, 1, 0, 0), (1, 1, 0, 2), (0, 1, 2, 2)]
+)
+def test_lhs_rhs_conditional(weights):
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 1))
+    u, v, f = TrialFunction(space), TestFunction(space), Coefficient(space)
+    x = SpatialCoordinate(domain)
+    ut, ft, uf, ff = weights
+    F = conditional(x[0] > 0, ut * u - ft * f, uf * u - ff * f) * v * dx
+
+    a, L = system(F)
+    assert a == conditional(x[0] > 0, ut * u, uf * u) * v * dx
+    # rhs negates outside the conditional, so compare L by value
+    mapping = {u: 2, v: 3, f: 5}
+    for coordinate, f_weight in [(1, ft), (-1, ff)]:
+        assert sum(i.integrand()((coordinate,), mapping) for i in L.integrals()) == 15 * f_weight
+
+
+def test_lhs_rhs_conditional_different_arguments_raises():
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 1))
+    v, u, w = TestFunction(space), TrialFunction(space), Argument(space, 2)
+    x = SpatialCoordinate(domain)
+
+    with pytest.raises(ValueError, match="conditionals with different Arguments"):
+        compute_form_arities(conditional(x[0] > 0, u, w) * v * dx)
+
+
+def test_lhs_rhs_conditional_condition_with_argument_raises():
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 1))
+    u, v, f = TrialFunction(space), TestFunction(space), Coefficient(space)
+
+    with pytest.raises(ValueError, match="Condition cannot depend on form arguments"):
+        system(conditional(u > 0, f, 2 * f) * v * dx)
+
+
+@pytest.mark.parametrize("kind", ["vector", "free_index", "restricted"])
+def test_lhs_rhs_conditional_splits(kind):
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 1))
+    u, v, f = TrialFunction(space), TestFunction(space), Coefficient(space)
+    x = SpatialCoordinate(domain)
+    c = x[0] > 0
+    (i,) = indices(1)
+    F = {
+        # The zero branch must match the shape and free indices of the conditional
+        "vector": inner(conditional(c, grad(u), grad(f)), grad(v)) * dx,
+        "free_index": conditional(c, u.dx(i), f.dx(i)) * v.dx(i) * dx,
+        "restricted": conditional(x[0]("+") > 0, u("+") - f("+"), 0) * v("+") * dS,
+    }[kind]
+
+    a, L = system(F)
+    assert compute_form_arities(F) == {1, 2}
+    assert compute_form_arities(a) == {2}
+    assert compute_form_arities(L) == {1}
+    compute_form_data(a)
+    compute_form_data(L)
+
+
+@pytest.mark.parametrize("inner_branch", ["true", "false"])
+def test_lhs_rhs_conditional_nested(inner_branch):
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 1))
+    u, v, f = TrialFunction(space), TestFunction(space), Coefficient(space)
+    x = SpatialCoordinate(domain)
+    c, d = x[0] > 0, x[0] > 0.5
+    if inner_branch == "true":
+        F = conditional(c, conditional(d, u - f, 3 * u), 2 * f) * v * dx
+        expected_a = conditional(c, conditional(d, u, 3 * u), 0) * v * dx
+    else:
+        F = conditional(c, u - f, conditional(d, 2 * f, 4 * u)) * v * dx
+        expected_a = conditional(c, u, conditional(d, 0, 4 * u)) * v * dx
+
+    a, L = system(F)
+    assert a == expected_a
+    mapping = {u: 2, v: 3, f: 5}
+    for coordinate in [(1,), (0.25,), (-1,)]:
+        F_value, a_value, L_value = (
+            sum(i.integrand()(coordinate, mapping) for i in form.integrals()) for form in (F, a, L)
+        )
+        assert a_value - L_value == F_value
+
+
+def test_lhs_rhs_conditional_derivative_term():
+    domain = Mesh(LagrangeElement(interval, 1, (1,)))
+    space = FunctionSpace(domain, LagrangeElement(interval, 2))
+    u, v, f = TrialFunction(space), TestFunction(space), Coefficient(space)
+    c = SpatialCoordinate(domain)[0] > 0
+
+    # Both rank-one terms of a branch are kept, the rank-zero term goes to L
+    a, L = system(conditional(c, u + 2 * grad(u)[0] - f, 3 * u - 2 * f) * v * dx)
+    assert a == conditional(c, u + 2 * grad(u)[0], 3 * u) * v * dx
+    mapping = {v: 3, f: 5}
+    for coordinate, L_value in [(1, 15), (-1, 30)]:
+        assert sum(i.integrand()((coordinate,), mapping) for i in L.integrals()) == L_value
+
+
+@pytest.mark.parametrize("branches", ["velocity_pressure_and_velocity", "velocity_and_pressure"])
+def test_lhs_rhs_conditional_mixed_function_space(branches):
+    domain = Mesh(LagrangeElement(triangle, 1, (2,)))
+    V = FunctionSpace(domain, LagrangeElement(triangle, 2, (2,)))
+    Q = FunctionSpace(domain, LagrangeElement(triangle, 1))
+    W = MixedFunctionSpace(V, Q)
+    u, p = TrialFunctions(W)
+    v, _ = TestFunctions(W)
+    f = Coefficient(Q)
+    c = SpatialCoordinate(domain)[0] > 0
+    if branches == "velocity_pressure_and_velocity":
+        F = conditional(c, u[0] + p - f, 2 * u[0] - f) * v[0] * dx
+        expected_uu = conditional(c, u[0], 2 * u[0]) * v[0] * dx
+        expected_up = conditional(c, p, 0) * v[0] * dx
+    else:
+        F = conditional(c, u[0] - f, p) * v[0] * dx
+        expected_uu = conditional(c, u[0], 0) * v[0] * dx
+        expected_up = conditional(c, 0, p) * v[0] * dx
+
+    # A branch without the trial function of a block is zero in that block
+    a, L = system(F)
+    (a_uu, a_up), (a_pu, a_pp) = extract_blocks(a)
+    assert a_uu == expected_uu
+    assert a_up == expected_up
+    assert a_pu is None and a_pp is None
+
+    mapping = {u: (2, 4), p: 7, v: (3, 1), f: 5}
+    for coordinate in [(1, 0), (-1, 0)]:
+        F_value, a_value, L_value = (
+            sum(i.integrand()(coordinate, mapping) for i in form.integrals()) for form in (F, a, L)
+        )
+        assert a_value - L_value == F_value
 
 
 def test_lhs_rhs_derivatives():

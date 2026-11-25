@@ -57,6 +57,7 @@ from ufl import (
 )
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.restructure_base_form import restructure_base_form
+from ufl.argument import BaseArgument
 from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
@@ -760,6 +761,30 @@ def test_restructure_interp_hessian(V1, V2, max_rank):
     d2Jdu2 = derivative(derivative(J, u), u)
     assert hessian == restructure_base_form(d2Jdu2, max_composed_rank=max_rank)
     _assembly_cost(hessian)
+
+
+def test_restructure_external_operator_output_argument(V1):
+    class FieldArgument(Argument):
+        """An argument supplied by the backend of the output space."""
+
+    class FieldCoargument(Coargument):
+        """The dual argument paired with a FieldArgument."""
+
+        # Coargument.equals checks for the exact UFL type, so an instance of
+        # this subclass would otherwise compare unequal to itself.
+        equals = BaseArgument.__eq__
+
+        def arguments(self):
+            return (self, FieldArgument(self.ufl_function_space().dual(), 0))
+
+    parameters = Coefficient(FunctionSpace(None, V1.ufl_element()))
+    output = FieldCoargument(V1.dual(), 0)
+    N = ExternalOperator(Coefficient(V1), parameters, function_space=V1, argument_slots=(output,))
+    dJ = restructure_base_form(derivative(inner(1, N) * dx, parameters))
+
+    field_form, direction = dJ.argument_slots()
+    assert field_form.arguments() == (FieldArgument(V1, 0),)
+    assert direction == TestFunction(parameters.ufl_function_space())
 
 
 def test_restructure_external_operator_form_without_argument_0(V1, V2, V3, V4):
