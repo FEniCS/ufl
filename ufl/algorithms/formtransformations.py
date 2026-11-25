@@ -26,6 +26,7 @@ from ufl.constantvalue import Zero
 
 # All classes:
 from ufl.core.expr import ufl_err_str
+from ufl.form import ZeroBaseForm
 
 logger = logging.getLogger("ufl")
 
@@ -343,6 +344,10 @@ def compute_form_with_arity(form, arity, arguments=None):
 
     if len(arguments) < arity:
         return 0 * form
+
+    if isinstance(form, ZeroBaseForm):
+        # Mapping the integrands would map the arguments to Zero.
+        return ZeroBaseForm(tuple(arguments[:arity]))
 
     # Assuming that the form is not a sum of terms
     # that depend on different arguments, e.g. (u+v)*dx

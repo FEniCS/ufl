@@ -144,6 +144,15 @@ def test_form_empty(mass):
     assert Form([]).empty()
 
 
+def test_zero_base_form_compiler_interface(mass):
+    zero = ZeroBaseForm(mass.arguments())
+    assert zero.empty()
+    assert zero.integrals() == ()
+    assert zero.constants() == ()
+    assert zero.terminal_numbering() == {}
+    assert zero._cache == {}
+
+
 def test_form_integrals(mass, boundary_load):
     assert isinstance(mass.integrals(), tuple)
     assert len(mass.integrals()) == 1
