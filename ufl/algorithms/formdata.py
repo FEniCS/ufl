@@ -14,7 +14,7 @@ from itertools import chain
 from typing import Any
 
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
-from ufl.algorithms.apply_coefficient_split import CoefficientSplitter
+from ufl.algorithms.apply_coefficient_split import CoefficientSplitter, build_coefficient_split
 from ufl.algorithms.apply_restrictions import apply_restrictions, default_restriction_map
 from ufl.algorithms.check_arities import check_integrand_arity
 from ufl.algorithms.domain_analysis import IntegralData, reconstruct_form_from_integral_data
@@ -278,17 +278,11 @@ class FormData:
             # Split coefficients that are contained in ``coefficients_to_split``
             # into components, and store a dict in ``self`` that maps
             # each coefficient to its components.
-            coefficient_split = {}
-            for o in self.reduced_coefficients:
-                if o in coefficients_to_split:
-                    c = self.function_replace_map[o]
-                    mesh = extract_unique_domain(c, expand_mesh_sequence=False)
-                    elem = c.ufl_element()
-                    coefficient_split[c] = [
-                        Coefficient(FunctionSpace(m, e))
-                        for m, e in zip(mesh.iterable_like(elem), elem.sub_elements)  # type: ignore
-                    ]
-            self._coefficient_split = coefficient_split
+            self._coefficient_split = build_coefficient_split(
+                self.function_replace_map[o]
+                for o in self.reduced_coefficients
+                if o in coefficients_to_split
+            )
             coeff_splitter = CoefficientSplitter(self.coefficient_split)
             for itg_data in self.integral_data:
                 new_integrals = []

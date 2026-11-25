@@ -32,17 +32,10 @@ from ufl.conditional import (
     NotCondition,
     OrCondition,
 )
-from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl
-from ufl.differentiation import (
-    Curl,
-    Div,
-    Grad,
-    NablaDiv,
-    NablaGrad,
-    ReferenceGrad,
-    VariableDerivative,
-)
-from ufl.domain import extract_domains
+
+from ufl.constantvalue import ComplexValue, RealValue, Zero, as_ufl, zero
+from ufl.differentiation import Curl, Div, Grad, NablaDiv, NablaGrad, VariableDerivative
+from ufl.domain import extract_domains, extract_unique_domain
 from ufl.form import Form
 from ufl.geometry import FacetNormal, SpatialCoordinate
 from ufl.indexed import Indexed
@@ -280,7 +273,7 @@ def tr(A):
 
 
 def diag(A):
-    """Diagonal ranl-2 tensor.
+    """Diagonal rank-2 tensor.
 
     Take the diagonal part of rank 2 tensor A or make a diagonal rank 2
     tensor from a rank 1 tensor.
@@ -761,10 +754,14 @@ def exterior_derivative(f):
     """Take the exterior derivative of f.
 
     The exterior derivative uses the element Sobolev space to
-    determine whether id, grad, curl or div should be used.
+    determine whether zero, grad, curl or div should be used.
 
     Note that this uses the grad and div operators,
     as opposed to nabla_grad and nabla_div.
+
+    The exterior derivative on L2 is a Zero, which has no domain.
+    An integral of this result must use a measure that has a domain,
+    such as dx(mesh), or it must be added to other terms before integration.
     """
     # Extract the element from the input f
     if isinstance(f, Indexed):
@@ -798,20 +795,24 @@ def exterior_derivative(f):
         except Exception:
             raise ValueError(f"Unable to determine element from {f}")
 
-    domain = f.ufl_domain()
+    domain = extract_unique_domain(f)
 
     gdim = domain.geometric_dimension
     space = element.sobolev_space
 
     if space == sobolevspace.L2:
-        return f
-    elif space == sobolevspace.H1:
+        return zero(f.ufl_shape)
+    elif space == sobolevspace.H1 or space == sobolevspace.H2:
         if gdim == 1:
             return grad(f)[0]  # Special-case 1D vectors as scalars
         return grad(f)
-    elif space == sobolevspace.HCurl:
+    elif (
+        space == sobolevspace.HCurl
+        or space == sobolevspace.HGradCurl
+        or space == sobolevspace.H1Curl
+    ):
         return curl(f)
-    elif space == sobolevspace.HDiv:
+    elif space == sobolevspace.HDiv or space == sobolevspace.H1Div:
         return div(f)
     else:
         raise ValueError(f"Unable to determine exterior_derivative for element '{element!r}'")

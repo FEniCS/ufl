@@ -20,6 +20,12 @@ from ufl.utils.counted import Counted
 class Matrix(BaseForm, Counted):
     """An assemble linear operator between two function spaces."""
 
+    # Not an Expr, so this doesn't come from the ufl_type() decorator. A
+    # Matrix has no ufl_operands to descend into: it's a leaf whose domains
+    # and arguments are derived from its function spaces, so generic
+    # traversal (e.g. traverse_unique_terminals) should stop here.
+    _ufl_is_terminal_ = True
+
     __slots__ = (
         "_arguments",
         "_coefficients",
@@ -77,6 +83,12 @@ class Matrix(BaseForm, Counted):
         # Collect unique domains
         self._domains = join_domains([fs.ufl_domain() for fs in self._ufl_function_spaces])
 
+    def ufl_domains(self):
+        """Return all domains found in the base form."""
+        if self._domains is None:
+            self._analyze_domains()
+        return self._domains
+
     def __str__(self):
         """Format as a string."""
         count = str(self._count)
@@ -96,8 +108,8 @@ class Matrix(BaseForm, Counted):
         return self._hash
 
     def equals(self, other):
-        """Check equality."""
-        if type(other) is not Matrix:
+        """Compare the concrete type, count and function spaces."""
+        if type(other) is not type(self):
             return False
         if self is other:
             return True

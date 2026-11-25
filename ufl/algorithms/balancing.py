@@ -6,16 +6,20 @@
 #
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
+from functools import singledispatchmethod
+
 from ufl.classes import (
+    Expr,
     Grad,
     Indexed,
+    Interpolate,
     NegativeRestricted,
     PositiveRestricted,
     ReferenceGrad,
     ReferenceValue,
+    Terminal,
 )
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.dag_traverser import DAGTraverser
 
 modifier_precedence = {
     m._ufl_handler_name_: i
@@ -32,11 +36,16 @@ modifier_precedence = {
 }
 
 
+def _is_modifiable(expr):
+    """Check whether ``expr`` is a terminal or an interpolation, a field of its target space."""
+    return expr._ufl_is_terminal_ or isinstance(expr, Interpolate)
+
+
 def balance_modified_terminal(expr):
     """Balance modified terminal."""
     # NB! Assuming e.g. grad(cell_avg(expr)) does not occur,
     # i.e. it is simplified to 0 immediately.
-    if expr._ufl_is_terminal_:
+    if _is_modifiable(expr):
         return expr
 
     assert expr._ufl_is_terminal_modifier_
@@ -45,12 +54,12 @@ def balance_modified_terminal(expr):
 
     # Build list of modifier layers
     layers = [expr]
-    while not expr._ufl_is_terminal_:
+    while not _is_modifiable(expr):
         assert expr._ufl_is_terminal_modifier_
         expr = expr.ufl_operands[0]
         layers.append(expr)
     assert layers[-1] is expr
-    assert expr._ufl_is_terminal_
+    assert _is_modifiable(expr)
 
     # Apply modifiers in order
     layers = sorted(layers[:-1], key=lambda e: modifier_precedence[e._ufl_handler_name_])
@@ -62,29 +71,36 @@ def balance_modified_terminal(expr):
     return orig if expr == orig else expr
 
 
-class BalanceModifiers(MultiFunction):
+class BalanceModifiers(DAGTraverser):
     """Balance modifiers."""
 
-    def expr(self, expr, *ops):
-        """Apply to expr."""
-        return expr._ufl_expr_reconstruct_(*ops)
+    @singledispatchmethod
+    def process(self, o: Expr) -> Expr:
+        """Process an expression node."""
+        return super().process(o)
 
-    def terminal(self, expr):
+    @process.register(Expr)
+    @DAGTraverser.postorder
+    def _(self, o: Expr, *ops: Expr) -> Expr:
+        """Apply to an expression."""
+        return o._ufl_expr_reconstruct_(*ops)
+
+    @process.register(Terminal)
+    def _(self, expr: Terminal) -> Terminal:
         """Apply to terminal."""
         return expr
 
-    def _modifier(self, expr, *ops):
-        """Apply to _modifier."""
+    @process.register(ReferenceValue)
+    @process.register(ReferenceGrad)
+    @process.register(Grad)
+    @process.register(PositiveRestricted)
+    @process.register(NegativeRestricted)
+    @DAGTraverser.postorder
+    def _(self, expr: Expr, *ops: Expr) -> Expr:
+        """Apply to modifier."""
         return balance_modified_terminal(expr)
-
-    reference_value = _modifier
-    reference_grad = _modifier
-    grad = _modifier
-    positive_restricted = _modifier
-    negative_restricted = _modifier
 
 
 def balance_modifiers(expr):
     """Balance modifiers."""
-    mf = BalanceModifiers()
-    return map_expr_dag(mf, expr)
+    return BalanceModifiers()(expr)

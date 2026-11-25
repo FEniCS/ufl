@@ -116,8 +116,8 @@ from ufl.classes import (
     all_ufl_classes,
 )
 
-has_repr = set()
-has_dict = set()
+has_repr: set[str] = set()
+has_dict: set[str] = set()
 
 
 def _test_object(a, shape, free_indices):

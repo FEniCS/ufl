@@ -79,6 +79,7 @@ A very brief overview of the language contents follows:
     -HCurlDiv
     -H1Div
     -H1Curl
+    -HGradCurl
 
 
 * Pull backs::
@@ -443,6 +444,7 @@ from ufl.sobolevspace import (
     HDiv,
     HDivDiv,
     HEin,
+    HGradCurl,
     HInf,
 )
 from ufl.split_functions import split
@@ -501,6 +503,7 @@ __all__ = [
     "HDiv",
     "HDivDiv",
     "HEin",
+    "HGradCurl",
     "HInf",
     "Identity",
     "Index",
@@ -622,7 +625,6 @@ __all__ = [
     "jump",
     "k",
     "l",
-    "l2_piola",
     "l2_piola",
     "le",
     "lhs",

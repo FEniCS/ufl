@@ -79,6 +79,8 @@ def test_complex(self):
     assert f4 == f5
     assert f6 + f7 == f2 + f3
     assert f4 == f8
+    # -2j has the real part -0.0, which is equal to 0.0 and must hash as it does.
+    assert hash(as_ufl(-2j)) == hash(as_ufl((2j).conjugate()))
 
 
 def test_scalar_sums(self):
@@ -154,3 +156,8 @@ def test_unit_dyads(self):
     self.assertEqual(as_matrix(((0, 1), (0, 0))), eij)
     self.assertEqual(as_matrix(((0, 0), (1, 0))), eji)
     self.assertEqual(as_matrix(((0, 0), (0, 1))), ejj)
+
+
+def test_complex_value_equals_python_complex():
+    assert ComplexValue(1 - 2j) == 1 - 2j
+    assert ComplexValue(1 - 2j) != 1 + 2j

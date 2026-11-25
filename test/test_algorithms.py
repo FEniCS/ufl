@@ -35,6 +35,9 @@ from ufl.algorithms import (
     extract_elements,
     extract_unique_elements,
 )
+from ufl.algorithms.analysis import has_exact_type
+from ufl.algorithms.apply_algebra_lowering import LowerCompoundAlgebra
+from ufl.classes import ComponentTensor, Derivative, Div
 from ufl.corealg.traversal import (
     post_traversal,
     pre_traversal,
@@ -194,4 +197,13 @@ def test_remove_component_tensors(domain):
 
     fd = compute_form_data(form, do_remove_component_tensors=True)
 
-    assert "ComponentTensor" not in repr(fd.preprocessed_form)
+    assert not has_exact_type(fd.preprocessed_form, ComponentTensor)
+
+
+@pytest.mark.parametrize("preserve_type", [Div, Derivative])
+def test_lower_algebra_preserves_selected_types(domain, preserve_type):
+    V = FunctionSpace(domain, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V)
+    expression = div(u)
+
+    assert LowerCompoundAlgebra(preserve_types=(preserve_type,))(expression) is expression

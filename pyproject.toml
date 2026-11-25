@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fenics-ufl"
-version = "2025.3.0.dev0"
+version = "2026.3.0.dev0"
 authors = [{ name = "UFL contributors" }]
 maintainers = [
     { email = "fenics-steering-council@googlegroups.com" },
@@ -17,7 +17,7 @@ description = "Unified Form Language"
 readme = "README.md"
 license = "LGPL-3.0-or-later"
 license-files = ["COPYING*"]
-requires-python = ">=3.10.0"
+requires-python = ">=3.11"
 dependencies = ["numpy"]
 
 [project.urls]
