@@ -6,21 +6,15 @@
 # SPDX-License-Identifier:    LGPL-3.0-or-later
 
 from ufl.constantvalue import ConstantValue
-from ufl.core.operator import Operator
+from ufl.core.operator import Operator, ShapeAndIndicesFromFirstOperand
 from ufl.core.ufl_type import ufl_type
 from ufl.precedence import parstr
 
 # --- Restriction operators ---
 
 
-@ufl_type(
-    is_abstract=True,
-    num_ops=1,
-    inherit_shape_from_operand=0,
-    inherit_indices_from_operand=0,
-    is_restriction=True,
-)
-class Restricted(Operator):
+@ufl_type
+class Restricted(ShapeAndIndicesFromFirstOperand, Operator):
     """Restriction."""
 
     __slots__ = ()
@@ -50,17 +44,19 @@ class Restricted(Operator):
         return f"{parstr(self.ufl_operands[0], self)}({self._side})"
 
 
-@ufl_type(is_terminal_modifier=True)
+@ufl_type
 class PositiveRestricted(Restricted):
     """Positive restriction."""
 
+    _ufl_is_terminal_modifier_ = True
     __slots__ = ()
     _side = "+"
 
 
-@ufl_type(is_terminal_modifier=True)
+@ufl_type
 class NegativeRestricted(Restricted):
     """Negative restriction."""
 
+    _ufl_is_terminal_modifier_ = True
     __slots__ = ()
     _side = "-"

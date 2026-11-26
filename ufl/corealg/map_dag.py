@@ -7,7 +7,7 @@
 #
 # Modified by Massimiliano Leoni, 2016
 
-from ufl.core.expr import Expr
+from ufl.core.ufl_type import registry
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_post_traversal
 
@@ -80,12 +80,15 @@ def map_expr_dags(function, expressions, compress=True, vcache=None, rcache=None
 
     # Build mapping typecode:bool, for which types to skip the subtree of
     if isinstance(function, MultiFunction):
+        if len(function._handlers) != len(registry):
+            # Types have been registered since the handlers were built
+            function._update_handlers()
         cutoff_types = function._is_cutoff_type
         handlers = function._handlers  # Optimization
     else:
         # Regular function: no skipping supported
-        cutoff_types = [False] * Expr._ufl_num_typecodes_
-        handlers = [function] * Expr._ufl_num_typecodes_
+        cutoff_types = [False] * len(registry)
+        handlers = [function] * len(registry)
 
     # Create visited set here to share between traversal calls
     visited = set()

@@ -28,6 +28,7 @@ from ufl.core.base_form_operator import (
     _split_dual_slot_arguments,
 )
 from ufl.core.expr import Expr
+from ufl.core.ufl_type import registry
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.corealg.traversal import cutoff_unique_post_traversal, unique_pre_traversal
 from ufl.differentiation import (
@@ -207,7 +208,7 @@ class BaseFormRestructurer(DAGTraverser):
         """
         if extract_type(o, CoefficientDerivative):
             return o
-        cutoff_types = _base_form_operator_types(len(Expr._ufl_all_classes_))
+        cutoff_types = _base_form_operator_types(len(registry))
         # Collect the outermost operators, with a traversal that stops at each operator.
         outermost = {
             e

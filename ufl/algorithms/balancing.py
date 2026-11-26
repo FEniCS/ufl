@@ -22,7 +22,7 @@ from ufl.classes import (
 from ufl.corealg.dag_traverser import DAGTraverser
 
 modifier_precedence = {
-    m._ufl_handler_name_: i
+    m._ufl_handler_name_: i  # type: ignore
     for i, m in enumerate(
         [
             ReferenceValue,

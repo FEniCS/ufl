@@ -79,7 +79,7 @@ class ArityChecker(DAGTraverser):
         for t in traverse_unique_terminals(o):
             if isinstance(t, Argument):
                 raise ArityMismatch(
-                    f"Applying nonlinear operator {o._ufl_class_.__name__} to "
+                    f"Applying nonlinear operator {type(o).__name__} to "
                     f"expression depending on form argument {t}."
                 )
         return self._et

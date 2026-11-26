@@ -68,7 +68,7 @@ def _number_contracted_argument(N, A, others):
     return replace(A, {contracted: contracted.reconstruct(number=number)})
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type
 class BaseFormOperator(Operator, BaseForm, Counted):
     """Base form operator ``N(u; v*, uhat)``.
 
@@ -105,9 +105,8 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     ufl_operands: tuple[Expr, ...]
 
-    # Slots are disabled here because they cause trouble in PyDOLFIN
-    # multiple inheritance pattern:
-    _ufl_noslots_ = True
+    # Slots are disabled here (no __slots__) because they cause trouble
+    # in the PyDOLFIN multiple inheritance pattern.
 
     def __init__(self, *operands, function_space, derivatives=None, argument_slots=()):
         """Initialise.

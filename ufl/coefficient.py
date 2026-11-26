@@ -13,7 +13,7 @@
 
 from ufl.argument import Argument
 from ufl.core.terminal import FormArgument
-from ufl.core.ufl_type import ufl_type
+from ufl.core.ufl_type import UFLType, ufl_type
 from ufl.duals import is_dual, is_primal
 from ufl.form import BaseForm
 from ufl.functionspace import AbstractFunctionSpace, MixedFunctionSpace
@@ -23,15 +23,13 @@ from ufl.utils.counted import Counted
 # --- The Coefficient class represents a coefficient in a form ---
 
 
-class BaseCoefficient(Counted):
+class BaseCoefficient(UFLType, Counted):
     """UFL form argument type: Parent Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN
     # multiple inheritance pattern:
     # __slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
-    _ufl_noslots_ = True
     __slots__ = ()
-    _ufl_is_abstract_ = True
 
     def __getnewargs__(self):
         """Get new args."""
@@ -101,7 +99,7 @@ class BaseCoefficient(Counted):
         return self._count == other._count and self._ufl_function_space == other._ufl_function_space
 
 
-@ufl_type()
+@ufl_type
 class Cofunction(BaseCoefficient, BaseForm):
     """UFL form argument type: Representation of a form coefficient from a dual space."""
 
@@ -160,11 +158,10 @@ class Cofunction(BaseCoefficient, BaseForm):
         self._coefficients = (self,)
 
 
-@ufl_type()
+@ufl_type
 class Coefficient(FormArgument, BaseCoefficient):
     """UFL form argument type: Representation of a form coefficient."""
 
-    _ufl_noslots_ = True
     _primal = True
     _dual = False
 

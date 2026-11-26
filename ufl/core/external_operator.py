@@ -17,13 +17,9 @@ from ufl.core.base_form_operator import BaseFormOperator
 from ufl.core.ufl_type import ufl_type
 
 
-@ufl_type(num_ops="varying", is_differential=True)
+@ufl_type
 class ExternalOperator(BaseFormOperator):
     """External operator."""
-
-    # Slots are disabled here because they cause trouble in PyDOLFIN
-    # multiple inheritance pattern:
-    _ufl_noslots_ = True
 
     def __init__(self, *operands, function_space, derivatives=None, argument_slots=()):
         """Initialise.
@@ -82,9 +78,7 @@ class ExternalOperator(BaseFormOperator):
 
     def assemble(self, *args, **kwargs):
         """Assemble the external operator."""
-        raise NotImplementedError(
-            f"Symbolic evaluation of {self._ufl_class_.__name__} not available."
-        )
+        raise NotImplementedError(f"Symbolic evaluation of {type(self).__name__} not available.")
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None, add_kwargs={}

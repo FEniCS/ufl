@@ -110,7 +110,7 @@ class Index(IndexBase, Counted):
         return f"Index({self._count})"
 
 
-@ufl_type()
+@ufl_type
 class MultiIndex(Terminal):
     """Represents a sequence of indices, either fixed or free."""
 

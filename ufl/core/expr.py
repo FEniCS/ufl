@@ -18,10 +18,12 @@ This is to avoid circular dependencies between ``Expr`` and its subclasses.
 
 import warnings
 
-from ufl.core.ufl_type import UFLObject, UFLType, update_ufl_type_attributes
+from ufl.core.compute_expr_hash import compute_expr_hash
+from ufl.core.ufl_type import UFLType, ufl_type
 
 
-class Expr(metaclass=UFLType):
+@ufl_type
+class Expr(UFLType):
     """Base class for all UFL expression types.
 
     *Instance properties*
@@ -58,35 +60,41 @@ class Expr(metaclass=UFLType):
 
         .. code-block:: python
 
-            @ufl_type()
+            @ufl_type
             class MyOperator(Operator):
                 pass
 
     *Type collections*
-        All ``Expr`` subclasses are collected by ``ufl_type`` in global
-        variables available via ``Expr``.
-
-    *Profiling*
-        Object creation statistics can be collected by doing
-
-        .. code-block:: python
-
-            Expr.ufl_enable_profiling()
-            # ... run some code
-            initstats, delstats = Expr.ufl_disable_profiling()
-
-        Giving a list of creation and deletion counts for each typecode.
+        Types registered by ``ufl_type`` are collected, indexed by typecode,
+        in ``ufl.core.ufl_type.registry``.
     """
 
-    # --- Each Expr subclass must define __slots__ or _ufl_noslots_ at
-    # --- the top ---
-    # This is to freeze member variables for objects of this class and
-    # save memory by skipping the per-instance dict.
+    ufl_operands: tuple["Expr", ...]
+    ufl_shape: tuple[int, ...]
+    ufl_free_indices: tuple[int, ...]
+    ufl_index_dimensions: tuple
 
+    _ufl_is_terminal_modifier_: bool = False
+    _ufl_is_in_reference_frame_: bool = False
+    # Whether the type is a literal constant; read by form compilers.
+    _ufl_is_literal_: bool = False
+
+    # Subclasses should define __slots__ to freeze their member variables
+    # and save memory by skipping the per-instance dict.
     __slots__ = ("__weakref__", "_hash")
-    # _ufl_noslots_ = True
 
     # --- Basic object behaviour ---
+
+    def __init_subclass__(cls, **kwargs):
+        """Keep every expression type hashable.
+
+        Python sets ``__hash__`` to ``None`` on a class that defines ``__eq__``
+        without ``__hash__``. Expressions must stay hashable, so restore the
+        expression hash. Customise hashing through ``_ufl_compute_hash_``.
+        """
+        super().__init_subclass__(**kwargs)
+        if cls.__dict__.get("__hash__", Expr.__hash__) is None:
+            cls.__hash__ = Expr.__hash__  # type: ignore[method-assign]
 
     def __getnewargs__(self):
         """Get newargs tuple.
@@ -102,149 +110,6 @@ class Expr(metaclass=UFLType):
     def __init__(self):
         """Initialise."""
         self._hash = None
-
-    # This shows the principal behaviour of the hash function attached
-    # in ufl_type:
-    # def __hash__(self):
-    #     if self._hash is None:
-    #         self._hash = self._ufl_compute_hash_()
-    #     return self._hash
-
-    # --- Type traits are added to subclasses by the ufl_type class
-    # --- decorator ---
-
-    # Note: Some of these are modified after the Expr class definition
-    # because Expr is not defined yet at this point.  Note: Boolean
-    # type traits that categorize types are mostly set to None for
-    # Expr but should be True or False for any non-abstract type.
-
-    # A reference to the UFL class itself.  This makes it possible to
-    # do type(f)._ufl_class_ and be sure you get the actual UFL class
-    # instead of a subclass from another library.
-    _ufl_class_: type = None  # type: ignore
-
-    # The handler name.  This is the name of the handler function you
-    # implement for this type in a multifunction.
-    _ufl_handler_name_ = "expr"
-
-    # Number of operands, "varying" for some types, or None if not
-    # applicable for abstract types.
-    _ufl_num_ops_ = None
-
-    # Type trait: If the type is a literal.
-    _ufl_is_literal_ = None
-
-    _ufl_is_terminal_: bool
-
-    # Type trait: If the type is classified as a 'terminal modifier',
-    # for form compiler use.
-    _ufl_is_terminal_modifier_ = None
-
-    # Type trait: If the type is a shaping operator.  Shaping
-    # operations include indexing, slicing, transposing, i.e. not
-    # introducing computation of a new value.
-    _ufl_is_shaping_ = False
-
-    # Type trait: If the type is in reference frame.
-    _ufl_is_in_reference_frame_ = None
-
-    # Type trait: If the type is a restriction to a geometric entity.
-    _ufl_is_restriction_ = None
-
-    # Type trait: If the type is evaluation in a particular way.
-    _ufl_is_evaluation_ = None
-
-    # Type trait: If the type is a differential operator.
-    _ufl_is_differential_ = None
-
-    # Type trait: If the type is purely scalar, having no shape or
-    # indices.
-    _ufl_is_scalar_ = None
-
-    # Type trait: If the type never has free indices.
-    _ufl_is_index_free_ = False
-
-    # --- All subclasses must define these object attributes ---
-
-    # Each subclass of Expr is checked to have these properties in
-    # ufl_type
-    _ufl_required_properties_ = (
-        # A tuple of operands, all of them Expr instances.
-        "ufl_operands",
-        # A tuple of ints, the value shape of the expression.
-        "ufl_shape",
-        # A tuple of free index counts.
-        "ufl_free_indices",
-        # A tuple providing the int dimension for each free index.
-        "ufl_index_dimensions",
-    )
-
-    ufl_operands: tuple["Expr", ...]
-    ufl_shape: tuple[int, ...]
-    _ufl_typecode_: int
-    ufl_free_indices: tuple[int, ...]
-
-    # Each subclass of Expr is checked to have these methods in
-    # ufl_type
-    # FIXME: Add more and enable all
-    _ufl_required_methods_: tuple[str, ...] = (
-        # To compute the hash on demand, this method is called.
-        "_ufl_compute_hash_",
-        # The data returned from this method is used to compute the
-        # signature of a form
-        "_ufl_signature_data_",
-        # The == operator must be implemented to compare for identical
-        # representation, used by set() and dict(). The __hash__
-        # operator is added by ufl_type.
-        "__eq__",
-        # To reconstruct an object of the same type with operands or
-        # properties changed.
-        "_ufl_expr_reconstruct_",  # Implemented in Operator and Terminal so this should never fail
-        "ufl_domains",
-        # "ufl_cell",
-        # "ufl_domain",
-        # "__str__",
-        # "__repr__",
-    )
-
-    # --- Global variables for collecting all types ---
-
-    # A global dict mapping language_operator_name to the type it
-    # produces
-    _ufl_language_operators_: dict[str, object] = {}
-
-    # List of all terminal modifier types
-    _ufl_terminal_modifiers_: list[UFLObject] = []
-
-    # --- Mechanism for profiling object creation and deletion ---
-
-    # Backup of default init and del
-    _ufl_regular__init__ = __init__
-
-    def _ufl_profiling__init__(self):
-        """Replacement constructor with object counting."""
-        Expr._ufl_regular__init__(self)
-        Expr._ufl_obj_init_counts_[self._ufl_typecode_] += 1
-
-    def _ufl_profiling__del__(self):
-        """Replacement destructor with object counting."""
-        Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
-
-    @staticmethod
-    def ufl_enable_profiling():
-        """Turn on the object counting mechanism and reset counts to zero."""
-        Expr.__init__ = Expr._ufl_profiling__init__
-        setattr(Expr, "__del__", Expr._ufl_profiling__del__)
-        for i in range(len(Expr._ufl_obj_init_counts_)):
-            Expr._ufl_obj_init_counts_[i] = 0
-            Expr._ufl_obj_del_counts_[i] = 0
-
-    @staticmethod
-    def ufl_disable_profiling():
-        """Turn off the object counting mechanism. Return object init and del counts."""
-        Expr.__init__ = Expr._ufl_regular__init__
-        delattr(Expr, "__del__")
-        return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
 
     # === Abstract functions that must be implemented by subclasses ===
 
@@ -280,7 +145,7 @@ class Expr(metaclass=UFLType):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        raise ValueError(f"Symbolic evaluation of {self._ufl_class_.__name__} not available.")
+        raise ValueError(f"Symbolic evaluation of {type(self).__name__} not available.")
 
     def _ufl_evaluate_scalar_(self):
         if self.ufl_shape or self.ufl_free_indices:
@@ -347,7 +212,7 @@ class Expr(metaclass=UFLType):
 
     def _ufl_err_str_(self):
         """Return a short string to represent this Expr in an error message."""
-        return f"<{self._ufl_class_.__name__} id={id(self)}>"
+        return f"<{type(self).__name__} id={id(self)}>"
 
     def _simplify_indexed(self, multiindex):
         """Return a simplified Expr used in the constructor of Indexed(self, multiindex)."""
@@ -362,6 +227,10 @@ class Expr(metaclass=UFLType):
         mathematically equal or equivalent! Used by sets and dicts.
         """
         raise NotImplementedError(self.__class__.__eq__)
+
+    def __hash__(self):
+        """Return hash."""
+        return compute_expr_hash(self)
 
     def __len__(self):
         """Length of expression. Used for iteration over vector expressions."""
@@ -485,15 +354,6 @@ class Expr(metaclass=UFLType):
     def __getitem__(self, index):
         """Get item."""
         pass
-
-
-# Initializing traits here because Expr is not defined in the class
-# declaration
-Expr._ufl_class_ = Expr  # type: ignore
-
-# Update Expr with metaclass properties (e.g. typecode or handler name)
-# Explicitly done here instead of using `@ufl_type` to avoid circular imports.
-update_ufl_type_attributes(Expr)
 
 
 def ufl_err_str(expr):

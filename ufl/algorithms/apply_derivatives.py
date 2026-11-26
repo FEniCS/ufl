@@ -73,6 +73,7 @@ from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
 from ufl.core.multiindex import FixedIndex, MultiIndex, indices
 from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import registry
 from ufl.corealg.dag_traverser import DAGTraverser
 from ufl.differentiation import (
     BaseFormCoordinateDerivative,
@@ -182,13 +183,11 @@ class GenericDerivativeRuleset(DAGTraverser):
 
     def unexpected(self, o):
         """Raise error about unexpected type."""
-        raise ValueError(f"Unexpected type {o._ufl_class_.__name__} in AD rules.")
+        raise ValueError(f"Unexpected type {type(o).__name__} in AD rules.")
 
     def override(self, o):
         """Raise error about overriding."""
-        raise ValueError(
-            f"Type {o._ufl_class_.__name__} must be overridden in specialized AD rule set."
-        )
+        raise ValueError(f"Type {type(o).__name__} must be overridden in specialized AD rule set.")
 
     # --- Some types just don't have any derivative, this is just to
     # --- make algorithm structure generic
@@ -230,7 +229,7 @@ class GenericDerivativeRuleset(DAGTraverser):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"Missing differentiation handler for type {o._ufl_class_.__name__}. "
+            f"Missing differentiation handler for type {type(o).__name__}. "
             "Have you added a new type?"
         )
 
@@ -238,8 +237,7 @@ class GenericDerivativeRuleset(DAGTraverser):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"Unhandled derivative type {o._ufl_class_.__name__}, "
-            "nested differentiation has failed."
+            f"Unhandled derivative type {type(o).__name__}, nested differentiation has failed."
         )
 
     @process.register(Label)
@@ -921,8 +919,8 @@ class GradRuleset(GenericDerivativeRuleset):
             if not f._ufl_is_in_reference_frame_:
                 raise RuntimeError("Expecting a reference frame type")
             while not f._ufl_is_terminal_:
-                (f,) = f.ufl_operands
-            element = f.ufl_function_space().ufl_element()
+                (f,) = f.ufl_operands  # type: ignore
+            element = f.ufl_function_space().ufl_element()  # type: ignore
             if element.num_sub_elements != len(domain):
                 raise RuntimeError(f"{element.num_sub_elements} != {len(domain)}")
             # Get monolithic representation of rgrad(o); o might live in a mixed space.
@@ -1288,7 +1286,7 @@ class VariableRuleset(GenericDerivativeRuleset):
     def _(self, o: Expr) -> Expr:
         """Raise error."""
         raise ValueError(
-            f"{o._ufl_class_.__name__} must be lowered to grads before variable differentiation."
+            f"{type(o).__name__} must be lowered to grads before variable differentiation."
         )
 
     @process.register(Derivative)
@@ -1300,13 +1298,11 @@ class VariableRuleset(GenericDerivativeRuleset):
         """
         if len(o.ufl_operands) != 1:
             raise ValueError(
-                f"Unhandled derivative type {o._ufl_class_.__name__}, "
-                "nested differentiation has failed."
+                f"Unhandled derivative type {type(o).__name__}, nested differentiation has failed."
             )
         if self._var_shape:
             raise ValueError(
-                f"Cannot differentiate {o._ufl_class_.__name__} "
-                "with respect to a non-scalar variable."
+                f"Cannot differentiate {type(o).__name__} with respect to a non-scalar variable."
             )
         (f,) = o.ufl_operands
         df = self(f)
@@ -2407,13 +2403,22 @@ def apply_coefficient_derivatives(expression: Expr | BaseForm) -> Expr | BaseFor
     Returns:
         The expression with coefficient and BaseForm derivatives expanded.
     """
+
+    def preserve(cls: type) -> bool:
+        return (
+            issubclass(cls, Derivative)
+            and not issubclass(cls, VariableDerivative)
+            and (
+                not issubclass(cls, CoefficientDerivative) or issubclass(cls, CoordinateDerivative)
+            )
+        )
+
+    classes = registry.classes
+    expanded = [cls for cls in classes if not preserve(cls)]
+    # A preserved type also preserves its subclasses, so leave out a base type, such as
+    # Derivative, that has a subclass to expand.
     preserve_types = tuple(
-        cls
-        for cls in Expr._ufl_all_classes_
-        if not cls._ufl_is_abstract_
-        and issubclass(cls, Derivative)
-        and not issubclass(cls, VariableDerivative)
-        and (not issubclass(cls, CoefficientDerivative) or issubclass(cls, CoordinateDerivative))
+        cls for cls in classes if preserve(cls) and not any(issubclass(e, cls) for e in expanded)
     )
     return _apply_derivative_rules(
         DerivativeRuleDispatcher(preserve_types=preserve_types), expression

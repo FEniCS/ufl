@@ -18,7 +18,7 @@ from ufl.form import BaseForm, ZeroBaseForm
 #     needs to be computed at assembly time ---
 
 
-@ufl_type()
+@ufl_type
 class Adjoint(BaseForm):
     """UFL base form type: represents the adjoint of an object.
 

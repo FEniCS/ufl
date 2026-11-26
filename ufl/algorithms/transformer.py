@@ -16,8 +16,8 @@ algorithms.
 import inspect
 
 from ufl.algorithms.map_integrands import map_integrands
-from ufl.classes import Variable, all_ufl_classes
-from ufl.core.ufl_type import UFLType
+from ufl.classes import Variable
+from ufl.core.ufl_type import registry, ufl_handler_names
 
 
 def is_post_handler(function):
@@ -42,27 +42,21 @@ class Transformer:
         if variable_cache is None:
             variable_cache = {}
         self._variable_cache = variable_cache
+        self._update_handlers()
+        # Keep a stack of objects visit is called on, to ease
+        # backtracking
+        self._visit_stack = []
 
-        # Analyse class properties and cache handler data the
-        # first time this is run for a particular class
+    def _update_handlers(self):
+        """Build the handler table, indexed by typecode, for all registered types."""
+        # The handler data is cached for each transformer class, and rebuilt
+        # when types have been registered since
         cache_data = Transformer._handlers_cache.get(type(self))
-        if not cache_data:
-            cache_data = [None] * len(all_ufl_classes)
-            # For all UFL classes
-            for classobject in all_ufl_classes:
-                # Iterate over the inheritance chain
-                # (NB! This assumes that all UFL classes inherits a single
-                # Expr subclass and that this is the first superclass!)
-                for c in classobject.mro():
-                    # Register classobject with handler for the first
-                    # encountered superclass
-                    try:
-                        handler_name = c._ufl_handler_name_
-                    except AttributeError as attribute_error:
-                        if type(classobject) is not UFLType:
-                            raise attribute_error
-                        # Default handler name for UFL types
-                        handler_name = UFLType._ufl_handler_name_
+        if cache_data is None or len(cache_data) != len(registry):
+            cache_data = [None] * len(registry)
+            # Use the handler of the closest registered type in the MRO
+            for classobject in registry.classes:
+                for handler_name in ufl_handler_names(classobject):
                     function = getattr(self, handler_name, None)
                     if function:
                         cache_data[classobject._ufl_typecode_] = (
@@ -75,9 +69,6 @@ class Transformer:
         # Build handler list for this particular class (get functions
         # bound to self)
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
-        # Keep a stack of objects visit is called on, to ease
-        # backtracking
-        self._visit_stack = []
 
     def print_visit_stack(self):
         """Print visit stack."""
@@ -100,7 +91,12 @@ class Transformer:
 
         # Get handler for the UFL class of o (type(o) may be an
         # external subclass of the actual UFL class)
-        h, visit_children_first = self._handlers[o._ufl_typecode_]
+        try:
+            h, visit_children_first = self._handlers[o._ufl_typecode_]
+        except IndexError:
+            # A type registered after this table was built
+            self._update_handlers()
+            h, visit_children_first = self._handlers[o._ufl_typecode_]
 
         # Is this a handler that expects transformed children as
         # input?
@@ -118,7 +114,7 @@ class Transformer:
 
     def undefined(self, o):
         """Trigger error."""
-        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
+        raise ValueError(f"No handler defined for {type(o).__name__}.")
 
     def reuse(self, o):
         """Reuse Expr (ignore children)."""

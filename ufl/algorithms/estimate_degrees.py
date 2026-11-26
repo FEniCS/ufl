@@ -74,7 +74,7 @@ class SumDegreeEstimator(DAGTraverser):
 
     def _not_handled(self, v, *args):
         """Apply to _not_handled."""
-        raise ValueError(f"Missing degree handler for type {v._ufl_class_.__name__}")
+        raise ValueError(f"Missing degree handler for type {type(v).__name__}")
 
     # --- Default rule for operators without a specific handler
 
@@ -90,7 +90,7 @@ class SumDegreeEstimator(DAGTraverser):
 
         For most operators we take the max degree of its operands.
         """
-        warnings.warn(f"Missing degree estimation handler for type {o._ufl_class_.__name__}")
+        warnings.warn(f"Missing degree estimation handler for type {type(o).__name__}")
         return self._add_degrees(o, *ops)
 
     # --- Terminals; these are cutoff rules, i.e. they have no operands to

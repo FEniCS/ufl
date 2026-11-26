@@ -9,8 +9,7 @@
 
 from inspect import signature
 
-from ufl.core.expr import Expr
-from ufl.core.ufl_type import UFLType
+from ufl.core.ufl_type import registry, ufl_handler_names
 
 
 def get_num_args(function):
@@ -50,30 +49,23 @@ class MultiFunction:
 
     def __init__(self):
         """Initialise."""
-        # Analyse class properties and cache handler data the
-        # first time this is run for a particular class
-        # (cached for each algorithm for performance)
+        self._update_handlers()
+
+        # Create cache for memoized_handler
+        self._memoized_handler_cache = {}
+
+    def _update_handlers(self):
+        """Build the handler table, indexed by typecode, for all registered types."""
+        # The handler names are cached for each algorithm class, and rebuilt
+        # when types have been registered since
         algorithm_class = type(self)
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
-        if not cache_data:
-            handler_names = [None] * len(Expr._ufl_all_classes_)
+        if cache_data is None or len(cache_data[0]) != len(registry):
+            handler_names = [None] * len(registry)
 
-            # Iterate over the inheritance chain for each Expr
-            # subclass (NB! This assumes that all UFL classes inherits
-            # from a single Expr subclass and that the first
-            # superclass is always from the UFL Expr hierarchy!)
-            for classobject in Expr._ufl_all_classes_:
-                for c in classobject.mro():
-                    # Register classobject with handler for the first
-                    # encountered superclass
-                    try:
-                        handler_name = c._ufl_handler_name_
-                    except AttributeError as attribute_error:
-                        if type(classobject) is not UFLType:
-                            raise attribute_error
-                        # Default handler name for UFL types
-                        handler_name = UFLType._ufl_handler_name_
-
+            # Use the handler of the closest registered type in the MRO
+            for classobject in registry.classes:
+                for handler_name in ufl_handler_names(classobject):
                     if hasattr(self, handler_name):
                         handler_names[classobject._ufl_typecode_] = handler_name
                         break
@@ -87,16 +79,19 @@ class MultiFunction:
         self._handlers = [getattr(self, name) for name in handler_names]
         self._is_cutoff_type = is_cutoff_type
 
-        # Create cache for memoized_handler
-        self._memoized_handler_cache = {}
-
     def __call__(self, o, *args):
         """Delegate to handler function based on typecode of first argument."""
-        return self._handlers[o._ufl_typecode_](o, *args)
+        try:
+            handler = self._handlers[o._ufl_typecode_]
+        except IndexError:
+            # A type registered after this table was built
+            self._update_handlers()
+            handler = self._handlers[o._ufl_typecode_]
+        return handler(o, *args)
 
     def undefined(self, o, *args):
         """Trigger error for types with missing handlers."""
-        raise ValueError(f"No handler defined for {o._ufl_class_.__name__}.")
+        raise ValueError(f"No handler defined for {type(o).__name__}.")
 
     def reuse_if_untouched(self, o, *ops):
         """Reuse object if operands are the same objects.

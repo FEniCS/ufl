@@ -1423,11 +1423,9 @@ def test_operator_subclass_registered_later_is_checked_by_its_space(domain_2d, V
     c = Constant(domain_2d)
     assert is_scalar_constant_expression(c)
 
-    @ufl_type()
+    @ufl_type
     class LateOperator(ExternalOperator):
         """An operator type registered after the first constant check."""
-
-        _ufl_noslots_ = True
 
     real_space = FunctionSpace(domain_2d, RealElement(triangle))
     assert not is_scalar_constant_expression(LateOperator(c, function_space=V2))

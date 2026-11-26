@@ -147,7 +147,7 @@ class ChangeToReferenceGrad(DAGTraverser):
                 rv = True
                 (current,) = current.ufl_operands
             else:
-                raise ValueError(f"Invalid type {current._ufl_class_.__name__}")
+                raise ValueError(f"Invalid type {type(current).__name__}")
         f = current
         if rv:
             assert isinstance(current, ufl.classes.FormArgument | ufl.classes.Interpolate)

@@ -36,7 +36,7 @@ def format_float(x):
 # --- Base classes for constant types ---
 
 
-@ufl_type(is_abstract=True)
+@ufl_type
 class ConstantValue(Terminal):
     """Constant value."""
 
@@ -56,13 +56,14 @@ class ConstantValue(Terminal):
 
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?
-@ufl_type(is_literal=True)
+@ufl_type
 class Zero(ConstantValue):
     """Representation of a zero valued expression.
 
     Class for representing zero tensors of different shapes.
     """
 
+    _ufl_is_literal_ = True
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions", "ufl_shape")
 
     _cache: dict[tuple[int], "Zero"] = {}
@@ -199,10 +200,13 @@ def zero(*shape):
 # --- Scalar value types ---
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type
 class ScalarValue(ConstantValue):
     """A constant scalar value."""
 
+    ufl_shape = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
     __slots__ = ("_value",)
 
     def __init__(self, value):
@@ -230,7 +234,7 @@ class ScalarValue(ConstantValue):
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict.
         """
-        if isinstance(other, self._ufl_class_):
+        if isinstance(other, type(self)):
             return self._value == other._value
         elif isinstance(other, int | float | complex):
             # FIXME: Disallow this, require explicit 'expr ==
@@ -276,10 +280,11 @@ class ScalarValue(ConstantValue):
         return self._value.imag
 
 
-@ufl_type(wraps_type=complex, is_literal=True)
+@ufl_type
 class ComplexValue(ScalarValue):
     """Representation of a constant, complex scalar."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -322,17 +327,18 @@ class ComplexValue(ScalarValue):
         raise TypeError("ComplexValues cannot be cast to int")
 
 
-@ufl_type(is_abstract=True, is_scalar=True)
+@ufl_type
 class RealValue(ScalarValue):
     """Abstract class used to differentiate real values from complex ones."""
 
     __slots__ = ()
 
 
-@ufl_type(wraps_type=float, is_literal=True)
+@ufl_type
 class FloatValue(RealValue):
     """Representation of a constant scalar floating point value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     def __getnewargs__(self):
@@ -356,10 +362,11 @@ class FloatValue(RealValue):
         return r
 
 
-@ufl_type(wraps_type=int, is_literal=True)
+@ufl_type
 class IntValue(RealValue):
     """Representation of a constant scalar integer value."""
 
+    _ufl_is_literal_ = True
     __slots__ = ()
 
     _cache: dict[int, "IntValue"] = {}
@@ -403,7 +410,7 @@ class IntValue(RealValue):
 # --- Identity matrix ---
 
 
-@ufl_type()
+@ufl_type
 class Identity(ConstantValue):
     """Representation of an identity matrix."""
 
@@ -444,7 +451,7 @@ class Identity(ConstantValue):
 # --- Permutation symbol ---
 
 
-@ufl_type()
+@ufl_type
 class PermutationSymbol(ConstantValue):
     """Representation of a permutation symbol.
 
