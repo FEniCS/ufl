@@ -445,6 +445,18 @@ def test_reference_value_derivative_into_mixed_space(domain_2d):
     assert extract_unique_domain(interpolation, expand_mesh_sequence=False) == mixed_domain
 
 
+@pytest.mark.parametrize("make_operand", [Coefficient, TrialFunction])
+def test_unique_domain_of_cross_mesh_interpolation(domain_2d, V1, make_operand):
+    source_domain = Mesh(domain_2d.ufl_coordinate_element())
+    source = FunctionSpace(source_domain, V1.ufl_element())
+    interpolation = Interpolate(make_operand(source), V1)
+    assert extract_unique_domain(interpolation) == domain_2d
+
+    # The adjoint action I^* phi is a cofunction on the source space
+    adjoint_action = Interpolate(TestFunction(source), Cofunction(V1.dual()))
+    assert extract_unique_domain(adjoint_action) == source_domain
+
+
 def test_symbolic_adjoint(V1, V2):
     u = Argument(V1, 0)
     form = inner(1, Argument(V2, 0)) * dx

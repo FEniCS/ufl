@@ -449,9 +449,11 @@ def extract_domains(
 def extract_unique_domain(
     expr: Expr | Form, expand_mesh_sequence: bool = True
 ) -> AbstractDomain | None:
-    """Return the single unique domain expression is defined on or throw an error.
+    """Return the single unique domain that the expression is defined on, or throw an error.
 
-    Use a base form operator's function space when present and its operands otherwise.
+    For a base form operator, return the domain of the space returned by
+    ``ufl_function_space()``. This space depends on the number of free arguments.
+    Use the domains of the operands only if the operator has no free arguments.
 
     Args:
         expr: UFL-expression or form to extract domain from.
