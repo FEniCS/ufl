@@ -1138,3 +1138,26 @@ def test_derivative_through_nested_operators_and_interpolations(V1):
     dN2 = N2._ufl_expr_reconstruct_(M, derivatives=(1,), argument_slots=(vstar, uhat))
     F = apply_algebra_lowering(inner(uhat, v) * dx)
     assert restructure_base_form(J) == Action(F, Action(dN2, Action(Iuhat, Action(dN1, Iuhat))))
+
+
+def test_contracted_external_operator(domain_2d, V1):
+    # The operator is built from its target space. A Cofunction in the dual slot
+    # hides that target, and _ufl_expr_reconstruct_ passes it on when the slots change.
+    target = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    u = Coefficient(V1)
+    phi = Cofunction(target.dual())
+    assert ExternalOperator(u, function_space=target).ufl_shape == (2,)
+
+    contracted = ExternalOperator(u, function_space=target, argument_slots=(phi,))
+    assert contracted.ufl_function_space() is None
+    assert contracted.ufl_shape == ()
+
+    rebuilt = contracted._ufl_expr_reconstruct_(u, argument_slots=(Coargument(target.dual(), 0),))
+    assert rebuilt.ufl_function_space() == target
+    assert rebuilt.ufl_shape == (2,)
+
+    # Differentiating with respect to the Cofunction rebuilds it in the same way
+    (dN,) = extract_type(expand_derivatives(derivative(contracted, phi)), ExternalOperator)
+    assert isinstance(dN.argument_slots()[0], Coargument)
+    assert dN.ufl_function_space() == target
+    assert dN.ufl_shape == (2,)

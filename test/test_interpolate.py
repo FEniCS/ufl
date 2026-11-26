@@ -1529,3 +1529,19 @@ def test_form_data_of_derivative_of_interpolated_strain():
     _compute_form_data(derivative(I_B, u)[0, 0] * dx)
     _compute_form_data(derivative(W(B) * dx, u))
     _compute_form_data(derivative(W(I_B) * dx, u))
+
+
+def test_contracted_interpolation_shape_follows_space(domain_2d, V1):
+    target = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    v, f = TestFunction(V1), Coefficient(V1)
+    phi = Cofunction(target.dual())
+
+    assert Interpolate(grad(f), target).ufl_shape == (2,)
+
+    # I^* phi is a cofunction on the source space
+    one_form = Interpolate(grad(v), phi)
+    assert one_form.ufl_function_space() == V1.dual()
+    assert one_form.ufl_shape == V1.dual().value_shape == ()
+
+    # phi(I f) is a number
+    assert Interpolate(grad(f), phi).ufl_shape == ()
