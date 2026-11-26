@@ -46,7 +46,23 @@ class BaseArgument:
             raise ValueError("Expecting a FunctionSpace.")
 
         self._ufl_function_space = function_space
-        self._ufl_shape = function_space.value_shape
+
+        if isinstance(function_space, MixedFunctionSpace):
+            subspaces = function_space.ufl_sub_spaces()
+            cells = [s.ufl_domain().ufl_cell() for s in subspaces]
+            if len(set(cells)) != len(cells):
+                raise ValueError(
+                    "Can only use mixed function spaces where subspaces are all defined "
+                    "on different cell types"
+                )
+            self._ufl_shape = subspaces[0].value_shape
+            for s in subspaces[1:]:
+                if self._ufl_shape != s.value_shape:
+                    raise ValueError(
+                        "Cannot use mixed function space where subspaces have different shapes"
+                    )
+        else:
+            self._ufl_shape = function_space.value_shape
 
         if not isinstance(number, numbers.Integral):
             raise ValueError(f"Expecting an int for number, not {number}")
