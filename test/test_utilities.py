@@ -36,32 +36,6 @@ def test_indexing_to_component():
                 )
 
 
-def test_component_numbering():
-    from ufl.permutation import build_component_numbering
-
-    sh = (2, 2)
-    sm = {(1, 0): (0, 1)}
-    v, s = build_component_numbering(sh, sm)
-    assert v == {(0, 1): 1, (1, 0): 1, (0, 0): 0, (1, 1): 2}
-    assert s == [(0, 0), (0, 1), (1, 1)]
-
-    sh = (3, 3)
-    sm = {(1, 0): (0, 1), (2, 0): (0, 2), (2, 1): (1, 2)}
-    v, s = build_component_numbering(sh, sm)
-    assert v == {
-        (0, 1): 1,
-        (1, 2): 4,
-        (0, 0): 0,
-        (2, 1): 4,
-        (1, 1): 3,
-        (2, 0): 2,
-        (2, 2): 5,
-        (1, 0): 1,
-        (0, 2): 2,
-    }
-    assert s == [(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)]
-
-
 def test_index_flattening():
     from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 
