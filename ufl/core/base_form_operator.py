@@ -258,22 +258,29 @@ class BaseFormOperator(Operator, BaseForm, Counted):
 
     @property
     def ufl_shape(self):
-        """Return the value shape in the operator output space.
-
-        Applying a derivative to its directions leaves the output shape unchanged,
-        independently of the shapes and numbers of the slot arguments.
-        """
-        return self._function_space.value_shape
+        """Return the value shape of the reported function space, or () for a scalar."""
+        function_space = self.ufl_function_space()
+        return function_space.value_shape if function_space is not None else ()
 
     def ufl_function_space(self):
-        """Return the function space associated to the operator.
+        """Return the function space associated with the operator's free arguments.
 
-        I.e. return the dual of the base form operator's Coargument space.
+        With more than one free argument, return the operator's output space.
+        With one free argument, return the dual of its function space.
+        With no free arguments, return ``None``.
         """
-        if len(self.arguments()) == 0:
+        arguments = self.arguments()
+        if len(arguments) > 1:
+            return self._function_space
+        elif len(arguments) == 1:
+            return arguments[0].ufl_function_space().dual()
+        else:
             return None
-        arg, *_ = self.arguments()
-        return arg.ufl_function_space().dual()
+
+    def ufl_element(self):
+        """Return the element of the reported function space, or None for a scalar."""
+        function_space = self.ufl_function_space()
+        return function_space.ufl_element() if function_space is not None else None
 
     def _ufl_expr_reconstruct_(
         self, *operands, function_space=None, derivatives=None, argument_slots=None

@@ -449,7 +449,11 @@ def extract_domains(
 def extract_unique_domain(
     expr: Expr | Form, expand_mesh_sequence: bool = True
 ) -> AbstractDomain | None:
-    """Return the single unique domain expression is defined on or throw an error.
+    """Return the single unique domain that the expression is defined on, or throw an error.
+
+    For a base form operator, return the domain of the space returned by
+    ``ufl_function_space()``. This space depends on the number of free arguments.
+    Use the domains of the operands only if the operator has no free arguments.
 
     Args:
         expr: UFL-expression or form to extract domain from.
@@ -462,13 +466,16 @@ def extract_unique_domain(
     from ufl.core.base_form_operator import BaseFormOperator
 
     if isinstance(expr, BaseFormOperator):
-        # The domain of the operator value comes from its operands.
-        operand_domains = [
-            domain
-            for operand in expr.ufl_operands
-            for domain in extract_domains(operand, expand_mesh_sequence=expand_mesh_sequence)
-        ]
-        domains = tuple(join_domains(operand_domains, expand_mesh_sequence=expand_mesh_sequence))
+        space = expr.ufl_function_space()
+        if space is None:
+            operator_domains = [
+                domain
+                for operand in expr.ufl_operands
+                for domain in extract_domains(operand, expand_mesh_sequence=expand_mesh_sequence)
+            ]
+        else:
+            operator_domains = space.ufl_domains()
+        domains = tuple(join_domains(operator_domains, expand_mesh_sequence=expand_mesh_sequence))
     else:
         domains = extract_domains(expr, expand_mesh_sequence=expand_mesh_sequence)
     if len(domains) == 1:

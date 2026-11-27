@@ -18,6 +18,7 @@ from ufl import (
     FunctionSpace,
     Identity,
     Mesh,
+    MeshSequence,
     SpatialCoordinate,
     TestFunction,
     TestFunctions,
@@ -35,6 +36,7 @@ from ufl import (
     inner,
     replace,
     sin,
+    split,
     tetrahedron,
     tr,
     triangle,
@@ -70,6 +72,7 @@ from ufl.classes import (
 )
 from ufl.core.external_operator import ExternalOperator
 from ufl.core.interpolate import Interpolate
+from ufl.domain import extract_unique_domain
 from ufl.form import Form, FormSum, ZeroBaseForm
 from ufl.geometry import Jacobian
 from ufl.pullback import identity_pullback
@@ -150,13 +153,13 @@ def test_form_compiler_metadata(domain_2d, V1, V2):
     adjoint_interpolation = Interpolate(TestFunction(V1), cofunction)
     assert adjoint_interpolation.coefficients() == (cofunction,)
     assert adjoint_interpolation.ufl_function_space() == V1.dual()
-    assert adjoint_interpolation.ufl_element() == V2.ufl_element()
+    assert adjoint_interpolation.ufl_element() == V1.ufl_element()
 
     scalar_interpolation = Interpolate(u, cofunction)
     assert scalar_interpolation.arguments() == ()
     assert scalar_interpolation.coefficients() == (u, cofunction)
     assert scalar_interpolation.ufl_function_space() is None
-    assert scalar_interpolation.ufl_element() == V2.ufl_element()
+    assert scalar_interpolation.ufl_element() is None
 
 
 def test_shape_and_negation(domain_2d, V1, V2):
@@ -405,6 +408,53 @@ def test_reference_value_derivative(V1, V2):
     expression = apply_derivatives(grad(reference_value))
     reference_grads = extract_type(expression, ReferenceGrad)
     assert reference_value in {g.ufl_operands[0] for g in reference_grads}
+
+
+@pytest.mark.parametrize("make_operand", [Coefficient, TestFunction])
+def test_reference_value_derivative_from_mixed_space(domain_2d, make_operand):
+    vector_element = LagrangeElement(triangle, 2, (2,))
+    scalar_element = LagrangeElement(triangle, 1, ())
+    mixed_domain = MeshSequence((domain_2d, domain_2d))
+    mixed_element = MixedElement([vector_element, scalar_element], make_cell_sequence=True)
+    source = FunctionSpace(mixed_domain, mixed_element)
+    target = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2, 2)))
+    u, _ = split(make_operand(source))
+    interpolation = Interpolate(grad(u), target)
+
+    assert interpolation.ufl_function_space() == target
+    assert interpolation.ufl_function_space().ufl_element() == interpolation.ufl_element()
+    reference_value = ReferenceValue(interpolation)
+    expression = apply_derivatives(grad(reference_value))
+    assert expression.ufl_shape == (2, 2, 2)
+    assert extract_type(expression, ReferenceGrad)
+    assert extract_unique_domain(interpolation, expand_mesh_sequence=False) == domain_2d
+
+
+def test_reference_value_derivative_into_mixed_space(domain_2d):
+    vector_element = LagrangeElement(triangle, 2, (2,))
+    scalar_element = LagrangeElement(triangle, 1, ())
+    mixed_domain = MeshSequence((domain_2d, domain_2d))
+    mixed_element = MixedElement([scalar_element, scalar_element], make_cell_sequence=True)
+    source = FunctionSpace(domain_2d, vector_element)
+    target = FunctionSpace(mixed_domain, mixed_element)
+    interpolation = Interpolate(TestFunction(source), target)
+
+    reference_value = ReferenceValue(interpolation)
+    expression = apply_derivatives(grad(reference_value))
+    assert reference_value in {g.ufl_operands[0] for g in extract_type(expression, ReferenceGrad)}
+    assert extract_unique_domain(interpolation, expand_mesh_sequence=False) == mixed_domain
+
+
+@pytest.mark.parametrize("make_operand", [Coefficient, TrialFunction])
+def test_unique_domain_of_cross_mesh_interpolation(domain_2d, V1, make_operand):
+    source_domain = Mesh(domain_2d.ufl_coordinate_element())
+    source = FunctionSpace(source_domain, V1.ufl_element())
+    interpolation = Interpolate(make_operand(source), V1)
+    assert extract_unique_domain(interpolation) == domain_2d
+
+    # The adjoint action I^* phi is a cofunction on the source space
+    adjoint_action = Interpolate(TestFunction(source), Cofunction(V1.dual()))
+    assert extract_unique_domain(adjoint_action) == source_domain
 
 
 def test_symbolic_adjoint(V1, V2):
@@ -1134,10 +1184,12 @@ def test_interpolate_composition(V1, V2, V3, V4, V5):
     adjoint_twoform = Interpolate(
         Argument(V2, 0), Argument(V1.dual(), 1)
     )  # V1^* x V2 -> R, equiv V1^* -> V2^*
-    assert adjoint_twoform.ufl_function_space() == V2.dual()
+    assert adjoint_twoform.ufl_function_space() == V1
+    assert adjoint_twoform.ufl_function_space().ufl_element() == adjoint_twoform.ufl_element()
     assert adjoint_twoform.arguments() == (Argument(V2, 0), Argument(V1.dual(), 1))
     Iu_adj = Interpolate(Argument(V3, 0), adjoint_twoform)  # V1^* x V3 -> R, equiv V1^* -> V3^*
-    assert Iu_adj.ufl_function_space() == V3.dual()
+    assert Iu_adj.ufl_function_space() == V2
+    assert Iu_adj.ufl_function_space().ufl_element() == Iu_adj.ufl_element()
     assert Iu_adj.arguments() == (Argument(V3, 0), Argument(V1.dual(), 1))
     assert set(extract_arguments(Iu_adj)) == {
         Argument(V3, 0),
@@ -1263,7 +1315,7 @@ def test_interpolate_form(V1, V2):
     # Adjoint interpolation of Form
     G3 = Interpolate(V2_test, F_act)
     assert G3.arguments() == (V2_test, V1_trial)
-    assert G3.ufl_function_space() == V2.dual()
+    assert G3.ufl_function_space() == V1
 
 
 def test_interpolate_adjoint(V1, V2):
@@ -1489,3 +1541,19 @@ def test_form_data_of_derivative_of_interpolated_strain():
     _compute_form_data(derivative(I_B, u)[0, 0] * dx)
     _compute_form_data(derivative(W(B) * dx, u))
     _compute_form_data(derivative(W(I_B) * dx, u))
+
+
+def test_contracted_interpolation_shape_follows_space(domain_2d, V1):
+    target = FunctionSpace(domain_2d, LagrangeElement(triangle, 1, (2,)))
+    v, f = TestFunction(V1), Coefficient(V1)
+    phi = Cofunction(target.dual())
+
+    assert Interpolate(grad(f), target).ufl_shape == (2,)
+
+    # I^* phi is a cofunction on the source space
+    one_form = Interpolate(grad(v), phi)
+    assert one_form.ufl_function_space() == V1.dual()
+    assert one_form.ufl_shape == V1.dual().value_shape == ()
+
+    # phi(I f) is a number
+    assert Interpolate(grad(f), phi).ufl_shape == ()
